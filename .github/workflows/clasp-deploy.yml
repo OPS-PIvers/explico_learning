@@ -16,7 +16,7 @@ jobs:
       with:
         node-version: 'lts/*' # Or a specific version like '18.x' or '20.x'
     - name: Install clasp
-      run: npm install -g @google/clasp
+      run: npm install -g @google/clasp@2.4.2
     - name: Authenticate clasp
       run: |
         # Create the credentials file from the secret
