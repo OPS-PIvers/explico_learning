@@ -246,7 +246,7 @@ function getProjectData(projectId) {
     const project = parseProjectRow(data[1], projectId);
     if (project) {
       // Add slides data
-      project.slides = getSlidesByProject(projectId);
+      project.slides = getSlidesByProject(projectId, spreadsheet);
     }
     
     return project;
@@ -340,9 +340,11 @@ function duplicateProject(projectId) {
 /**
  * Get slides for a project
  */
-function getSlidesByProject(projectId) {
+function getSlidesByProject(projectId, spreadsheet = null) {
   try {
-    const spreadsheet = SpreadsheetApp.openById(projectId);
+    if (!spreadsheet) {
+      spreadsheet = SpreadsheetApp.openById(projectId);
+    }
     const slidesSheet = spreadsheet.getSheetByName('Slides');
     
     if (!slidesSheet) {
