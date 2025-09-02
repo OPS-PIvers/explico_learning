@@ -1,4 +1,5 @@
 name: Auto Deploy Apps Script
+# Test run to verify CLASPRC_JSON secret
 on:
   push:
     branches:
