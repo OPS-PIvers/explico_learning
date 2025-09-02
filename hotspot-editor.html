@@ -377,7 +377,7 @@
     
     <!-- Layout Components -->
     <script>
-        <?!= HtmlService.createHtmlOutputFromFile('components/AppHeader').getContent(); ?>
+        <?!= include('AppHeader'); ?>
         <?!= include('Sidebar'); ?>
         <?!= include('MainCanvas'); ?>
         <?!= include('ConfigPanel'); ?>
