@@ -1,0 +1,523 @@
+<script>
+/**
+ * HotspotRenderer Component for Explico Learning
+ * Renders interactive hotspots with various styling and event options
+ */
+
+class HotspotRenderer {
+  
+  constructor() {
+    this.hotspots = new Map();
+    this.selectedHotspot = null;
+    this.isEditorMode = true;
+    this.eventHandlers = {};
+  }
+  
+  /**
+   * Create a hotspot element
+   * @param {Object} config - Hotspot configuration
+   * @param {HTMLElement} container - Container element to append hotspot
+   * @returns {HTMLElement} Hotspot element
+   */
+  createHotspot(config, container) {
+    const hotspotConfig = { ...HOTSPOT_DEFAULTS, ...config };
+    
+    const hotspot = document.createElement('div');
+    hotspot.className = 'hotspot';
+    hotspot.id = `hotspot-${hotspotConfig.id || this.generateId()}`;
+    hotspot.dataset.hotspotId = hotspotConfig.id;
+    
+    // Apply styling
+    this.applyHotspotStyles(hotspot, hotspotConfig);
+    
+    // Create inner circle
+    const inner = document.createElement('div');
+    inner.className = 'hotspot-inner';
+    hotspot.appendChild(inner);
+    
+    // Add event listeners
+    this.attachEventListeners(hotspot, hotspotConfig);
+    
+    // Position the hotspot
+    this.positionHotspot(hotspot, hotspotConfig.position, container);
+    
+    // Store reference
+    this.hotspots.set(hotspotConfig.id, {
+      element: hotspot,
+      config: hotspotConfig,
+      container: container
+    });
+    
+    if (container) {
+      container.appendChild(hotspot);
+    }
+    
+    return hotspot;
+  }
+  
+  /**
+   * Apply styling to hotspot element
+   * @param {HTMLElement} hotspot - Hotspot element
+   * @param {Object} config - Hotspot configuration
+   */
+  applyHotspotStyles(hotspot, config) {
+    hotspot.style.width = `${config.size}px`;
+    hotspot.style.height = `${config.size}px`;
+    hotspot.style.backgroundColor = config.color;
+    hotspot.style.zIndex = config.zIndex || UI_CONFIG.Z_INDEX.DROPDOWN;
+    
+    // Apply pulse animation
+    if (config.pulseAnimation) {
+      hotspot.classList.add('hotspot-pulse');
+    } else {
+      hotspot.classList.remove('hotspot-pulse');
+    }
+    
+    // Apply visibility
+    hotspot.style.display = config.isVisible ? 'flex' : 'none';
+    
+    // Add shadow for better visibility
+    hotspot.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.3)';
+    
+    // Add transition for smooth interactions
+    hotspot.style.transition = 'all 0.2s ease';
+  }
+  
+  /**
+   * Position hotspot within container
+   * @param {HTMLElement} hotspot - Hotspot element
+   * @param {Object} position - Position configuration {x, y}
+   * @param {HTMLElement} container - Container element
+   */
+  positionHotspot(hotspot, position, container) {
+    if (!container) return;
+    
+    const containerRect = container.getBoundingClientRect();
+    const hotspotSize = parseInt(hotspot.style.width) || 32;
+    
+    // Convert percentage to pixels
+    const x = (position.x / 100) * containerRect.width;
+    const y = (position.y / 100) * containerRect.height;
+    
+    // Center the hotspot on the position
+    hotspot.style.left = `${x - hotspotSize / 2}px`;
+    hotspot.style.top = `${y - hotspotSize / 2}px`;
+  }
+  
+  /**
+   * Attach event listeners to hotspot
+   * @param {HTMLElement} hotspot - Hotspot element
+   * @param {Object} config - Hotspot configuration
+   */
+  attachEventListeners(hotspot, config) {
+    // Remove existing listeners
+    hotspot.replaceWith(hotspot.cloneNode(true));
+    hotspot = document.getElementById(hotspot.id);
+    
+    if (this.isEditorMode) {
+      // Editor mode events
+      this.attachEditorEvents(hotspot, config);
+    } else {
+      // Viewer mode events
+      this.attachViewerEvents(hotspot, config);
+    }
+  }
+  
+  /**
+   * Attach editor mode event listeners
+   * @param {HTMLElement} hotspot - Hotspot element
+   * @param {Object} config - Hotspot configuration
+   */
+  attachEditorEvents(hotspot, config) {
+    let isDragging = false;
+    let dragStart = { x: 0, y: 0 };
+    
+    // Click to select
+    hotspot.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!isDragging) {
+        this.selectHotspot(config.id);
+      }
+    });
+    
+    // Drag to reposition
+    hotspot.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      isDragging = true;
+      dragStart.x = e.clientX - hotspot.offsetLeft;
+      dragStart.y = e.clientY - hotspot.offsetTop;
+      
+      hotspot.style.cursor = 'grabbing';
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    });
+    
+    const onMouseMove = (e) => {
+      if (!isDragging) return;
+      
+      const container = this.hotspots.get(config.id)?.container;
+      if (!container) return;
+      
+      const containerRect = container.getBoundingClientRect();
+      const newX = e.clientX - dragStart.x;
+      const newY = e.clientY - dragStart.y;
+      
+      // Constrain to container bounds
+      const maxX = containerRect.width - hotspot.offsetWidth;
+      const maxY = containerRect.height - hotspot.offsetHeight;
+      
+      const constrainedX = Math.max(0, Math.min(newX, maxX));
+      const constrainedY = Math.max(0, Math.min(newY, maxY));
+      
+      hotspot.style.left = `${constrainedX}px`;
+      hotspot.style.top = `${constrainedY}px`;
+      
+      // Update config with new percentage position
+      config.position.x = ((constrainedX + hotspot.offsetWidth / 2) / containerRect.width) * 100;
+      config.position.y = ((constrainedY + hotspot.offsetHeight / 2) / containerRect.height) * 100;
+      
+      // Trigger position change callback
+      if (this.eventHandlers.onPositionChange) {
+        this.eventHandlers.onPositionChange(config.id, config.position);
+      }
+    };
+    
+    const onMouseUp = () => {
+      isDragging = false;
+      hotspot.style.cursor = 'pointer';
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+    
+    // Hover effects
+    hotspot.addEventListener('mouseenter', () => {
+      if (!isDragging) {
+        hotspot.style.transform = 'scale(1.1)';
+      }
+    });
+    
+    hotspot.addEventListener('mouseleave', () => {
+      if (!isDragging) {
+        hotspot.style.transform = 'scale(1)';
+      }
+    });
+  }
+  
+  /**
+   * Attach viewer mode event listeners
+   * @param {HTMLElement} hotspot - Hotspot element
+   * @param {Object} config - Hotspot configuration
+   */
+  attachViewerEvents(hotspot, config) {
+    const triggerEvent = () => {
+      if (this.eventHandlers.onHotspotTrigger) {
+        this.eventHandlers.onHotspotTrigger(config);
+      }
+    };
+    
+    switch (config.triggerType) {
+      case TRIGGER_TYPES.CLICK:
+        hotspot.addEventListener('click', triggerEvent);
+        break;
+      
+      case TRIGGER_TYPES.HOVER:
+        hotspot.addEventListener('mouseenter', triggerEvent);
+        break;
+      
+      case TRIGGER_TYPES.TOUCH:
+        hotspot.addEventListener('touchstart', triggerEvent);
+        hotspot.addEventListener('click', triggerEvent); // Fallback for mouse
+        break;
+    }
+    
+    // Add hover effects
+    hotspot.addEventListener('mouseenter', () => {
+      hotspot.style.transform = 'scale(1.1)';
+    });
+    
+    hotspot.addEventListener('mouseleave', () => {
+      hotspot.style.transform = 'scale(1)';
+    });
+  }
+  
+  /**
+   * Update hotspot configuration
+   * @param {string} id - Hotspot ID
+   * @param {Object} newConfig - New configuration
+   */
+  updateHotspot(id, newConfig) {
+    const hotspotData = this.hotspots.get(id);
+    if (!hotspotData) return;
+    
+    const { element, config, container } = hotspotData;
+    const updatedConfig = { ...config, ...newConfig };
+    
+    // Update styling
+    this.applyHotspotStyles(element, updatedConfig);
+    
+    // Update position if changed
+    if (newConfig.position) {
+      this.positionHotspot(element, updatedConfig.position, container);
+    }
+    
+    // Update event listeners if trigger type changed
+    if (newConfig.triggerType && newConfig.triggerType !== config.triggerType) {
+      this.attachEventListeners(element, updatedConfig);
+    }
+    
+    // Update stored config
+    this.hotspots.set(id, {
+      ...hotspotData,
+      config: updatedConfig
+    });
+    
+    // Trigger update callback
+    if (this.eventHandlers.onHotspotUpdate) {
+      this.eventHandlers.onHotspotUpdate(id, updatedConfig);
+    }
+  }
+  
+  /**
+   * Remove a hotspot
+   * @param {string} id - Hotspot ID
+   */
+  removeHotspot(id) {
+    const hotspotData = this.hotspots.get(id);
+    if (!hotspotData) return;
+    
+    hotspotData.element.remove();
+    this.hotspots.delete(id);
+    
+    if (this.selectedHotspot === id) {
+      this.selectedHotspot = null;
+    }
+    
+    // Trigger remove callback
+    if (this.eventHandlers.onHotspotRemove) {
+      this.eventHandlers.onHotspotRemove(id);
+    }
+  }
+  
+  /**
+   * Select a hotspot (editor mode)
+   * @param {string} id - Hotspot ID
+   */
+  selectHotspot(id) {
+    // Deselect previous
+    if (this.selectedHotspot) {
+      const prevHotspot = this.hotspots.get(this.selectedHotspot);
+      if (prevHotspot) {
+        prevHotspot.element.classList.remove('ring-2', 'ring-white', 'ring-offset-2', 'ring-offset-gray-800');
+      }
+    }
+    
+    // Select new hotspot
+    const hotspotData = this.hotspots.get(id);
+    if (hotspotData) {
+      hotspotData.element.classList.add('ring-2', 'ring-white', 'ring-offset-2', 'ring-offset-gray-800');
+      this.selectedHotspot = id;
+      
+      // Trigger selection callback
+      if (this.eventHandlers.onHotspotSelect) {
+        this.eventHandlers.onHotspotSelect(id, hotspotData.config);
+      }
+    }
+  }
+  
+  /**
+   * Get hotspot configuration
+   * @param {string} id - Hotspot ID
+   * @returns {Object|null} Hotspot configuration
+   */
+  getHotspot(id) {
+    const hotspotData = this.hotspots.get(id);
+    return hotspotData ? hotspotData.config : null;
+  }
+  
+  /**
+   * Get all hotspots
+   * @returns {Array} Array of hotspot configurations
+   */
+  getAllHotspots() {
+    return Array.from(this.hotspots.values()).map(data => data.config);
+  }
+  
+  /**
+   * Clear all hotspots
+   */
+  clearHotspots() {
+    this.hotspots.forEach((data) => {
+      data.element.remove();
+    });
+    this.hotspots.clear();
+    this.selectedHotspot = null;
+  }
+  
+  /**
+   * Set editor mode
+   * @param {boolean} isEditor - Whether in editor mode
+   */
+  setEditorMode(isEditor) {
+    this.isEditorMode = isEditor;
+    
+    // Re-attach event listeners for all hotspots
+    this.hotspots.forEach((data) => {
+      this.attachEventListeners(data.element, data.config);
+    });
+  }
+  
+  /**
+   * Set event handlers
+   * @param {Object} handlers - Event handler functions
+   */
+  setEventHandlers(handlers) {
+    this.eventHandlers = { ...this.eventHandlers, ...handlers };
+  }
+  
+  /**
+   * Create tooltip element
+   * @param {Object} config - Tooltip configuration
+   * @returns {HTMLElement} Tooltip element
+   */
+  createTooltip(config) {
+    const tooltip = document.createElement('div');
+    tooltip.className = `tooltip absolute z-[${UI_CONFIG.Z_INDEX.TOOLTIP}] bg-gray-900/90 text-white text-sm rounded-md px-3 py-2 shadow-lg max-w-xs`;
+    tooltip.textContent = config.tooltipContent || '';
+    
+    // Position tooltip based on config
+    this.positionTooltip(tooltip, config);
+    
+    return tooltip;
+  }
+  
+  /**
+   * Position tooltip relative to hotspot
+   * @param {HTMLElement} tooltip - Tooltip element
+   * @param {Object} config - Hotspot configuration
+   */
+  positionTooltip(tooltip, config) {
+    const position = config.tooltipPosition || TOOLTIP_POSITIONS.BOTTOM;
+    
+    tooltip.classList.remove('tooltip-top', 'tooltip-bottom', 'tooltip-left', 'tooltip-right');
+    
+    switch (position) {
+      case TOOLTIP_POSITIONS.TOP:
+        tooltip.classList.add('tooltip-top');
+        tooltip.style.bottom = '100%';
+        tooltip.style.left = '50%';
+        tooltip.style.transform = 'translateX(-50%) translateY(-8px)';
+        break;
+      
+      case TOOLTIP_POSITIONS.BOTTOM:
+        tooltip.classList.add('tooltip-bottom');
+        tooltip.style.top = '100%';
+        tooltip.style.left = '50%';
+        tooltip.style.transform = 'translateX(-50%) translateY(8px)';
+        break;
+      
+      case TOOLTIP_POSITIONS.LEFT:
+        tooltip.classList.add('tooltip-left');
+        tooltip.style.right = '100%';
+        tooltip.style.top = '50%';
+        tooltip.style.transform = 'translateX(-8px) translateY(-50%)';
+        break;
+      
+      case TOOLTIP_POSITIONS.RIGHT:
+        tooltip.classList.add('tooltip-right');
+        tooltip.style.left = '100%';
+        tooltip.style.top = '50%';
+        tooltip.style.transform = 'translateX(8px) translateY(-50%)';
+        break;
+    }
+  }
+  
+  /**
+   * Show tooltip for hotspot
+   * @param {string} id - Hotspot ID
+   * @param {string} content - Tooltip content
+   */
+  showTooltip(id, content = null) {
+    const hotspotData = this.hotspots.get(id);
+    if (!hotspotData) return;
+    
+    const { element, config } = hotspotData;
+    
+    // Remove existing tooltip
+    const existingTooltip = element.querySelector('.tooltip');
+    if (existingTooltip) {
+      existingTooltip.remove();
+    }
+    
+    // Create new tooltip
+    const tooltipConfig = { ...config };
+    if (content) tooltipConfig.tooltipContent = content;
+    
+    const tooltip = this.createTooltip(tooltipConfig);
+    element.appendChild(tooltip);
+    
+    // Auto-hide after delay
+    setTimeout(() => {
+      tooltip.remove();
+    }, 3000);
+  }
+  
+  /**
+   * Hide tooltip for hotspot
+   * @param {string} id - Hotspot ID
+   */
+  hideTooltip(id) {
+    const hotspotData = this.hotspots.get(id);
+    if (!hotspotData) return;
+    
+    const tooltip = hotspotData.element.querySelector('.tooltip');
+    if (tooltip) {
+      tooltip.remove();
+    }
+  }
+  
+  /**
+   * Generate unique ID
+   * @returns {string} Unique ID
+   */
+  generateId() {
+    return `hotspot_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+  
+  /**
+   * Export hotspots configuration
+   * @returns {Array} Array of hotspot configurations
+   */
+  exportHotspots() {
+    return this.getAllHotspots().map(config => ({
+      ...config,
+      // Remove any DOM-specific properties
+      element: undefined
+    }));
+  }
+  
+  /**
+   * Import hotspots configuration
+   * @param {Array} hotspotsConfig - Array of hotspot configurations
+   * @param {HTMLElement} container - Container element
+   */
+  importHotspots(hotspotsConfig, container) {
+    this.clearHotspots();
+    
+    hotspotsConfig.forEach(config => {
+      this.createHotspot(config, container);
+    });
+  }
+  
+  /**
+   * Resize all hotspots when container changes
+   * @param {HTMLElement} container - Container element
+   */
+  handleContainerResize(container) {
+    this.hotspots.forEach((data) => {
+      if (data.container === container) {
+        this.positionHotspot(data.element, data.config.position, container);
+      }
+    });
+  }
+}
+</script>

@@ -1,0 +1,527 @@
+<script>
+/**
+ * Reusable Form Control Components for Explico Learning
+ * Google Apps Script Web App
+ */
+
+class FormControls {
+  
+  /**
+   * Create a text input field
+   * @param {Object} options - Input configuration
+   * @param {string} options.id - Input ID
+   * @param {string} options.label - Input label text
+   * @param {string} options.value - Current value
+   * @param {string} options.placeholder - Placeholder text
+   * @param {boolean} options.required - Whether field is required
+   * @param {Function} options.onChange - Change event handler
+   * @returns {HTMLElement} Input group element
+   */
+  static createTextInput(options = {}) {
+    const {
+      id = '',
+      label = '',
+      value = '',
+      placeholder = '',
+      required = false,
+      onChange = null,
+      maxLength = null,
+      minLength = null
+    } = options;
+    
+    const group = document.createElement('div');
+    group.className = 'form-group';
+    
+    if (label) {
+      const labelEl = document.createElement('label');
+      labelEl.className = 'form-label';
+      labelEl.setAttribute('for', id);
+      labelEl.textContent = label + (required ? ' *' : '');
+      group.appendChild(labelEl);
+    }
+    
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.id = id;
+    input.className = 'form-input';
+    input.value = value;
+    input.placeholder = placeholder;
+    input.required = required;
+    
+    if (maxLength) input.maxLength = maxLength;
+    if (minLength) input.minLength = minLength;
+    
+    if (onChange) {
+      input.addEventListener('input', (e) => onChange(e.target.value, e));
+    }
+    
+    group.appendChild(input);
+    return group;
+  }
+  
+  /**
+   * Create a number input field
+   * @param {Object} options - Input configuration
+   * @returns {HTMLElement} Input group element
+   */
+  static createNumberInput(options = {}) {
+    const {
+      id = '',
+      label = '',
+      value = 0,
+      min = null,
+      max = null,
+      step = 1,
+      required = false,
+      onChange = null
+    } = options;
+    
+    const group = document.createElement('div');
+    group.className = 'form-group';
+    
+    if (label) {
+      const labelEl = document.createElement('label');
+      labelEl.className = 'form-label';
+      labelEl.setAttribute('for', id);
+      labelEl.textContent = label + (required ? ' *' : '');
+      group.appendChild(labelEl);
+    }
+    
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.id = id;
+    input.className = 'form-input';
+    input.value = value;
+    input.step = step;
+    input.required = required;
+    
+    if (min !== null) input.min = min;
+    if (max !== null) input.max = max;
+    
+    if (onChange) {
+      input.addEventListener('input', (e) => onChange(parseFloat(e.target.value) || 0, e));
+    }
+    
+    group.appendChild(input);
+    return group;
+  }
+  
+  /**
+   * Create a color picker input
+   * @param {Object} options - Input configuration
+   * @returns {HTMLElement} Input group element
+   */
+  static createColorInput(options = {}) {
+    const {
+      id = '',
+      label = '',
+      value = '#2d3f89',
+      onChange = null
+    } = options;
+    
+    const group = document.createElement('div');
+    group.className = 'form-group';
+    
+    if (label) {
+      const labelEl = document.createElement('label');
+      labelEl.className = 'form-label';
+      labelEl.setAttribute('for', id);
+      labelEl.textContent = label;
+      group.appendChild(labelEl);
+    }
+    
+    const input = document.createElement('input');
+    input.type = 'color';
+    input.id = id;
+    input.className = 'w-full h-10 rounded-md bg-gray-700 border-gray-600';
+    input.value = value;
+    
+    if (onChange) {
+      input.addEventListener('change', (e) => onChange(e.target.value, e));
+    }
+    
+    group.appendChild(input);
+    return group;
+  }
+  
+  /**
+   * Create a select dropdown
+   * @param {Object} options - Select configuration
+   * @returns {HTMLElement} Select group element
+   */
+  static createSelect(options = {}) {
+    const {
+      id = '',
+      label = '',
+      value = '',
+      options: selectOptions = [],
+      required = false,
+      onChange = null
+    } = options;
+    
+    const group = document.createElement('div');
+    group.className = 'form-group';
+    
+    if (label) {
+      const labelEl = document.createElement('label');
+      labelEl.className = 'form-label';
+      labelEl.setAttribute('for', id);
+      labelEl.textContent = label + (required ? ' *' : '');
+      group.appendChild(labelEl);
+    }
+    
+    const select = document.createElement('select');
+    select.id = id;
+    select.className = 'form-select';
+    select.required = required;
+    
+    selectOptions.forEach(option => {
+      const optionEl = document.createElement('option');
+      optionEl.value = option.value;
+      optionEl.textContent = option.label;
+      optionEl.selected = option.value === value;
+      select.appendChild(optionEl);
+    });
+    
+    if (onChange) {
+      select.addEventListener('change', (e) => onChange(e.target.value, e));
+    }
+    
+    group.appendChild(select);
+    return group;
+  }
+  
+  /**
+   * Create a toggle switch
+   * @param {Object} options - Toggle configuration
+   * @returns {HTMLElement} Toggle group element
+   */
+  static createToggle(options = {}) {
+    const {
+      id = '',
+      label = '',
+      checked = false,
+      onChange = null
+    } = options;
+    
+    const group = document.createElement('div');
+    group.className = 'flex items-center justify-between';
+    
+    if (label) {
+      const labelEl = document.createElement('label');
+      labelEl.className = 'text-sm text-gray-300';
+      labelEl.setAttribute('for', id);
+      labelEl.textContent = label;
+      group.appendChild(labelEl);
+    }
+    
+    const toggleWrapper = document.createElement('button');
+    toggleWrapper.type = 'button';
+    toggleWrapper.id = id;
+    toggleWrapper.className = `form-toggle ${checked ? 'active' : ''}`;
+    toggleWrapper.setAttribute('role', 'switch');
+    toggleWrapper.setAttribute('aria-checked', checked);
+    
+    const thumb = document.createElement('span');
+    thumb.className = 'form-toggle-thumb';
+    thumb.setAttribute('aria-hidden', 'true');
+    
+    toggleWrapper.appendChild(thumb);
+    
+    if (onChange) {
+      toggleWrapper.addEventListener('click', (e) => {
+        e.preventDefault();
+        const isChecked = !toggleWrapper.classList.contains('active');
+        toggleWrapper.classList.toggle('active', isChecked);
+        toggleWrapper.setAttribute('aria-checked', isChecked);
+        onChange(isChecked, e);
+      });
+    }
+    
+    group.appendChild(toggleWrapper);
+    return group;
+  }
+  
+  /**
+   * Create a range slider
+   * @param {Object} options - Slider configuration
+   * @returns {HTMLElement} Slider group element
+   */
+  static createSlider(options = {}) {
+    const {
+      id = '',
+      label = '',
+      value = 0,
+      min = 0,
+      max = 100,
+      step = 1,
+      showValue = true,
+      valueFormatter = null,
+      onChange = null
+    } = options;
+    
+    const group = document.createElement('div');
+    group.className = 'form-group';
+    
+    if (label || showValue) {
+      const headerDiv = document.createElement('div');
+      headerDiv.className = 'flex justify-between items-center';
+      
+      if (label) {
+        const labelEl = document.createElement('label');
+        labelEl.className = 'form-label';
+        labelEl.setAttribute('for', id);
+        labelEl.textContent = label;
+        headerDiv.appendChild(labelEl);
+      }
+      
+      if (showValue) {
+        const valueEl = document.createElement('span');
+        valueEl.className = 'text-sm text-gray-400';
+        valueEl.id = `${id}-value`;
+        valueEl.textContent = valueFormatter ? valueFormatter(value) : value;
+        headerDiv.appendChild(valueEl);
+      }
+      
+      group.appendChild(headerDiv);
+    }
+    
+    const slider = document.createElement('input');
+    slider.type = 'range';
+    slider.id = id;
+    slider.className = 'w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer slider-thumb';
+    slider.min = min;
+    slider.max = max;
+    slider.step = step;
+    slider.value = value;
+    
+    if (onChange || showValue) {
+      slider.addEventListener('input', (e) => {
+        const newValue = parseFloat(e.target.value);
+        
+        if (showValue) {
+          const valueEl = document.getElementById(`${id}-value`);
+          if (valueEl) {
+            valueEl.textContent = valueFormatter ? valueFormatter(newValue) : newValue;
+          }
+        }
+        
+        if (onChange) {
+          onChange(newValue, e);
+        }
+      });
+    }
+    
+    group.appendChild(slider);
+    return group;
+  }
+  
+  /**
+   * Create a button group for multiple selections
+   * @param {Object} options - Button group configuration
+   * @returns {HTMLElement} Button group element
+   */
+  static createButtonGroup(options = {}) {
+    const {
+      id = '',
+      label = '',
+      buttons = [],
+      value = '',
+      multiSelect = false,
+      onChange = null
+    } = options;
+    
+    const group = document.createElement('div');
+    group.className = 'form-group';
+    
+    if (label) {
+      const labelEl = document.createElement('label');
+      labelEl.className = 'form-label';
+      labelEl.textContent = label;
+      group.appendChild(labelEl);
+    }
+    
+    const buttonContainer = document.createElement('div');
+    buttonContainer.className = 'grid gap-2';
+    buttonContainer.style.gridTemplateColumns = `repeat(${buttons.length}, 1fr)`;
+    
+    buttons.forEach((button, index) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'btn btn-secondary text-sm font-medium py-2';
+      btn.textContent = button.label;
+      btn.value = button.value;
+      
+      // Set initial state
+      if (multiSelect) {
+        const isSelected = Array.isArray(value) && value.includes(button.value);
+        if (isSelected) {
+          btn.classList.remove('btn-secondary');
+          btn.classList.add('btn-primary');
+        }
+      } else {
+        if (button.value === value) {
+          btn.classList.remove('btn-secondary');
+          btn.classList.add('btn-primary');
+        }
+      }
+      
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        
+        if (multiSelect) {
+          // Handle multiple selection
+          const currentValues = Array.isArray(value) ? [...value] : [];
+          const buttonValue = button.value;
+          const index = currentValues.indexOf(buttonValue);
+          
+          if (index > -1) {
+            currentValues.splice(index, 1);
+            btn.classList.remove('btn-primary');
+            btn.classList.add('btn-secondary');
+          } else {
+            currentValues.push(buttonValue);
+            btn.classList.remove('btn-secondary');
+            btn.classList.add('btn-primary');
+          }
+          
+          if (onChange) onChange(currentValues, e);
+        } else {
+          // Handle single selection
+          buttonContainer.querySelectorAll('button').forEach(b => {
+            b.classList.remove('btn-primary');
+            b.classList.add('btn-secondary');
+          });
+          
+          btn.classList.remove('btn-secondary');
+          btn.classList.add('btn-primary');
+          
+          if (onChange) onChange(button.value, e);
+        }
+      });
+      
+      buttonContainer.appendChild(btn);
+    });
+    
+    group.appendChild(buttonContainer);
+    return group;
+  }
+  
+  /**
+   * Create a textarea input
+   * @param {Object} options - Textarea configuration
+   * @returns {HTMLElement} Textarea group element
+   */
+  static createTextarea(options = {}) {
+    const {
+      id = '',
+      label = '',
+      value = '',
+      placeholder = '',
+      required = false,
+      rows = 3,
+      maxLength = null,
+      onChange = null
+    } = options;
+    
+    const group = document.createElement('div');
+    group.className = 'form-group';
+    
+    if (label) {
+      const labelEl = document.createElement('label');
+      labelEl.className = 'form-label';
+      labelEl.setAttribute('for', id);
+      labelEl.textContent = label + (required ? ' *' : '');
+      group.appendChild(labelEl);
+    }
+    
+    const textarea = document.createElement('textarea');
+    textarea.id = id;
+    textarea.className = 'form-input';
+    textarea.value = value;
+    textarea.placeholder = placeholder;
+    textarea.required = required;
+    textarea.rows = rows;
+    
+    if (maxLength) textarea.maxLength = maxLength;
+    
+    if (onChange) {
+      textarea.addEventListener('input', (e) => onChange(e.target.value, e));
+    }
+    
+    group.appendChild(textarea);
+    return group;
+  }
+  
+  /**
+   * Validate a form group
+   * @param {HTMLElement} formGroup - The form group element
+   * @param {Object} rules - Validation rules
+   * @returns {Object} Validation result
+   */
+  static validateField(formGroup, rules = {}) {
+    const input = formGroup.querySelector('input, select, textarea');
+    if (!input) return { isValid: true, errors: [] };
+    
+    const value = input.value.trim();
+    const errors = [];
+    
+    // Required field validation
+    if (rules.required && !value) {
+      errors.push(ERROR_MESSAGES.REQUIRED_FIELD);
+    }
+    
+    // Length validations
+    if (rules.minLength && value.length < rules.minLength) {
+      errors.push(ERROR_MESSAGES.NAME_TOO_SHORT.replace('{min}', rules.minLength));
+    }
+    
+    if (rules.maxLength && value.length > rules.maxLength) {
+      errors.push(ERROR_MESSAGES.NAME_TOO_LONG.replace('{max}', rules.maxLength));
+    }
+    
+    // Type-specific validations
+    if (input.type === 'email' && value && !this.isValidEmail(value)) {
+      errors.push(ERROR_MESSAGES.INVALID_EMAIL);
+    }
+    
+    if (input.type === 'url' && value && !this.isValidUrl(value)) {
+      errors.push(ERROR_MESSAGES.INVALID_URL);
+    }
+    
+    if (input.type === 'number' && value && isNaN(parseFloat(value))) {
+      errors.push(ERROR_MESSAGES.INVALID_NUMBER);
+    }
+    
+    // Update UI with validation state
+    input.classList.toggle('border-red-500', errors.length > 0);
+    input.classList.toggle('border-gray-600', errors.length === 0);
+    
+    return {
+      isValid: errors.length === 0,
+      errors: errors,
+      value: value
+    };
+  }
+  
+  /**
+   * Helper method to validate email format
+   */
+  static isValidEmail(email) {
+    const emailRegex = /^[^S@]+@[^S@]+S[^S@]+$/;
+    return emailRegex.test(email);
+  }
+  
+  /**
+   * Helper method to validate URL format
+   */
+  static isValidUrl(url) {
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+}
+</script>

@@ -1,0 +1,418 @@
+<script>
+/**
+ * ProgressBar Component for Explico Learning
+ * Displays progress indicators with various styles and animations
+ */
+
+class ProgressBar {
+  
+  /**
+   * Create a progress bar element
+   * @param {Object} options - Progress bar configuration
+   * @param {number} options.value - Current progress value (0-100)
+   * @param {number} options.max - Maximum value (default: 100)
+   * @param {string} options.size - Bar size ('sm', 'md', 'lg')
+   * @param {string} options.color - Progress color
+   * @param {string} options.bgColor - Background color
+   * @param {boolean} options.showLabel - Whether to show percentage label
+   * @param {boolean} options.animated - Whether to animate the progress
+   * @param {string} options.label - Custom label text
+   * @returns {HTMLElement} Progress bar container
+   */
+  static create(options = {}) {
+    const {
+      value = 0,
+      max = 100,
+      size = 'md',
+      color = 'var(--brand-red)',
+      bgColor = 'var(--gray-700)',
+      showLabel = false,
+      animated = true,
+      label = null
+    } = options;
+    
+    const container = document.createElement('div');
+    container.className = 'progress-container flex items-center gap-2';
+    
+    // Create progress bar wrapper
+    const wrapper = document.createElement('div');
+    wrapper.className = `progress-wrapper flex-1 ${this.getSizeClasses(size)} rounded-full overflow-hidden`;
+    wrapper.style.backgroundColor = bgColor;
+    
+    // Create progress fill
+    const fill = document.createElement('div');
+    fill.className = `progress-fill h-full rounded-full transition-all duration-300 ${animated ? 'ease-in-out' : ''}`;
+    fill.style.backgroundColor = color;
+    fill.style.width = '0%';
+    
+    wrapper.appendChild(fill);
+    container.appendChild(wrapper);
+    
+    // Add label if requested
+    if (showLabel || label) {
+      const labelEl = document.createElement('span');
+      labelEl.className = 'progress-label text-xs font-medium text-gray-300 min-w-0';
+      labelEl.textContent = label || `${Math.round((value / max) * 100)}%`;
+      container.appendChild(labelEl);
+    }
+    
+    // Set initial value
+    this.updateValue(container, value, max, animated);
+    
+    return container;
+  }
+  
+  /**
+   * Update progress bar value
+   * @param {HTMLElement} progressBar - Progress bar container
+   * @param {number} value - New value
+   * @param {number} max - Maximum value
+   * @param {boolean} animated - Whether to animate the change
+   */
+  static updateValue(progressBar, value, max = 100, animated = true) {
+    const fill = progressBar.querySelector('.progress-fill');
+    const label = progressBar.querySelector('.progress-label');
+    
+    if (!fill) return;
+    
+    const percentage = Math.min(Math.max((value / max) * 100, 0), 100);
+    
+    if (animated) {
+      // Animate to new value
+      setTimeout(() => {
+        fill.style.width = `${percentage}%`;
+      }, 10);
+    } else {
+      fill.style.width = `${percentage}%`;
+    }
+    
+    // Update label if present
+    if (label) {
+      label.textContent = `${Math.round(percentage)}%`;
+    }
+  }
+  
+  /**
+   * Create a segmented progress bar
+   * @param {Object} options - Segmented progress bar configuration
+   * @param {Array} options.segments - Array of segment objects with value and color
+   * @param {number} options.max - Maximum total value
+   * @param {string} options.size - Bar size
+   * @param {boolean} options.showLabels - Whether to show individual segment labels
+   * @returns {HTMLElement} Segmented progress bar
+   */
+  static createSegmented(options = {}) {
+    const {
+      segments = [],
+      max = 100,
+      size = 'md',
+      showLabels = false
+    } = options;
+    
+    const container = document.createElement('div');
+    container.className = 'segmented-progress-container';
+    
+    // Calculate total value
+    const totalValue = segments.reduce((sum, segment) => sum + (segment.value || 0), 0);
+    
+    // Create progress bar wrapper
+    const wrapper = document.createElement('div');
+    wrapper.className = `progress-wrapper flex ${this.getSizeClasses(size)} rounded-full overflow-hidden`;
+    wrapper.style.backgroundColor = 'var(--gray-700)';
+    
+    segments.forEach((segment, index) => {
+      const segmentEl = document.createElement('div');
+      segmentEl.className = 'progress-segment h-full transition-all duration-300';
+      segmentEl.style.backgroundColor = segment.color || 'var(--brand-primary)';
+      segmentEl.style.width = `${(segment.value / max) * 100}%`;
+      
+      if (segment.tooltip) {
+        segmentEl.title = segment.tooltip;
+      }
+      
+      wrapper.appendChild(segmentEl);
+    });
+    
+    container.appendChild(wrapper);
+    
+    // Add labels if requested
+    if (showLabels) {
+      const labelsContainer = document.createElement('div');
+      labelsContainer.className = 'flex justify-between text-xs text-gray-400 mt-1';
+      
+      segments.forEach(segment => {
+        const labelEl = document.createElement('span');
+        labelEl.textContent = segment.label || `${Math.round((segment.value / max) * 100)}%`;
+        labelsContainer.appendChild(labelEl);
+      });
+      
+      container.appendChild(labelsContainer);
+    }
+    
+    return container;
+  }
+  
+  /**
+   * Create a circular progress indicator
+   * @param {Object} options - Circular progress configuration
+   * @param {number} options.value - Current progress value (0-100)
+   * @param {number} options.max - Maximum value
+   * @param {string} options.size - Circle size ('sm', 'md', 'lg')
+   * @param {string} options.color - Progress color
+   * @param {string} options.bgColor - Background color
+   * @param {boolean} options.showLabel - Whether to show percentage in center
+   * @param {number} options.strokeWidth - Stroke width for the circle
+   * @returns {HTMLElement} Circular progress element
+   */
+  static createCircular(options = {}) {
+    const {
+      value = 0,
+      max = 100,
+      size = 'md',
+      color = 'var(--brand-primary)',
+      bgColor = 'var(--gray-600)',
+      showLabel = true,
+      strokeWidth = 4
+    } = options;
+    
+    const sizes = {
+      sm: { diameter: 40, fontSize: 'text-xs' },
+      md: { diameter: 60, fontSize: 'text-sm' },
+      lg: { diameter: 80, fontSize: 'text-base' }
+    };
+    
+    const { diameter, fontSize } = sizes[size] || sizes.md;
+    const radius = (diameter - strokeWidth) / 2;
+    const circumference = 2 * Math.PI * radius;
+    const percentage = Math.min(Math.max((value / max) * 100, 0), 100);
+    const strokeDasharray = circumference;
+    const strokeDashoffset = circumference - (percentage / 100) * circumference;
+    
+    const container = document.createElement('div');
+    container.className = `circular-progress relative inline-flex items-center justify-center`;
+    container.style.width = `${diameter}px`;
+    container.style.height = `${diameter}px`;
+    
+    // Create SVG
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('width', diameter.toString());
+    svg.setAttribute('height', diameter.toString());
+    svg.setAttribute('viewBox', `0 0 ${diameter} ${diameter}`);
+    svg.className = 'transform -rotate-90';
+    
+    // Background circle
+    const bgCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    bgCircle.setAttribute('cx', (diameter / 2).toString());
+    bgCircle.setAttribute('cy', (diameter / 2).toString());
+    bgCircle.setAttribute('r', radius.toString());
+    bgCircle.setAttribute('stroke', bgColor);
+    bgCircle.setAttribute('stroke-width', strokeWidth.toString());
+    bgCircle.setAttribute('fill', 'none');
+    
+    // Progress circle
+    const progressCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    progressCircle.setAttribute('cx', (diameter / 2).toString());
+    progressCircle.setAttribute('cy', (diameter / 2).toString());
+    progressCircle.setAttribute('r', radius.toString());
+    progressCircle.setAttribute('stroke', color);
+    progressCircle.setAttribute('stroke-width', strokeWidth.toString());
+    progressCircle.setAttribute('fill', 'none');
+    progressCircle.setAttribute('stroke-linecap', 'round');
+    progressCircle.style.strokeDasharray = strokeDasharray.toString();
+    progressCircle.style.strokeDashoffset = strokeDashoffset.toString();
+    progressCircle.style.transition = 'stroke-dashoffset 0.3s ease-in-out';
+    
+    svg.appendChild(bgCircle);
+    svg.appendChild(progressCircle);
+    container.appendChild(svg);
+    
+    // Add label if requested
+    if (showLabel) {
+      const labelEl = document.createElement('div');
+      labelEl.className = `absolute inset-0 flex items-center justify-center ${fontSize} font-semibold text-white`;
+      labelEl.textContent = `${Math.round(percentage)}%`;
+      container.appendChild(labelEl);
+    }
+    
+    return container;
+  }
+  
+  /**
+   * Update circular progress value
+   * @param {HTMLElement} circularProgress - Circular progress container
+   * @param {number} value - New value
+   * @param {number} max - Maximum value
+   */
+  static updateCircularValue(circularProgress, value, max = 100) {
+    const progressCircle = circularProgress.querySelector('circle:last-child');
+    const label = circularProgress.querySelector('div');
+    
+    if (!progressCircle) return;
+    
+    const percentage = Math.min(Math.max((value / max) * 100, 0), 100);
+    const strokeDasharray = parseFloat(progressCircle.style.strokeDasharray);
+    const newStrokeDashoffset = strokeDasharray - (percentage / 100) * strokeDasharray;
+    
+    progressCircle.style.strokeDashoffset = newStrokeDashoffset.toString();
+    
+    if (label) {
+      label.textContent = `${Math.round(percentage)}%`;
+    }
+  }
+  
+  /**
+   * Create an indeterminate/loading progress bar
+   * @param {Object} options - Loading progress configuration
+   * @param {string} options.size - Bar size
+   * @param {string} options.color - Progress color
+   * @param {string} options.bgColor - Background color
+   * @returns {HTMLElement} Loading progress bar
+   */
+  static createLoading(options = {}) {
+    const {
+      size = 'md',
+      color = 'var(--brand-primary)',
+      bgColor = 'var(--gray-700)'
+    } = options;
+    
+    const container = document.createElement('div');
+    container.className = `loading-progress ${this.getSizeClasses(size)} rounded-full overflow-hidden`;
+    container.style.backgroundColor = bgColor;
+    
+    const fill = document.createElement('div');
+    fill.className = 'h-full rounded-full animate-pulse';
+    fill.style.backgroundColor = color;
+    fill.style.width = '30%';
+    fill.style.animation = 'loading-slide 1.5s ease-in-out infinite';
+    
+    container.appendChild(fill);
+    
+    // Add keyframe animation if not already present
+    if (!document.getElementById('loading-animation-styles')) {
+      const style = document.createElement('style');
+      style.id = 'loading-animation-styles';
+      style.textContent = `
+        @keyframes loading-slide {
+          0% { transform: translateX(-100%); }
+          50% { transform: translateX(300%); }
+          100% { transform: translateX(-100%); }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+    
+    return container;
+  }
+  
+  /**
+   * Get size classes for progress bars
+   * @param {string} size - Size value
+   * @returns {string} Size classes
+   */
+  static getSizeClasses(size) {
+    const sizeClasses = {
+      sm: 'h-1',
+      md: 'h-2',
+      lg: 'h-3'
+    };
+    
+    return sizeClasses[size] || sizeClasses.md;
+  }
+  
+  /**
+   * Create a step progress indicator
+   * @param {Object} options - Step progress configuration
+   * @param {Array} options.steps - Array of step objects
+   * @param {number} options.currentStep - Current active step index
+   * @param {string} options.size - Step size
+   * @returns {HTMLElement} Step progress element
+   */
+  static createSteps(options = {}) {
+    const {
+      steps = [],
+      currentStep = 0,
+      size = 'md'
+    } = options;
+    
+    const container = document.createElement('div');
+    container.className = 'step-progress flex items-center';
+    
+    steps.forEach((step, index) => {
+      // Create step circle
+      const stepEl = document.createElement('div');
+      stepEl.className = `step-circle flex items-center justify-center rounded-full font-medium transition-all duration-200 ${this.getStepSizeClasses(size)}`;
+      
+      if (index < currentStep) {
+        stepEl.className += ' bg-green-500 text-white';
+        stepEl.innerHTML = '<span class="material-icons text-sm">check</span>';
+      } else if (index === currentStep) {
+        stepEl.className += ' bg-blue-500 text-white';
+        stepEl.textContent = (index + 1).toString();
+      } else {
+        stepEl.className += ' bg-gray-600 text-gray-300';
+        stepEl.textContent = (index + 1).toString();
+      }
+      
+      if (step.tooltip) {
+        stepEl.title = step.tooltip;
+      }
+      
+      container.appendChild(stepEl);
+      
+      // Add connector line (except for last step)
+      if (index < steps.length - 1) {
+        const connector = document.createElement('div');
+        connector.className = `step-connector flex-1 h-0.5 mx-2 transition-colors duration-200`;
+        connector.style.backgroundColor = index < currentStep ? '#10b981' : 'var(--gray-600)';
+        container.appendChild(connector);
+      }
+    });
+    
+    return container;
+  }
+  
+  /**
+   * Update step progress
+   * @param {HTMLElement} stepProgress - Step progress container
+   * @param {number} newCurrentStep - New current step index
+   */
+  static updateSteps(stepProgress, newCurrentStep) {
+    const steps = stepProgress.querySelectorAll('.step-circle');
+    const connectors = stepProgress.querySelectorAll('.step-connector');
+    
+    steps.forEach((step, index) => {
+      step.className = step.className.replace(/bg-\w+-\d+|text-\w+-\d+/g, '');
+      
+      if (index < newCurrentStep) {
+        step.className += ' bg-green-500 text-white';
+        step.innerHTML = '<span class="material-icons text-sm">check</span>';
+      } else if (index === newCurrentStep) {
+        step.className += ' bg-blue-500 text-white';
+        step.textContent = (index + 1).toString();
+      } else {
+        step.className += ' bg-gray-600 text-gray-300';
+        step.textContent = (index + 1).toString();
+      }
+    });
+    
+    connectors.forEach((connector, index) => {
+      connector.style.backgroundColor = index < newCurrentStep ? '#10b981' : 'var(--gray-600)';
+    });
+  }
+  
+  /**
+   * Get size classes for step circles
+   * @param {string} size - Size value
+   * @returns {string} Size classes
+   */
+  static getStepSizeClasses(size) {
+    const sizeClasses = {
+      sm: 'w-6 h-6 text-xs',
+      md: 'w-8 h-8 text-sm',
+      lg: 'w-10 h-10 text-base'
+    };
+    
+    return sizeClasses[size] || sizeClasses.md;
+  }
+}
+</script>
