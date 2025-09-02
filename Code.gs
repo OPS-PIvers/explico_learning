@@ -232,15 +232,39 @@ function createNewProject(projectData) {
 function getProjectData(projectId) {
   try {
     const spreadsheet = SpreadsheetApp.openById(projectId);
+    
+    // Ensure the spreadsheet has the proper structure
+    ensureSpreadsheetStructure(spreadsheet);
+    
     const projectSheet = spreadsheet.getSheetByName('Projects');
     
     if (!projectSheet) {
+      console.error('Projects sheet not found after structure setup');
       return null;
     }
     
     const data = projectSheet.getDataRange().getValues();
     if (data.length < 2) {
-      return null;
+      // If no project data exists, create a default project record
+      const defaultProject = {
+        id: projectId,
+        name: 'Untitled Project',
+        description: '',
+        status: 'draft',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        createdBy: getCurrentUser().email
+      };
+      
+      // Add the project record to the sheet
+      const headers = projectSheet.getRange(1, 1, 1, projectSheet.getLastColumn()).getValues()[0];
+      const values = headers.map(header => {
+        const key = header.toLowerCase().replace(/\s+/g, '');
+        return defaultProject[key] || '';
+      });
+      projectSheet.appendRow(values);
+      
+      return defaultProject;
     }
     
     const project = parseProjectRow(data[1], projectId);
@@ -507,6 +531,66 @@ function getOrCreateMediaFolder(projectId) {
     return folders.next();
   }
   return projectFolder.createFolder(mediaFolderName);
+}
+
+/**
+ * Setup headers for a specific sheet
+ */
+function setupSheetHeaders(sheet, sheetName) {
+  let headers = [];
+  
+  switch (sheetName) {
+    case 'Projects':
+      headers = ['Name', 'Description', 'Status', 'Created At', 'Updated At', 'Created By', 'Settings'];
+      break;
+    case 'Slides':
+      headers = ['ID', 'Project ID', 'Name', 'Background URL', 'Background Type', 'Order', 'Created At', 'Updated At'];
+      break;
+    case 'Hotspots':
+      headers = ['ID', 'Slide ID', 'Title', 'Event Type', 'Trigger Type', 'Content', 'X', 'Y', 'Width', 'Height', 'Style', 'Order', 'Settings', 'Created At', 'Updated At'];
+      break;
+    case 'Analytics':
+      headers = ['ID', 'Project ID', 'Event Type', 'Slide ID', 'Hotspot ID', 'User', 'Timestamp', 'Data'];
+      break;
+  }
+  
+  if (headers.length > 0) {
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
+    sheet.getRange(1, 1, 1, headers.length).setBackground('#f0f0f0');
+  }
+}
+
+/**
+ * Ensure spreadsheet has the proper structure (for existing projects)
+ */
+function ensureSpreadsheetStructure(spreadsheet) {
+  const requiredSheets = ['Projects', 'Slides', 'Hotspots', 'Analytics'];
+  
+  requiredSheets.forEach(sheetName => {
+    let sheet = spreadsheet.getSheetByName(sheetName);
+    if (!sheet) {
+      console.log(`Creating missing sheet: ${sheetName}`);
+      sheet = spreadsheet.insertSheet(sheetName);
+      setupSheetHeaders(sheet, sheetName);
+    } else {
+      // Check if sheet has headers
+      const lastCol = sheet.getLastColumn();
+      if (lastCol === 0) {
+        setupSheetHeaders(sheet, sheetName);
+      }
+    }
+  });
+  
+  // Remove default sheet if it exists and we have our required sheets
+  const defaultSheet = spreadsheet.getSheetByName('Sheet1');
+  if (defaultSheet && spreadsheet.getSheets().length > 1) {
+    try {
+      spreadsheet.deleteSheet(defaultSheet);
+    } catch (e) {
+      // Ignore if we can't delete it
+    }
+  }
 }
 
 /**

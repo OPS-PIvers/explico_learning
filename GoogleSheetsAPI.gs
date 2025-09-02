@@ -73,12 +73,16 @@ class GoogleSheetsAPI {
    */
   async ensureSheetExists(sheetName) {
     try {
-      // Try to get the sheet
-      SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+      // Get the specific spreadsheet, not the "active" one
+      const spreadsheet = SpreadsheetApp.openById(this.options.spreadsheetId);
+      const sheet = spreadsheet.getSheetByName(sheetName);
+      if (!sheet) {
+        console.log(`Creating sheet: ${sheetName}`);
+        spreadsheet.insertSheet(sheetName);
+      }
     } catch (error) {
-      // Sheet doesn't exist, create it
-      console.log(`Creating sheet: ${sheetName}`);
-      SpreadsheetApp.getActiveSpreadsheet().insertSheet(sheetName);
+      console.error(`Error ensuring sheet exists: ${sheetName}`, error);
+      throw error;
     }
   }
   
@@ -88,7 +92,8 @@ class GoogleSheetsAPI {
    * @returns {Promise<void>}
    */
   async setupSheetHeaders(sheetName) {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+    const spreadsheet = SpreadsheetApp.openById(this.options.spreadsheetId);
+    const sheet = spreadsheet.getSheetByName(sheetName);
     const headers = this.getSheetHeaders(sheetName);
     
     // Check if headers already exist
@@ -458,7 +463,8 @@ class GoogleSheetsAPI {
    * @returns {Promise<void>}
    */
   async insertRow(sheetName, rowData) {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+    const spreadsheet = SpreadsheetApp.openById(this.options.spreadsheetId);
+    const sheet = spreadsheet.getSheetByName(sheetName);
     sheet.appendRow(rowData);
   }
   
@@ -468,7 +474,8 @@ class GoogleSheetsAPI {
    * @returns {Promise<Array<Array>>} Array of row arrays
    */
   async getAllRows(sheetName) {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+    const spreadsheet = SpreadsheetApp.openById(this.options.spreadsheetId);
+    const sheet = spreadsheet.getSheetByName(sheetName);
     const lastRow = sheet.getLastRow();
     
     if (lastRow <= 1) return []; // No data rows
@@ -496,7 +503,8 @@ class GoogleSheetsAPI {
    * @returns {Promise<boolean>} Success status
    */
   async updateRowById(sheetName, id, newData) {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+    const spreadsheet = SpreadsheetApp.openById(this.options.spreadsheetId);
+    const sheet = spreadsheet.getSheetByName(sheetName);
     const rows = await this.getAllRows(sheetName);
     const rowIndex = rows.findIndex(row => row[0] === id);
     
@@ -518,7 +526,8 @@ class GoogleSheetsAPI {
    * @returns {Promise<boolean>} Success status
    */
   async deleteRowById(sheetName, id) {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+    const spreadsheet = SpreadsheetApp.openById(this.options.spreadsheetId);
+    const sheet = spreadsheet.getSheetByName(sheetName);
     const rows = await this.getAllRows(sheetName);
     const rowIndex = rows.findIndex(row => row[0] === id);
     
@@ -540,7 +549,8 @@ class GoogleSheetsAPI {
    * @returns {Promise<number>} Number of deleted rows
    */
   async deleteRowsByColumn(sheetName, column, value) {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+    const spreadsheet = SpreadsheetApp.openById(this.options.spreadsheetId);
+    const sheet = spreadsheet.getSheetByName(sheetName);
     const rows = await this.getAllRows(sheetName);
     const columnIndex = this.columnLetterToIndex(column);
     
