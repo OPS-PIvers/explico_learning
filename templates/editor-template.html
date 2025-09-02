@@ -19,7 +19,7 @@
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     
     <!-- Base Styles -->
-    <?!= HtmlService.createHtmlOutputFromFile('utils/styles').getContent(); ?>
+    <?!= HtmlService.createHtmlOutputFromFile('styles').getContent(); ?>
 </head>
 <body class="bg-[var(--bg-primary)] font-primary">
     <!-- Application Container -->
@@ -83,24 +83,24 @@
     
     <!-- Core Constants -->
     <script>
-        <?!= HtmlService.createHtmlOutputFromFile('utils/constants').getContent(); ?>
+        <?!= HtmlService.createHtmlOutputFromFile('constants').getContent(); ?>
     </script>
     
     <!-- Utility Components -->
     <script>
-        <?!= HtmlService.createHtmlOutputFromFile('components/FormControls').getContent(); ?>
-        <?!= HtmlService.createHtmlOutputFromFile('components/StatusBadge').getContent(); ?>
-        <?!= HtmlService.createHtmlOutputFromFile('components/ProgressBar').getContent(); ?>
-        <?!= HtmlService.createHtmlOutputFromFile('components/HotspotRenderer').getContent(); ?>
+        <?!= HtmlService.createHtmlOutputFromFile('FormControls').getContent(); ?>
+        <?!= HtmlService.createHtmlOutputFromFile('StatusBadge').getContent(); ?>
+        <?!= HtmlService.createHtmlOutputFromFile('ProgressBar').getContent(); ?>
+        <?!= HtmlService.createHtmlOutputFromFile('HotspotRenderer').getContent(); ?>
     </script>
     
     <!-- Layout Components -->
     <script>
-        <?!= HtmlService.createHtmlOutputFromFile('components/AppHeader').getContent(); ?>
-        <?!= HtmlService.createHtmlOutputFromFile('components/Sidebar').getContent(); ?>
-        <?!= HtmlService.createHtmlOutputFromFile('components/MainCanvas').getContent(); ?>
-        <?!= HtmlService.createHtmlOutputFromFile('components/ConfigPanel').getContent(); ?>
-        <?!= HtmlService.createHtmlOutputFromFile('components/WalkthroughSequencer').getContent(); ?>
+        <?!= HtmlService.createHtmlOutputFromFile('AppHeader').getContent(); ?>
+        <?!= HtmlService.createHtmlOutputFromFile('Sidebar').getContent(); ?>
+        <?!= HtmlService.createHtmlOutputFromFile('MainCanvas').getContent(); ?>
+        <?!= HtmlService.createHtmlOutputFromFile('ConfigPanel').getContent(); ?>
+        <?!= HtmlService.createHtmlOutputFromFile('WalkthroughSequencer').getContent(); ?>
     </script>
     
     <!-- Business Logic Services -->
