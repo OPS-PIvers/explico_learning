@@ -1,0 +1,312 @@
+/**
+ * StatusBadge Component for Explico Learning
+ * Displays status indicators with consistent styling
+ */
+
+class StatusBadge {
+  
+  /**
+   * Create a status badge element
+   * @param {Object} options - Badge configuration
+   * @param {string} options.status - Status value ('active', 'inactive', 'draft', 'archived')
+   * @param {string} options.text - Custom text to display (optional)
+   * @param {string} options.size - Badge size ('sm', 'md', 'lg')
+   * @param {boolean} options.showIcon - Whether to show status icon
+   * @returns {HTMLElement} Badge element
+   */
+  static create(options = {}) {
+    const {
+      status = 'inactive',
+      text = null,
+      size = 'md',
+      showIcon = true
+    } = options;
+    
+    const badge = document.createElement('span');
+    badge.className = this.getStatusClasses(status, size);
+    
+    if (showIcon) {
+      const icon = document.createElement('span');
+      icon.className = this.getIconClasses(status, size);
+      badge.appendChild(icon);
+    }
+    
+    const textNode = document.createTextNode(text || this.getStatusText(status));
+    badge.appendChild(textNode);
+    
+    return badge;
+  }
+  
+  /**
+   * Update an existing badge's status
+   * @param {HTMLElement} badge - Badge element to update
+   * @param {string} newStatus - New status value
+   * @param {string} newText - New text (optional)
+   */
+  static update(badge, newStatus, newText = null) {
+    if (!badge) return;
+    
+    // Update classes
+    badge.className = '';
+    badge.classList.add(...this.getStatusClasses(newStatus).split(' '));
+    
+    // Update icon if present
+    const icon = badge.querySelector('span');
+    if (icon) {
+      icon.className = this.getIconClasses(newStatus);
+    }
+    
+    // Update text
+    const textContent = newText || this.getStatusText(newStatus);
+    if (icon) {
+      badge.childNodes[1].textContent = textContent;
+    } else {
+      badge.textContent = textContent;
+    }
+  }
+  
+  /**
+   * Get CSS classes for status badge
+   * @param {string} status - Status value
+   * @param {string} size - Badge size
+   * @returns {string} CSS classes
+   */
+  static getStatusClasses(status, size = 'md') {
+    const baseClasses = 'inline-flex items-center gap-1.5 rounded-full font-medium';
+    const sizeClasses = {
+      sm: 'px-1.5 py-0.5 text-xs',
+      md: 'px-2 py-1 text-xs',
+      lg: 'px-2.5 py-1.5 text-sm'
+    };
+    
+    const statusClasses = {
+      active: 'status-active',
+      inactive: 'status-inactive',
+      draft: 'text-yellow-400 bg-yellow-400/10',
+      archived: 'text-gray-500 bg-gray-500/10'
+    };
+    
+    return `${baseClasses} ${sizeClasses[size] || sizeClasses.md} ${statusClasses[status] || statusClasses.inactive}`;
+  }
+  
+  /**
+   * Get CSS classes for status icon
+   * @param {string} status - Status value
+   * @param {string} size - Badge size
+   * @returns {string} CSS classes
+   */
+  static getIconClasses(status, size = 'md') {
+    const sizeClasses = {
+      sm: 'h-1 w-1',
+      md: 'h-1.5 w-1.5', 
+      lg: 'h-2 w-2'
+    };
+    
+    return `${sizeClasses[size] || sizeClasses.md} rounded-full bg-current`;
+  }
+  
+  /**
+   * Get display text for status
+   * @param {string} status - Status value
+   * @returns {string} Display text
+   */
+  static getStatusText(status) {
+    const statusText = {
+      active: 'Active',
+      inactive: 'Inactive', 
+      draft: 'Draft',
+      archived: 'Archived'
+    };
+    
+    return statusText[status] || 'Unknown';
+  }
+  
+  /**
+   * Create a completion rate badge
+   * @param {Object} options - Badge configuration
+   * @param {number} options.rate - Completion rate (0-100)
+   * @param {string} options.size - Badge size
+   * @returns {HTMLElement} Completion rate badge
+   */
+  static createCompletionBadge(options = {}) {
+    const { rate = 0, size = 'md' } = options;
+    
+    const badge = document.createElement('span');
+    badge.className = this.getCompletionClasses(rate, size);
+    badge.textContent = `${Math.round(rate)}%`;
+    
+    return badge;
+  }
+  
+  /**
+   * Get CSS classes for completion rate badge
+   * @param {number} rate - Completion rate
+   * @param {string} size - Badge size
+   * @returns {string} CSS classes
+   */
+  static getCompletionClasses(rate, size = 'md') {
+    const baseClasses = 'inline-flex items-center justify-center rounded-full font-medium';
+    const sizeClasses = {
+      sm: 'px-1.5 py-0.5 text-xs',
+      md: 'px-2 py-1 text-xs',
+      lg: 'px-2.5 py-1.5 text-sm'
+    };
+    
+    let colorClasses = 'text-gray-400 bg-gray-400/10';
+    
+    if (rate >= 80) {
+      colorClasses = 'text-green-400 bg-green-400/10';
+    } else if (rate >= 60) {
+      colorClasses = 'text-yellow-400 bg-yellow-400/10';
+    } else if (rate >= 40) {
+      colorClasses = 'text-orange-400 bg-orange-400/10';
+    } else if (rate > 0) {
+      colorClasses = 'text-red-400 bg-red-400/10';
+    }
+    
+    return `${baseClasses} ${sizeClasses[size] || sizeClasses.md} ${colorClasses}`;
+  }
+  
+  /**
+   * Create a priority badge
+   * @param {Object} options - Badge configuration
+   * @param {string} options.priority - Priority level ('low', 'medium', 'high', 'critical')
+   * @param {string} options.size - Badge size
+   * @returns {HTMLElement} Priority badge
+   */
+  static createPriorityBadge(options = {}) {
+    const { priority = 'medium', size = 'md' } = options;
+    
+    const badge = document.createElement('span');
+    badge.className = this.getPriorityClasses(priority, size);
+    badge.textContent = this.getPriorityText(priority);
+    
+    return badge;
+  }
+  
+  /**
+   * Get CSS classes for priority badge
+   * @param {string} priority - Priority level
+   * @param {string} size - Badge size
+   * @returns {string} CSS classes
+   */
+  static getPriorityClasses(priority, size = 'md') {
+    const baseClasses = 'inline-flex items-center justify-center rounded-full font-medium';
+    const sizeClasses = {
+      sm: 'px-1.5 py-0.5 text-xs',
+      md: 'px-2 py-1 text-xs',
+      lg: 'px-2.5 py-1.5 text-sm'
+    };
+    
+    const priorityClasses = {
+      low: 'text-blue-400 bg-blue-400/10',
+      medium: 'text-yellow-400 bg-yellow-400/10',
+      high: 'text-orange-400 bg-orange-400/10',
+      critical: 'text-red-400 bg-red-400/10'
+    };
+    
+    return `${baseClasses} ${sizeClasses[size] || sizeClasses.md} ${priorityClasses[priority] || priorityClasses.medium}`;
+  }
+  
+  /**
+   * Get display text for priority
+   * @param {string} priority - Priority level
+   * @returns {string} Display text
+   */
+  static getPriorityText(priority) {
+    const priorityText = {
+      low: 'Low',
+      medium: 'Medium',
+      high: 'High',
+      critical: 'Critical'
+    };
+    
+    return priorityText[priority] || 'Medium';
+  }
+  
+  /**
+   * Create a count badge (for notifications, etc.)
+   * @param {Object} options - Badge configuration
+   * @param {number} options.count - Count to display
+   * @param {string} options.size - Badge size
+   * @param {boolean} options.showZero - Whether to show when count is 0
+   * @returns {HTMLElement|null} Count badge or null if count is 0 and showZero is false
+   */
+  static createCountBadge(options = {}) {
+    const { count = 0, size = 'md', showZero = false } = options;
+    
+    if (count === 0 && !showZero) {
+      return null;
+    }
+    
+    const badge = document.createElement('span');
+    badge.className = this.getCountClasses(size);
+    
+    // Format large numbers
+    let displayCount = count;
+    if (count > 99) {
+      displayCount = '99+';
+    }
+    
+    badge.textContent = displayCount.toString();
+    
+    return badge;
+  }
+  
+  /**
+   * Get CSS classes for count badge
+   * @param {string} size - Badge size
+   * @returns {string} CSS classes
+   */
+  static getCountClasses(size = 'md') {
+    const baseClasses = 'inline-flex items-center justify-center rounded-full bg-red-500 text-white font-medium';
+    const sizeClasses = {
+      sm: 'h-3 w-3 text-xs',
+      md: 'h-4 w-4 text-xs',
+      lg: 'h-5 w-5 text-sm'
+    };
+    
+    return `${baseClasses} ${sizeClasses[size] || sizeClasses.md}`;
+  }
+  
+  /**
+   * Create a custom badge with specified styling
+   * @param {Object} options - Badge configuration
+   * @param {string} options.text - Badge text
+   * @param {string} options.color - Badge color (CSS color value)
+   * @param {string} options.bgColor - Background color (CSS color value)
+   * @param {string} options.size - Badge size
+   * @returns {HTMLElement} Custom badge
+   */
+  static createCustomBadge(options = {}) {
+    const {
+      text = '',
+      color = 'var(--text-primary)',
+      bgColor = 'var(--bg-secondary)',
+      size = 'md'
+    } = options;
+    
+    const badge = document.createElement('span');
+    badge.className = `inline-flex items-center justify-center rounded-full font-medium ${this.getSizeClasses(size)}`;
+    badge.style.color = color;
+    badge.style.backgroundColor = bgColor;
+    badge.textContent = text;
+    
+    return badge;
+  }
+  
+  /**
+   * Get size classes for badges
+   * @param {string} size - Size value
+   * @returns {string} Size classes
+   */
+  static getSizeClasses(size) {
+    const sizeClasses = {
+      sm: 'px-1.5 py-0.5 text-xs',
+      md: 'px-2 py-1 text-xs',
+      lg: 'px-2.5 py-1.5 text-sm'
+    };
+    
+    return sizeClasses[size] || sizeClasses.md;
+  }
+}

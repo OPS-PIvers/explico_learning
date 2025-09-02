@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotspot Editor - Explico Learning</title>
+    
+    <!-- Preconnect to external services -->
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+    
+    <!-- Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?display=swap&family=Noto+Sans:wght@400;500;700;900&family=Spline+Sans:wght@400;500;700" onload="this.rel='stylesheet'">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64,">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    
+    <!-- Base Styles -->
+    <style type="text/css">
+        <?!= include('styles'); ?>
+        /* Include base styles inline for GAS compatibility */
+        :root {
+            --color-primary: #3b82f6;
+            --color-primary-hover: #2563eb;
+            --color-secondary: #6b7280;
+            --color-secondary-hover: #4b5563;
+            --color-success: #10b981;
+            --color-warning: #f59e0b;
+            --color-error: #ef4444;
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --transition: all 0.2s ease-in-out;
+            --font-primary: 'Noto Sans', sans-serif;
+            --font-secondary: 'Spline Sans', sans-serif;
+        }
+
+        .btn {
+            @apply inline-flex items-center px-4 py-2 rounded-lg font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
+        }
+
+        .btn-primary {
+            @apply bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500;
+        }
+
+        .btn-secondary {
+            @apply bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500;
+        }
+
+        .btn-outline {
+            @apply border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:ring-blue-500;
+        }
+
+        .hotspot {
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            background: rgba(59, 130, 246, 0.8);
+            border: 2px solid #3b82f6;
+            border-radius: 50%;
+            cursor: pointer;
+            transform: translate(-50%, -50%);
+            transition: all 0.2s ease;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hotspot:hover {
+            background: rgba(59, 130, 246, 1);
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+
+        .hotspot.selected {
+            border-color: #f59e0b;
+            background: rgba(245, 158, 11, 0.8);
+        }
+
+        .hotspot.dragging {
+            z-index: 1000;
+            transform: translate(-50%, -50%) scale(1.2);
+        }
+
+        .canvas-container {
+            position: relative;
+            overflow: hidden;
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+        }
+
+        .canvas-background {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+
+        .creation-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.1);
+            cursor: crosshair;
+            z-index: 5;
+        }
+
+        .sidebar {
+            height: calc(100vh - 80px);
+            overflow-y: auto;
+        }
+
+        .config-panel {
+            height: calc(100vh - 80px);
+            overflow-y: auto;
+        }
+
+        .slide-thumbnail {
+            width: 100%;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .slide-thumbnail.active {
+            border-color: #3b82f6;
+        }
+
+        .hotspot-sequence-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .hotspot-sequence-item:hover {
+            background: #f3f4f6;
+        }
+
+        .hotspot-sequence-item.active {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.25rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .status-draft {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .status-published {
+            background: #d1fae5;
+            color: #047857;
+        }
+    </style>
+</head>
+<body class="bg-[var(--bg-primary)] font-primary">
+    <!-- Application Container -->
+    <div id="app" class="app-container flex flex-col min-h-screen">
+        <!-- Header -->
+        <header id="app-header" class="flex-shrink-0 bg-white shadow-sm border-b border-gray-200">
+            <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center py-4">
+                    <div class="flex items-center">
+                        <h1 id="project-title" class="text-2xl font-bold text-gray-900">Loading Project...</h1>
+                        <div class="ml-4 flex items-center space-x-2">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                Editor
+                            </span>
+                            <span id="project-status" class="status-badge status-draft">Draft</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button id="save-btn" class="btn btn-primary">
+                            <span class="material-symbols-outlined text-sm">save</span>
+                            Save Project
+                        </button>
+                        <button id="preview-btn" class="btn btn-secondary">
+                            <span class="material-symbols-outlined text-sm">play_arrow</span>
+                            Preview
+                        </button>
+                        <button id="back-to-dashboard-btn" class="btn btn-outline">
+                            <span class="material-symbols-outlined text-sm">arrow_back</span>
+                            Back to Dashboard
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <div class="flex-1 flex overflow-hidden">
+            <!-- Sidebar -->
+            <aside id="sidebar" class="w-80 bg-white border-r border-gray-200 flex-shrink-0 sidebar">
+                <div class="p-4 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-gray-900">Slides</h3>
+                        <button id="add-slide-btn" class="btn btn-primary text-sm py-1 px-2">
+                            <span class="material-symbols-outlined text-xs">add</span>
+                            Add Slide
+                        </button>
+                    </div>
+                </div>
+                <div id="slides-list" class="p-4 space-y-3">
+                    <!-- Slides will be dynamically populated -->
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="flex-1 flex overflow-hidden">
+                <!-- Canvas Area -->
+                <div class="flex-1 p-4">
+                    <div class="h-full flex flex-col">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 id="current-slide-title" class="text-lg font-semibold text-gray-900">Select a slide to begin editing</h3>
+                            <div class="flex items-center space-x-2">
+                                <button id="toggle-creation-mode" class="btn btn-outline text-sm">
+                                    <span class="material-symbols-outlined text-xs">add_circle</span>
+                                    Creation Mode
+                                </button>
+                                <select id="zoom-level" class="border border-gray-300 rounded px-2 py-1 text-sm">
+                                    <option value="0.5">50%</option>
+                                    <option value="0.75">75%</option>
+                                    <option value="1" selected>100%</option>
+                                    <option value="1.25">125%</option>
+                                    <option value="1.5">150%</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="canvas-container" class="flex-1 canvas-container">
+                            <div id="canvas-empty-state" class="h-full flex items-center justify-center text-gray-500">
+                                <div class="text-center">
+                                    <span class="material-symbols-outlined text-6xl text-gray-300 mb-4">image</span>
+                                    <p class="text-lg">Select a slide or add a new one to start editing</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Config Panel -->
+                <aside id="config-panel" class="w-96 bg-white border-l border-gray-200 flex-shrink-0 config-panel hidden">
+                    <div class="p-4 border-b border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-lg font-semibold text-gray-900">Hotspot Configuration</h3>
+                            <button id="close-config-panel" class="text-gray-400 hover:text-gray-600">
+                                <span class="material-symbols-outlined">close</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="config-form" class="p-4">
+                        <!-- Configuration form will be dynamically populated -->
+                    </div>
+                </aside>
+            </main>
+        </div>
+
+        <!-- Bottom Timeline/Sequencer -->
+        <div id="sequencer-container" class="h-32 bg-white border-t border-gray-200 flex-shrink-0">
+            <div class="p-4 h-full">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-sm font-semibold text-gray-900">Hotspot Sequence</h3>
+                    <div class="text-xs text-gray-500" id="sequence-info">
+                        No hotspots on current slide
+                    </div>
+                </div>
+                <div id="hotspots-sequence" class="flex space-x-2 overflow-x-auto h-20">
+                    <!-- Hotspot sequence items will be dynamically populated -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Slide Modal -->
+    <div id="add-slide-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900">Add New Slide</h3>
+            </div>
+            <div class="px-6 py-4">
+                <div class="space-y-4">
+                    <div>
+                        <label class="form-label">Slide Name</label>
+                        <input type="text" id="new-slide-name" class="form-input" placeholder="Enter slide name...">
+                    </div>
+                    <div>
+                        <label class="form-label">Background Media</label>
+                        <div class="mt-2 border-2 border-dashed border-gray-300 rounded-lg p-4">
+                            <div class="text-center">
+                                <span class="material-symbols-outlined text-gray-400 text-3xl mb-2">upload</span>
+                                <p class="text-sm text-gray-600">Drag and drop an image or video, or paste a YouTube URL</p>
+                                <input type="file" id="slide-media-upload" class="hidden" accept="image/*,video/*">
+                                <input type="url" id="slide-media-url" class="form-input mt-2" placeholder="Or enter YouTube/media URL...">
+                                <button type="button" onclick="document.getElementById('slide-media-upload').click()" class="btn btn-outline mt-2 text-sm">
+                                    Choose File
+                                </button>
+                            </div>
+                        </div>
+                        <div id="media-preview" class="mt-2 hidden">
+                            <img id="media-preview-img" class="w-full h-32 object-cover rounded border" style="display: none;">
+                            <video id="media-preview-video" class="w-full h-32 object-cover rounded border" style="display: none;" controls></video>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="px-6 py-4 bg-gray-50 flex justify-end space-x-3 rounded-b-lg">
+                <button id="cancel-add-slide" class="btn btn-outline">Cancel</button>
+                <button id="create-slide" class="btn btn-primary">Create Slide</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Core Constants -->
+    <script>
+        <?!= include('constants'); ?>
+    </script>
+    
+    <!-- Utility Components -->
+    <script>
+        <?!= include('FormControls'); ?>
+        <?!= include('StatusBadge'); ?>
+        <?!= include('ProgressBar'); ?>
+        <?!= include('HotspotRenderer'); ?>
+    </script>
+    
+    <!-- Layout Components -->
+    <script>
+        <?!= include('AppHeader'); ?>
+        <?!= include('Sidebar'); ?>
+        <?!= include('MainCanvas'); ?>
+        <?!= include('ConfigPanel'); ?>
+        <?!= include('WalkthroughSequencer'); ?>
+    </script>
+    
+    <!-- Business Logic Services -->
+    <script>
+        <?!= include('GoogleSheetsAPI'); ?>
+        <?!= include('MediaHandler'); ?>
+        <?!= include('EventTypeHandlers'); ?>
+        <?!= include('HotspotManager'); ?>
+        <?!= include('ProjectManager'); ?>
+    </script>
+    
+    <!-- Application Initialization -->
+    <script>
+        // Basic application initialization
+        window.ExplicoApp = {
+            initialized: false,
+            currentProject: null,
+            currentSlide: null,
+            selectedHotspot: null,
+            creationMode: false,
+            hotspots: new Map(),
+            slides: new Map()
+        };
+
+        // Get project ID from URL parameters or template
+        function getProjectId() {
+            // In GAS, project ID will be passed via template
+            return '<?!= typeof PROJECT_ID !== "undefined" ? PROJECT_ID : "demo" ?>';
+        }
+
+        // Initialize the editor application
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('Initializing Hotspot Editor...');
+            
+            try {
+                const projectId = getProjectId();
+                console.log('Loading project:', projectId);
+                
+                // Load actual project data from Google Sheets
+                await loadProjectData(projectId);
+                
+                // Setup event listeners
+                setupEventListeners();
+                
+                window.ExplicoApp.initialized = true;
+                console.log('Editor initialized successfully');
+                
+            } catch (error) {
+                console.error('Failed to initialize editor:', error);
+                showError('Failed to initialize editor: ' + error.message);
+            }
+        });
+
+        // Load project from Google Sheets via GAS
+        async function loadProjectData(projectId) {
+            try {
+                console.log('Loading project data for:', projectId);
+                
+                // Use Google Apps Script function to get project data
+                const projectData = await new Promise((resolve, reject) => {
+                    google.script.run
+                        .withSuccessHandler(resolve)
+                        .withFailureHandler(reject)
+                        .getProjectData(projectId);
+                });
+                
+                if (!projectData) {
+                    throw new Error('Project not found');
+                }
+                
+                window.ExplicoApp.currentProject = projectData;
+                document.getElementById('project-title').textContent = projectData.name;
+                
+                // Load slides
+                if (projectData.slides && projectData.slides.length > 0) {
+                    projectData.slides.forEach(slide => {
+                        window.ExplicoApp.slides.set(slide.id, slide);
+                    });
+                    renderSlidesList();
+                } else {
+                    // Show empty state or create first slide
+                    showEmptySlideState();
+                }
+                
+            } catch (error) {
+                console.error('Error loading project data:', error);
+                throw error;
+            }
+        }
+        
+        // Show empty state for no slides
+        function showEmptySlideState() {
+            const slidesList = document.getElementById('slides-list');
+            slidesList.innerHTML = `
+                <div class="text-center py-8 text-gray-500">
+                    <span class="material-symbols-outlined text-4xl mb-2">slideshow</span>
+                    <p>No slides yet</p>
+                    <button onclick="showAddSlideModal()" class="btn btn-primary mt-2 text-sm">
+                        Add First Slide
+                    </button>
+                </div>
+            `;
+        }
+
+        // Render slides in sidebar
+        function renderSlidesList() {
+            const slidesList = document.getElementById('slides-list');
+            const slides = Array.from(window.ExplicoApp.slides.values()).sort((a, b) => a.order - b.order);
+
+            slidesList.innerHTML = slides.map(slide => `
+                <div class="slide-item p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 ${slide.id === window.ExplicoApp.currentSlide?.id ? 'bg-blue-50 border-blue-200' : ''}" 
+                     data-slide-id="${slide.id}" onclick="selectSlide('${slide.id}')">
+                    <div class="flex items-center space-x-3">
+                        <img src="${slide.backgroundUrl}" alt="${slide.name}" class="slide-thumbnail">
+                        <div class="flex-1 min-w-0">
+                            <h4 class="text-sm font-medium text-gray-900 truncate">${slide.name}</h4>
+                            <p class="text-xs text-gray-500">${slide.backgroundType.toUpperCase()}</p>
+                        </div>
+                        <div class="flex items-center space-x-1">
+                            <button class="text-gray-400 hover:text-gray-600 p-1" onclick="event.stopPropagation(); editSlide('${slide.id}')">
+                                <span class="material-symbols-outlined text-sm">edit</span>
+                            </button>
+                            <button class="text-gray-400 hover:text-red-600 p-1" onclick="event.stopPropagation(); deleteSlide('${slide.id}')">
+                                <span class="material-symbols-outlined text-sm">delete</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Select a slide for editing
+        function selectSlide(slideId) {
+            const slide = window.ExplicoApp.slides.get(slideId);
+            if (!slide) return;
+
+            window.ExplicoApp.currentSlide = slide;
+            document.getElementById('current-slide-title').textContent = slide.name;
+
+            // Update canvas with slide background
+            const canvasContainer = document.getElementById('canvas-container');
+            const emptyState = document.getElementById('canvas-empty-state');
+            
+            emptyState.style.display = 'none';
+            
+            canvasContainer.innerHTML = `
+                <img src="${slide.backgroundUrl}" alt="${slide.name}" class="canvas-background" id="canvas-background">
+                <div id="hotspots-layer" class="absolute inset-0"></div>
+                <div id="creation-overlay" class="creation-overlay" style="display: none;"></div>
+            `;
+
+            // Load hotspots for this slide
+            loadSlideHotspots(slideId);
+            
+            // Update slides list highlighting
+            renderSlidesList();
+
+            console.log('Selected slide:', slide.name);
+        }
+
+        // Load hotspots for a slide
+        function loadSlideHotspots(slideId) {
+            const hotspotsLayer = document.getElementById('hotspots-layer');
+            if (!hotspotsLayer) return;
+
+            // Clear existing hotspots
+            hotspotsLayer.innerHTML = '';
+
+            // For demo purposes, add some sample hotspots
+            if (slideId === 'slide-1') {
+                const sampleHotspots = [
+                    { id: 'hotspot-1', x: 200, y: 150, eventType: 'text_popup', title: 'Welcome!', content: 'This is a sample text popup hotspot.' },
+                    { id: 'hotspot-2', x: 400, y: 300, eventType: 'text_on_image', title: 'Feature A', content: 'This shows a tooltip overlay.' }
+                ];
+
+                sampleHotspots.forEach(hotspot => {
+                    createHotspotElement(hotspot);
+                });
+
+                updateSequencer();
+            }
+        }
+
+        // Create hotspot visual element
+        function createHotspotElement(hotspot) {
+            const hotspotsLayer = document.getElementById('hotspots-layer');
+            if (!hotspotsLayer) return;
+
+            const hotspotEl = document.createElement('div');
+            hotspotEl.className = 'hotspot';
+            hotspotEl.dataset.hotspotId = hotspot.id;
+            hotspotEl.style.left = hotspot.x + 'px';
+            hotspotEl.style.top = hotspot.y + 'px';
+            hotspotEl.innerHTML = '<span class="material-symbols-outlined text-white text-xs">radio_button_checked</span>';
+
+            hotspotEl.addEventListener('click', (e) => {
+                e.stopPropagation();
+                selectHotspot(hotspot.id);
+            });
+
+            hotspotsLayer.appendChild(hotspotEl);
+            window.ExplicoApp.hotspots.set(hotspot.id, hotspot);
+        }
+
+        // Select a hotspot
+        function selectHotspot(hotspotId) {
+            // Clear previous selection
+            document.querySelectorAll('.hotspot.selected').forEach(el => {
+                el.classList.remove('selected');
+            });
+
+            // Select new hotspot
+            const hotspotEl = document.querySelector(`[data-hotspot-id="${hotspotId}"]`);
+            if (hotspotEl) {
+                hotspotEl.classList.add('selected');
+            }
+
+            const hotspot = window.ExplicoApp.hotspots.get(hotspotId);
+            if (hotspot) {
+                window.ExplicoApp.selectedHotspot = hotspot;
+                showConfigPanel(hotspot);
+                console.log('Selected hotspot:', hotspot.title);
+            }
+        }
+
+        // Show configuration panel
+        function showConfigPanel(hotspot) {
+            const configPanel = document.getElementById('config-panel');
+            const configForm = document.getElementById('config-form');
+
+            configForm.innerHTML = `
+                <div class="space-y-4">
+                    <div class="form-group">
+                        <label class="form-label">Hotspot Title</label>
+                        <input type="text" class="form-input" value="${hotspot.title}" onchange="updateHotspotProperty('title', this.value)">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Event Type</label>
+                        <select class="form-input" onchange="updateHotspotProperty('eventType', this.value)">
+                            <option value="text_popup" ${hotspot.eventType === 'text_popup' ? 'selected' : ''}>Text Popup</option>
+                            <option value="text_on_image" ${hotspot.eventType === 'text_on_image' ? 'selected' : ''}>Text on Image</option>
+                            <option value="pan_zoom" ${hotspot.eventType === 'pan_zoom' ? 'selected' : ''}>Pan/Zoom</option>
+                            <option value="spotlight" ${hotspot.eventType === 'spotlight' ? 'selected' : ''}>Spotlight</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Content</label>
+                        <textarea class="form-input" rows="3" onchange="updateHotspotProperty('content', this.value)">${hotspot.content || ''}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Position</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="number" class="form-input" placeholder="X" value="${hotspot.x}" onchange="updateHotspotProperty('x', parseInt(this.value))">
+                            <input type="number" class="form-input" placeholder="Y" value="${hotspot.y}" onchange="updateHotspotProperty('y', parseInt(this.value))">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-primary w-full" onclick="previewHotspot()">
+                            <span class="material-symbols-outlined text-sm">play_arrow</span>
+                            Preview Effect
+                        </button>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-outline w-full text-red-600 border-red-300 hover:bg-red-50" onclick="deleteHotspot()">
+                            <span class="material-symbols-outlined text-sm">delete</span>
+                            Delete Hotspot
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            configPanel.classList.remove('hidden');
+        }
+
+        // Update hotspot property
+        function updateHotspotProperty(property, value) {
+            if (!window.ExplicoApp.selectedHotspot) return;
+
+            window.ExplicoApp.selectedHotspot[property] = value;
+            
+            // Update visual position if x or y changed
+            if (property === 'x' || property === 'y') {
+                const hotspotEl = document.querySelector(`[data-hotspot-id="${window.ExplicoApp.selectedHotspot.id}"]`);
+                if (hotspotEl) {
+                    hotspotEl.style.left = window.ExplicoApp.selectedHotspot.x + 'px';
+                    hotspotEl.style.top = window.ExplicoApp.selectedHotspot.y + 'px';
+                }
+            }
+
+            console.log('Updated hotspot property:', property, '=', value);
+        }
+
+        // Update sequencer display
+        function updateSequencer() {
+            const sequenceContainer = document.getElementById('hotspots-sequence');
+            const sequenceInfo = document.getElementById('sequence-info');
+            
+            const slideHotspots = Array.from(window.ExplicoApp.hotspots.values());
+            
+            if (slideHotspots.length === 0) {
+                sequenceInfo.textContent = 'No hotspots on current slide';
+                sequenceContainer.innerHTML = '<div class="text-gray-500 text-sm">Click on the canvas to add hotspots</div>';
+                return;
+            }
+
+            sequenceInfo.textContent = `${slideHotspots.length} hotspot${slideHotspots.length !== 1 ? 's' : ''}`;
+
+            sequenceContainer.innerHTML = slideHotspots.map((hotspot, index) => `
+                <div class="hotspot-sequence-item ${hotspot.id === window.ExplicoApp.selectedHotspot?.id ? 'active' : ''}" 
+                     onclick="selectHotspot('${hotspot.id}')" style="min-width: 120px;">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold">
+                            ${index + 1}
+                        </span>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-xs font-medium truncate">${hotspot.title}</div>
+                            <div class="text-xs text-gray-500">${hotspot.eventType.replace('_', ' ')}</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Header buttons
+            document.getElementById('save-btn').addEventListener('click', saveProject);
+            document.getElementById('preview-btn').addEventListener('click', previewProject);
+            document.getElementById('back-to-dashboard-btn').addEventListener('click', () => {
+                window.location.href = 'project-dashboard.html';
+            });
+
+            // Sidebar
+            document.getElementById('add-slide-btn').addEventListener('click', showAddSlideModal);
+
+            // Canvas creation mode
+            document.getElementById('toggle-creation-mode').addEventListener('click', toggleCreationMode);
+
+            // Config panel
+            document.getElementById('close-config-panel').addEventListener('click', () => {
+                document.getElementById('config-panel').classList.add('hidden');
+                window.ExplicoApp.selectedHotspot = null;
+                document.querySelectorAll('.hotspot.selected').forEach(el => {
+                    el.classList.remove('selected');
+                });
+            });
+
+            // Add slide modal
+            document.getElementById('cancel-add-slide').addEventListener('click', hideAddSlideModal);
+            document.getElementById('create-slide').addEventListener('click', createNewSlide);
+        }
+
+        // Toggle creation mode
+        function toggleCreationMode() {
+            window.ExplicoApp.creationMode = !window.ExplicoApp.creationMode;
+            const overlay = document.getElementById('creation-overlay');
+            const btn = document.getElementById('toggle-creation-mode');
+
+            if (window.ExplicoApp.creationMode) {
+                if (overlay) overlay.style.display = 'block';
+                btn.textContent = 'Exit Creation Mode';
+                btn.classList.add('bg-orange-100', 'text-orange-800');
+                
+                // Add click listener for creating hotspots
+                if (overlay) {
+                    overlay.addEventListener('click', handleCanvasClick);
+                }
+            } else {
+                if (overlay) overlay.style.display = 'none';
+                btn.innerHTML = '<span class="material-symbols-outlined text-xs">add_circle</span> Creation Mode';
+                btn.classList.remove('bg-orange-100', 'text-orange-800');
+            }
+        }
+
+        // Handle canvas click to create hotspots
+        function handleCanvasClick(e) {
+            if (!window.ExplicoApp.creationMode) return;
+
+            const rect = e.currentTarget.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const newHotspot = {
+                id: 'hotspot-' + Date.now(),
+                x: x,
+                y: y,
+                eventType: 'text_popup',
+                title: 'New Hotspot',
+                content: 'Click to configure this hotspot'
+            };
+
+            createHotspotElement(newHotspot);
+            updateSequencer();
+            selectHotspot(newHotspot.id);
+
+            console.log('Created new hotspot at', x, y);
+        }
+
+        // Show add slide modal
+        function showAddSlideModal() {
+            document.getElementById('add-slide-modal').classList.remove('hidden');
+            document.getElementById('add-slide-modal').classList.add('flex');
+            document.getElementById('new-slide-name').focus();
+        }
+
+        // Hide add slide modal
+        function hideAddSlideModal() {
+            document.getElementById('add-slide-modal').classList.add('hidden');
+            document.getElementById('add-slide-modal').classList.remove('flex');
+            document.getElementById('new-slide-name').value = '';
+            document.getElementById('slide-media-url').value = '';
+        }
+
+        // Create new slide
+        function createNewSlide() {
+            const name = document.getElementById('new-slide-name').value.trim();
+            const mediaUrl = document.getElementById('slide-media-url').value.trim() || 'https://via.placeholder.com/800x600/6B7280/FFFFFF?text=New+Slide';
+
+            if (!name) {
+                alert('Please enter a slide name');
+                return;
+            }
+
+            const newSlide = {
+                id: 'slide-' + Date.now(),
+                name: name,
+                backgroundUrl: mediaUrl,
+                backgroundType: 'image',
+                order: window.ExplicoApp.slides.size
+            };
+
+            window.ExplicoApp.slides.set(newSlide.id, newSlide);
+            renderSlidesList();
+            hideAddSlideModal();
+            selectSlide(newSlide.id);
+
+            console.log('Created new slide:', name);
+        }
+
+        // Save project
+        function saveProject() {
+            console.log('Saving project...');
+            const btn = document.getElementById('save-btn');
+            const originalText = btn.innerHTML;
+            
+            btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">refresh</span> Saving...';
+            btn.disabled = true;
+
+            // Simulate save delay
+            setTimeout(() => {
+                btn.innerHTML = '<span class="material-symbols-outlined text-sm">check</span> Saved!';
+                btn.classList.add('bg-green-600');
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.classList.remove('bg-green-600');
+                    btn.disabled = false;
+                }, 2000);
+            }, 1000);
+        }
+
+        // Preview project
+        function previewProject() {
+            alert('Preview functionality will open a new window with the walkthrough player');
+        }
+
+        // Preview hotspot effect
+        function previewHotspot() {
+            if (!window.ExplicoApp.selectedHotspot) return;
+            
+            const hotspot = window.ExplicoApp.selectedHotspot;
+            alert(`Preview: ${hotspot.eventType}\nTitle: ${hotspot.title}\nContent: ${hotspot.content}`);
+        }
+
+        // Delete hotspot
+        function deleteHotspot() {
+            if (!window.ExplicoApp.selectedHotspot) return;
+
+            if (confirm('Are you sure you want to delete this hotspot?')) {
+                const hotspotId = window.ExplicoApp.selectedHotspot.id;
+                const hotspotEl = document.querySelector(`[data-hotspot-id="${hotspotId}"]`);
+                
+                if (hotspotEl) {
+                    hotspotEl.remove();
+                }
+                
+                window.ExplicoApp.hotspots.delete(hotspotId);
+                window.ExplicoApp.selectedHotspot = null;
+                
+                document.getElementById('config-panel').classList.add('hidden');
+                updateSequencer();
+                
+                console.log('Deleted hotspot:', hotspotId);
+            }
+        }
+
+        // Show error message
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded shadow-lg z-50';
+            errorDiv.innerHTML = `
+                <div class="flex items-center">
+                    <span class="material-symbols-outlined text-sm mr-2">error</span>
+                    <span>${message}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-red-500 hover:text-red-700">
+                        <span class="material-symbols-outlined text-sm">close</span>
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(errorDiv);
+
+            setTimeout(() => {
+                if (errorDiv.parentElement) {
+                    errorDiv.remove();
+                }
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

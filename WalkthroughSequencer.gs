@@ -1,0 +1,662 @@
+/**
+ * WalkthroughSequencer Component for Explico Learning
+ * Timeline component for managing hotspot sequence and order
+ */
+
+class WalkthroughSequencer {
+  
+  constructor(options = {}) {
+    this.options = {
+      title: 'Walkthrough Sequencing',
+      hotspots: [],
+      currentIndex: 0,
+      onSequenceChange: null,
+      onHotspotSelect: null,
+      onHotspotReorder: null,
+      onAddHotspot: null,
+      allowReordering: true,
+      showProgress: true,
+      ...options
+    };
+    
+    this.element = null;
+    this.draggedHotspot = null;
+    this.isDragging = false;
+  }
+  
+  /**
+   * Create and return the sequencer element
+   * @returns {HTMLElement} Sequencer element
+   */
+  render() {
+    this.element = document.createElement('footer');
+    this.element.className = 'walkthrough-sequencer bg-[#1f2937] rounded-lg p-4';
+    
+    // Header
+    const header = this.createHeader();
+    this.element.appendChild(header);
+    
+    // Timeline container
+    const timelineContainer = this.createTimelineContainer();
+    this.element.appendChild(timelineContainer);
+    
+    return this.element;
+  }
+  
+  /**
+   * Create sequencer header
+   * @returns {HTMLElement} Header element
+   */
+  createHeader() {
+    const header = document.createElement('div');
+    header.className = 'sequencer-header flex items-center justify-between mb-4';
+    
+    // Title
+    const title = document.createElement('h2');
+    title.className = 'text-white text-lg font-semibold px-2';
+    title.textContent = this.options.title;
+    
+    // Progress indicator (optional)
+    if (this.options.showProgress) {
+      const progress = this.createProgressIndicator();
+      header.appendChild(title);
+      header.appendChild(progress);
+    } else {
+      header.appendChild(title);
+    }
+    
+    return header;
+  }
+  
+  /**
+   * Create progress indicator
+   * @returns {HTMLElement} Progress indicator element
+   */
+  createProgressIndicator() {
+    const container = document.createElement('div');
+    container.className = 'progress-indicator flex items-center gap-2 text-sm text-gray-400';
+    
+    const currentStep = document.createElement('span');
+    currentStep.id = 'current-step';
+    currentStep.textContent = Math.min(this.options.currentIndex + 1, this.options.hotspots.length);
+    
+    const separator = document.createElement('span');
+    separator.textContent = '/';
+    
+    const totalSteps = document.createElement('span');
+    totalSteps.id = 'total-steps';
+    totalSteps.textContent = this.options.hotspots.length;
+    
+    container.appendChild(currentStep);
+    container.appendChild(separator);
+    container.appendChild(totalSteps);
+    
+    return container;
+  }
+  
+  /**
+   * Create timeline container
+   * @returns {HTMLElement} Timeline container element
+   */
+  createTimelineContainer() {
+    const container = document.createElement('div');
+    container.className = 'timeline-container flex items-center gap-6';
+    
+    // Timeline track
+    const timeline = this.createTimeline();
+    container.appendChild(timeline);
+    
+    // Add hotspot button
+    const addButton = this.createAddButton();
+    container.appendChild(addButton);
+    
+    return container;
+  }
+  
+  /**
+   * Create timeline track with hotspot nodes
+   * @returns {HTMLElement} Timeline element
+   */
+  createTimeline() {
+    const timeline = document.createElement('div');
+    timeline.className = 'timeline flex items-center gap-4 flex-1';
+    
+    // Timeline track
+    const track = document.createElement('div');
+    track.className = 'timeline-track flex-1 h-0.5 bg-gray-600 relative';
+    track.id = 'timeline-track';
+    
+    // Hotspot nodes container
+    const nodesContainer = document.createElement('div');
+    nodesContainer.className = 'timeline-nodes absolute top-1/2 -translate-y-1/2 w-full flex justify-between';
+    nodesContainer.id = 'timeline-nodes';
+    
+    // Render hotspot nodes
+    this.renderHotspotNodes(nodesContainer);
+    
+    track.appendChild(nodesContainer);
+    timeline.appendChild(track);
+    
+    return timeline;
+  }
+  
+  /**
+   * Render hotspot nodes on timeline
+   * @param {HTMLElement} container - Nodes container
+   */
+  renderHotspotNodes(container) {
+    container.innerHTML = '';
+    
+    this.options.hotspots.forEach((hotspot, index) => {
+      const node = this.createHotspotNode(hotspot, index);
+      container.appendChild(node);
+    });
+    
+    // Update timeline progress line
+    this.updateTimelineProgress();
+  }
+  
+  /**
+   * Create individual hotspot node
+   * @param {Object} hotspot - Hotspot data
+   * @param {number} index - Hotspot index
+   * @returns {HTMLElement} Hotspot node element
+   */
+  createHotspotNode(hotspot, index) {
+    const node = document.createElement('div');
+    node.className = 'hotspot-node relative group cursor-pointer';
+    node.dataset.hotspotId = hotspot.id;
+    node.dataset.index = index;
+    
+    if (this.options.allowReordering) {
+      node.draggable = true;
+    }
+    
+    // Node circle
+    const circle = document.createElement('div');
+    circle.className = `node-circle flex items-center justify-center rounded-full shadow-md transition-all duration-200 ${
+      index === this.options.currentIndex ? 'w-6 h-6 bg-[#4f46e5] ring-2 ring-white/50' : 'w-5 h-5 bg-gray-500'
+    }`;
+    
+    // Inner dot
+    const dot = document.createElement('div');
+    dot.className = `node-dot rounded-full bg-white ${
+      index === this.options.currentIndex ? 'w-3 h-3' : 'w-2.5 h-2.5'
+    }`;
+    
+    circle.appendChild(dot);
+    node.appendChild(circle);
+    
+    // Tooltip with hotspot name
+    const tooltip = this.createNodeTooltip(hotspot, index);
+    node.appendChild(tooltip);
+    
+    // Event listeners
+    this.attachNodeEventListeners(node, hotspot, index);
+    
+    return node;
+  }
+  
+  /**
+   * Create node tooltip
+   * @param {Object} hotspot - Hotspot data
+   * @param {number} index - Hotspot index
+   * @returns {HTMLElement} Tooltip element
+   */
+  createNodeTooltip(hotspot, index) {
+    const tooltip = document.createElement('span');
+    tooltip.className = 'node-tooltip absolute bottom-full mb-2 left-1/2 -translate-x-1/2 whitespace-nowrap bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10';
+    tooltip.textContent = hotspot.name || `Hotspot ${index + 1}`;
+    
+    return tooltip;
+  }
+  
+  /**
+   * Attach event listeners to hotspot node
+   * @param {HTMLElement} node - Node element
+   * @param {Object} hotspot - Hotspot data
+   * @param {number} index - Hotspot index
+   */
+  attachNodeEventListeners(node, hotspot, index) {
+    // Click to select/navigate
+    node.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!this.isDragging) {
+        this.setCurrentIndex(index);
+        if (this.options.onHotspotSelect) {
+          this.options.onHotspotSelect(hotspot.id, index);
+        }
+      }
+    });
+    
+    if (this.options.allowReordering) {
+      // Drag and drop for reordering
+      node.addEventListener('dragstart', (e) => {
+        this.isDragging = true;
+        this.draggedHotspot = { hotspot, index };
+        node.classList.add('opacity-50');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', hotspot.id);
+        
+        // Hide tooltip during drag
+        const tooltip = node.querySelector('.node-tooltip');
+        if (tooltip) tooltip.style.opacity = '0';
+        
+        setTimeout(() => { this.isDragging = false; }, 100);
+      });
+      
+      node.addEventListener('dragend', (e) => {
+        node.classList.remove('opacity-50');
+        this.draggedHotspot = null;
+        
+        // Restore tooltip
+        const tooltip = node.querySelector('.node-tooltip');
+        if (tooltip) tooltip.style.opacity = '';
+      });
+      
+      node.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        
+        // Visual feedback
+        node.classList.add('ring-2', 'ring-blue-500');
+      });
+      
+      node.addEventListener('dragleave', (e) => {
+        node.classList.remove('ring-2', 'ring-blue-500');
+      });
+      
+      node.addEventListener('drop', (e) => {
+        e.preventDefault();
+        node.classList.remove('ring-2', 'ring-blue-500');
+        
+        if (this.draggedHotspot && this.draggedHotspot.index !== index) {
+          this.reorderHotspot(this.draggedHotspot.index, index);
+        }
+      });
+    }
+    
+    // Context menu (optional)
+    node.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      this.showNodeContextMenu(e, hotspot, index);
+    });
+  }
+  
+  /**
+   * Show context menu for node
+   * @param {MouseEvent} event - Context menu event
+   * @param {Object} hotspot - Hotspot data
+   * @param {number} index - Hotspot index
+   */
+  showNodeContextMenu(event, hotspot, index) {
+    // Remove existing context menu
+    const existingMenu = document.querySelector('.node-context-menu');
+    if (existingMenu) {
+      existingMenu.remove();
+    }
+    
+    const menu = document.createElement('div');
+    menu.className = 'node-context-menu absolute bg-gray-800 border border-gray-600 rounded-md shadow-lg py-1 z-50';
+    menu.style.left = `${event.pageX}px`;
+    menu.style.top = `${event.pageY}px`;
+    
+    // Menu items
+    const items = [
+      { text: 'Select', action: () => this.setCurrentIndex(index) },
+      { text: 'Move to Start', action: () => this.reorderHotspot(index, 0) },
+      { text: 'Move to End', action: () => this.reorderHotspot(index, this.options.hotspots.length - 1) },
+      { text: 'Duplicate', action: () => this.duplicateHotspot(index) },
+      { text: 'Delete', action: () => this.removeHotspot(index), className: 'text-red-400' }
+    ];
+    
+    items.forEach(item => {
+      const menuItem = document.createElement('button');
+      menuItem.className = `block w-full text-left px-3 py-1 text-sm text-white hover:bg-gray-700 ${item.className || ''}`;
+      menuItem.textContent = item.text;
+      menuItem.addEventListener('click', () => {
+        item.action();
+        menu.remove();
+      });
+      menu.appendChild(menuItem);
+    });
+    
+    document.body.appendChild(menu);
+    
+    // Remove on outside click
+    const removeMenu = (e) => {
+      if (!menu.contains(e.target)) {
+        menu.remove();
+        document.removeEventListener('click', removeMenu);
+      }
+    };
+    
+    setTimeout(() => {
+      document.addEventListener('click', removeMenu);
+    }, 0);
+  }
+  
+  /**
+   * Create add hotspot button
+   * @returns {HTMLElement} Add button element
+   */
+  createAddButton() {
+    const button = document.createElement('button');
+    button.className = 'add-hotspot-button flex items-center justify-center gap-2 rounded-md p-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white transition-colors';
+    button.title = 'Add new hotspot';
+    
+    const icon = document.createElement('span');
+    icon.className = 'material-symbols-outlined';
+    icon.textContent = 'add_circle';
+    
+    button.appendChild(icon);
+    
+    button.addEventListener('click', () => {
+      if (this.options.onAddHotspot) {
+        this.options.onAddHotspot();
+      }
+    });
+    
+    return button;
+  }
+  
+  /**
+   * Update timeline progress visualization
+   */
+  updateTimelineProgress() {
+    const track = this.element?.querySelector('#timeline-track');
+    if (!track || this.options.hotspots.length === 0) return;
+    
+    // Remove existing progress line
+    const existingProgress = track.querySelector('.timeline-progress');
+    if (existingProgress) {
+      existingProgress.remove();
+    }
+    
+    // Create progress line
+    const progressLine = document.createElement('div');
+    progressLine.className = 'timeline-progress absolute top-0 left-0 h-full bg-[#4f46e5] transition-all duration-300';
+    
+    // Calculate progress width
+    const progressWidth = this.options.hotspots.length > 1 
+      ? (this.options.currentIndex / (this.options.hotspots.length - 1)) * 100 
+      : 0;
+    
+    progressLine.style.width = `${progressWidth}%`;
+    
+    track.insertBefore(progressLine, track.firstChild);
+  }
+  
+  /**
+   * Set current hotspot index
+   * @param {number} index - New current index
+   */
+  setCurrentIndex(index) {
+    const previousIndex = this.options.currentIndex;
+    this.options.currentIndex = Math.max(0, Math.min(index, this.options.hotspots.length - 1));
+    
+    // Update node appearances
+    this.updateNodeAppearances();
+    
+    // Update progress indicator
+    this.updateProgressIndicator();
+    
+    // Update timeline progress
+    this.updateTimelineProgress();
+    
+    // Trigger callback
+    if (this.options.onSequenceChange && previousIndex !== this.options.currentIndex) {
+      this.options.onSequenceChange(this.options.currentIndex, previousIndex);
+    }
+  }
+  
+  /**
+   * Update node visual appearances
+   */
+  updateNodeAppearances() {
+    const nodes = this.element?.querySelectorAll('.hotspot-node');
+    if (!nodes) return;
+    
+    nodes.forEach((node, index) => {
+      const circle = node.querySelector('.node-circle');
+      const dot = node.querySelector('.node-dot');
+      
+      if (index === this.options.currentIndex) {
+        // Active state
+        circle.className = 'node-circle flex items-center justify-center w-6 h-6 rounded-full bg-[#4f46e5] shadow-lg ring-2 ring-white/50 transition-all duration-200';
+        dot.className = 'node-dot w-3 h-3 rounded-full bg-white';
+      } else if (index < this.options.currentIndex) {
+        // Completed state
+        circle.className = 'node-circle flex items-center justify-center w-5 h-5 rounded-full bg-green-500 shadow-md transition-all duration-200';
+        dot.className = 'node-dot w-2.5 h-2.5 rounded-full bg-white';
+      } else {
+        // Pending state
+        circle.className = 'node-circle flex items-center justify-center w-5 h-5 rounded-full bg-gray-500 shadow-md transition-all duration-200';
+        dot.className = 'node-dot w-2.5 h-2.5 rounded-full bg-white';
+      }
+    });
+  }
+  
+  /**
+   * Update progress indicator text
+   */
+  updateProgressIndicator() {
+    const currentStep = this.element?.querySelector('#current-step');
+    const totalSteps = this.element?.querySelector('#total-steps');
+    
+    if (currentStep) {
+      currentStep.textContent = Math.min(this.options.currentIndex + 1, this.options.hotspots.length);
+    }
+    
+    if (totalSteps) {
+      totalSteps.textContent = this.options.hotspots.length;
+    }
+  }
+  
+  /**
+   * Go to next hotspot
+   */
+  next() {
+    if (this.options.currentIndex < this.options.hotspots.length - 1) {
+      this.setCurrentIndex(this.options.currentIndex + 1);
+    }
+  }
+  
+  /**
+   * Go to previous hotspot
+   */
+  previous() {
+    if (this.options.currentIndex > 0) {
+      this.setCurrentIndex(this.options.currentIndex - 1);
+    }
+  }
+  
+  /**
+   * Go to first hotspot
+   */
+  first() {
+    this.setCurrentIndex(0);
+  }
+  
+  /**
+   * Go to last hotspot
+   */
+  last() {
+    this.setCurrentIndex(this.options.hotspots.length - 1);
+  }
+  
+  /**
+   * Reorder hotspot
+   * @param {number} fromIndex - Source index
+   * @param {number} toIndex - Target index
+   */
+  reorderHotspot(fromIndex, toIndex) {
+    if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0 ||
+        fromIndex >= this.options.hotspots.length || toIndex >= this.options.hotspots.length) {
+      return;
+    }
+    
+    // Reorder hotspots array
+    const hotspots = [...this.options.hotspots];
+    const [movedHotspot] = hotspots.splice(fromIndex, 1);
+    hotspots.splice(toIndex, 0, movedHotspot);
+    
+    // Update current index if needed
+    if (this.options.currentIndex === fromIndex) {
+      this.options.currentIndex = toIndex;
+    } else if (fromIndex < this.options.currentIndex && toIndex >= this.options.currentIndex) {
+      this.options.currentIndex--;
+    } else if (fromIndex > this.options.currentIndex && toIndex <= this.options.currentIndex) {
+      this.options.currentIndex++;
+    }
+    
+    this.setHotspots(hotspots);
+    
+    // Trigger callback
+    if (this.options.onHotspotReorder) {
+      this.options.onHotspotReorder(fromIndex, toIndex, movedHotspot);
+    }
+  }
+  
+  /**
+   * Add hotspot to sequence
+   * @param {Object} hotspot - Hotspot data
+   * @param {number} index - Insert index (optional)
+   */
+  addHotspot(hotspot, index = null) {
+    const insertIndex = index !== null ? index : this.options.hotspots.length;
+    this.options.hotspots.splice(insertIndex, 0, hotspot);
+    
+    // Re-render nodes
+    const container = this.element?.querySelector('#timeline-nodes');
+    if (container) {
+      this.renderHotspotNodes(container);
+    }
+    
+    // Update progress indicator
+    this.updateProgressIndicator();
+  }
+  
+  /**
+   * Remove hotspot from sequence
+   * @param {number} index - Hotspot index
+   */
+  removeHotspot(index) {
+    if (index < 0 || index >= this.options.hotspots.length) return;
+    
+    this.options.hotspots.splice(index, 1);
+    
+    // Adjust current index if needed
+    if (this.options.currentIndex >= this.options.hotspots.length) {
+      this.options.currentIndex = Math.max(0, this.options.hotspots.length - 1);
+    }
+    
+    // Re-render nodes
+    const container = this.element?.querySelector('#timeline-nodes');
+    if (container) {
+      this.renderHotspotNodes(container);
+    }
+    
+    // Update progress indicator
+    this.updateProgressIndicator();
+  }
+  
+  /**
+   * Duplicate hotspot
+   * @param {number} index - Hotspot index to duplicate
+   */
+  duplicateHotspot(index) {
+    if (index < 0 || index >= this.options.hotspots.length) return;
+    
+    const original = this.options.hotspots[index];
+    const duplicate = {
+      ...original,
+      id: `${original.id}_copy_${Date.now()}`,
+      name: `${original.name} Copy`,
+      position: {
+        x: original.position.x + 5,
+        y: original.position.y + 5
+      }
+    };
+    
+    this.addHotspot(duplicate, index + 1);
+  }
+  
+  /**
+   * Set hotspots array
+   * @param {Array} hotspots - Array of hotspot objects
+   */
+  setHotspots(hotspots) {
+    this.options.hotspots = hotspots;
+    
+    // Ensure current index is valid
+    this.options.currentIndex = Math.max(0, Math.min(this.options.currentIndex, hotspots.length - 1));
+    
+    // Re-render nodes
+    const container = this.element?.querySelector('#timeline-nodes');
+    if (container) {
+      this.renderHotspotNodes(container);
+    }
+    
+    // Update progress indicator
+    this.updateProgressIndicator();
+  }
+  
+  /**
+   * Get current hotspot
+   * @returns {Object|null} Current hotspot data
+   */
+  getCurrentHotspot() {
+    return this.options.hotspots[this.options.currentIndex] || null;
+  }
+  
+  /**
+   * Get all hotspots
+   * @returns {Array} Array of hotspot objects
+   */
+  getHotspots() {
+    return this.options.hotspots;
+  }
+  
+  /**
+   * Get current index
+   * @returns {number} Current hotspot index
+   */
+  getCurrentIndex() {
+    return this.options.currentIndex;
+  }
+  
+  /**
+   * Check if there is a next hotspot
+   * @returns {boolean} Whether there is a next hotspot
+   */
+  hasNext() {
+    return this.options.currentIndex < this.options.hotspots.length - 1;
+  }
+  
+  /**
+   * Check if there is a previous hotspot
+   * @returns {boolean} Whether there is a previous hotspot
+   */
+  hasPrevious() {
+    return this.options.currentIndex > 0;
+  }
+  
+  /**
+   * Destroy the component
+   */
+  destroy() {
+    if (this.element) {
+      this.element.remove();
+      this.element = null;
+    }
+  }
+  
+  /**
+   * Get sequencer element
+   * @returns {HTMLElement|null} Sequencer element
+   */
+  getElement() {
+    return this.element;
+  }
+}
