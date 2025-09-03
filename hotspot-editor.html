@@ -553,7 +553,7 @@
 
         // Select a slide for editing
         function selectSlide(slideId) {
-            const slide = window.ExplicoApp.slides.get(slideId);
+            const slide = window.ExplicoApp.slides[slideId];
             if (!slide) return;
 
             window.ExplicoApp.currentSlide = slide;
@@ -621,7 +621,7 @@
             });
 
             hotspotsLayer.appendChild(hotspotEl);
-            window.ExplicoApp.hotspots.set(hotspot.id, hotspot);
+            window.ExplicoApp.hotspots[hotspot.id] = hotspot;
         }
 
         // Select a hotspot
@@ -637,7 +637,7 @@
                 hotspotEl.classList.add('selected');
             }
 
-            const hotspot = window.ExplicoApp.hotspots.get(hotspotId);
+            const hotspot = window.ExplicoApp.hotspots[hotspotId];
             if (hotspot) {
                 window.ExplicoApp.selectedHotspot = hotspot;
                 showConfigPanel(hotspot);
@@ -717,7 +717,7 @@
             const sequenceContainer = document.getElementById('hotspots-sequence');
             const sequenceInfo = document.getElementById('sequence-info');
             
-            const slideHotspots = Array.from(window.ExplicoApp.hotspots.values());
+            const slideHotspots = Object.values(window.ExplicoApp.hotspots);
             
             if (slideHotspots.length === 0) {
                 sequenceInfo.textContent = 'No hotspots on current slide';
@@ -848,10 +848,10 @@
                 name: name,
                 backgroundUrl: mediaUrl,
                 backgroundType: 'image',
-                order: window.ExplicoApp.slides.size
+                order: Object.keys(window.ExplicoApp.slides).length
             };
 
-            window.ExplicoApp.slides.set(newSlide.id, newSlide);
+            window.ExplicoApp.slides[newSlide.id] = newSlide;
             renderSlidesList();
             hideAddSlideModal();
             selectSlide(newSlide.id);
@@ -906,7 +906,7 @@
                     hotspotEl.remove();
                 }
                 
-                window.ExplicoApp.hotspots.delete(hotspotId);
+                delete window.ExplicoApp.hotspots[hotspotId];
                 window.ExplicoApp.selectedHotspot = null;
                 
                 document.getElementById('config-panel').classList.add('hidden');

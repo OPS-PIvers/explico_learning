@@ -231,7 +231,16 @@ function createNewProject(projectData) {
  */
 function getProjectData(projectId) {
   try {
-    const spreadsheet = SpreadsheetApp.openById(projectId);
+    let spreadsheet;
+    
+    try {
+      // Try to open existing spreadsheet
+      spreadsheet = SpreadsheetApp.openById(projectId);
+    } catch (error) {
+      console.log('Spreadsheet not found, creating new one for project:', projectId);
+      // If spreadsheet doesn't exist, create it
+      spreadsheet = createProjectSpreadsheet(projectId);
+    }
     
     // Ensure the spreadsheet has the proper structure
     ensureSpreadsheetStructure(spreadsheet);
@@ -1010,6 +1019,36 @@ function setupSheetHeaders(sheet, sheetName) {
     sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
     sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
     sheet.getRange(1, 1, 1, headers.length).setBackground('#f0f0f0');
+  }
+}
+
+/**
+ * Create a new spreadsheet for a project with the given ID
+ * This handles cases where a project ID exists but no spreadsheet was created
+ */
+function createProjectSpreadsheet(projectId) {
+  try {
+    // Create new spreadsheet with a descriptive name
+    const spreadsheet = SpreadsheetApp.create('Explico Learning Project');
+    
+    // Get the file and move it to the projects folder  
+    const file = DriveApp.getFileById(spreadsheet.getId());
+    const folder = getOrCreateProjectFolder();
+    
+    // Move to projects folder
+    folder.addFile(file);
+    DriveApp.getRootFolder().removeFile(file);
+    
+    console.log('Created new spreadsheet for missing project:', projectId, 'with actual ID:', spreadsheet.getId());
+    
+    // Setup the initial structure
+    setupSpreadsheetStructure(spreadsheet);
+    
+    return spreadsheet;
+    
+  } catch (error) {
+    console.error('Error creating project spreadsheet:', error);
+    throw new Error('Failed to create project spreadsheet: ' + error.message);
   }
 }
 
