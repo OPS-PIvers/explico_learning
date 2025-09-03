@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{PROJECT_NAME}} - Hotspot Editor - Explico Learning</title>
     
+    <!-- Permissions Policy to suppress browser warnings for Google Apps Script -->
+    <meta http-equiv="Permissions-Policy" content="ambient-light-sensor=(), speaker=(), vibrate=(), vr=()">
+    
     <!-- Preconnect to external services -->
     <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
     
@@ -17,6 +20,23 @@
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        // Suppress Tailwind CDN production warning for Google Apps Script environment
+        tailwind.config = {
+            corePlugins: {
+                preflight: false,
+            }
+        };
+        // Override console.warn to filter Tailwind production warnings
+        const originalWarn = console.warn;
+        console.warn = function(...args) {
+            const message = args.join(' ');
+            if (message.includes('cdn.tailwindcss.com should not be used in production')) {
+                return; // Suppress this specific warning
+            }
+            originalWarn.apply(console, args);
+        };
+    </script>
     
     <!-- Base Styles -->
     <?!= HtmlService.createHtmlOutputFromFile('styles').getContent(); ?>
@@ -134,35 +154,50 @@
             // TODO: Send error to analytics
         });
         
-        // Helper function to call Google Apps Script functions
-        function callGoogleFunction(functionName, ...args) {
+        // Editor-specific GAS functions with direct calls
+        function getCurrentUser() {
             return new Promise((resolve, reject) => {
                 google.script.run
                     .withSuccessHandler(resolve)
                     .withFailureHandler(reject)
-                    [functionName](...args);
+                    .getCurrentUser();
             });
         }
         
-        // Editor-specific GAS functions
-        function getCurrentUser() {
-            return callGoogleFunction('getCurrentUser');
-        }
-        
         function getProjectData(projectId) {
-            return callGoogleFunction('getProjectData', projectId);
+            return new Promise((resolve, reject) => {
+                google.script.run
+                    .withSuccessHandler(resolve)
+                    .withFailureHandler(reject)
+                    .getProjectData(projectId);
+            });
         }
         
         function saveProjectData(projectData) {
-            return callGoogleFunction('saveProjectData', projectData);
+            return new Promise((resolve, reject) => {
+                google.script.run
+                    .withSuccessHandler(resolve)
+                    .withFailureHandler(reject)
+                    .saveProjectData(projectData);
+            });
         }
         
         function uploadMedia(fileData, fileName, projectId) {
-            return callGoogleFunction('uploadMedia', fileData, fileName, projectId);
+            return new Promise((resolve, reject) => {
+                google.script.run
+                    .withSuccessHandler(resolve)
+                    .withFailureHandler(reject)
+                    .uploadMedia(fileData, fileName, projectId);
+            });
         }
         
         function getProjectMediaUrl(projectId, fileName) {
-            return callGoogleFunction('getProjectMediaUrl', projectId, fileName);
+            return new Promise((resolve, reject) => {
+                google.script.run
+                    .withSuccessHandler(resolve)
+                    .withFailureHandler(reject)
+                    .getProjectMediaUrl(projectId, fileName);
+            });
         }
         
         // Initialize editor application

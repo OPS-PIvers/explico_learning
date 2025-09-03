@@ -177,6 +177,11 @@ function getAllProjects() {
   return projectManager.getAllProjects();
 }
 
+function getUserProjects() {
+  const projectManager = new ProjectManager_server();
+  return projectManager.getAllProjects();
+}
+
 function createSlide(slideData) {
   const projectManager = new ProjectManager_server();
   return projectManager.createSlide(slideData);

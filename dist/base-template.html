@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{TITLE}} - Expli.co Learning</title>
     
+    <!-- Permissions Policy to suppress browser warnings for Google Apps Script -->
+    <meta http-equiv="Permissions-Policy" content="ambient-light-sensor=(), speaker=(), vibrate=(), vr=()">
+    
     <!-- Preconnect to external services -->
     <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
     
@@ -17,6 +20,23 @@
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        // Suppress Tailwind CDN production warning for Google Apps Script environment
+        tailwind.config = {
+            corePlugins: {
+                preflight: false,
+            }
+        };
+        // Override console.warn to filter Tailwind production warnings
+        const originalWarn = console.warn;
+        console.warn = function(...args) {
+            const message = args.join(' ');
+            if (message.includes('cdn.tailwindcss.com should not be used in production')) {
+                return; // Suppress this specific warning
+            }
+            originalWarn.apply(console, args);
+        };
+    </script>
     
     <!-- Custom Styles -->
     <style type="text/tailwindcss">
@@ -85,29 +105,32 @@
             // TODO: Send error to analytics
         });
         
-        // Helper function to call Google Apps Script functions
-        function callGoogleFunction(functionName, ...args) {
+        // Base template GAS functions with direct calls
+        function getCurrentUser() {
             return new Promise((resolve, reject) => {
                 google.script.run
                     .withSuccessHandler(resolve)
                     .withFailureHandler(reject)
-                    [functionName](...args);
+                    .getCurrentUser();
             });
         }
         
-        // Helper function to get current user
-        function getCurrentUser() {
-            return callGoogleFunction('getCurrentUser');
-        }
-        
-        // Helper function to create new spreadsheet
         function createProjectSpreadsheet(projectName) {
-            return callGoogleFunction('createProjectSpreadsheet', projectName);
+            return new Promise((resolve, reject) => {
+                google.script.run
+                    .withSuccessHandler(resolve)
+                    .withFailureHandler(reject)
+                    .createProjectSpreadsheet(projectName);
+            });
         }
         
-        // Helper function to get project data
         function getProjectData(projectId) {
-            return callGoogleFunction('getProjectData', projectId);
+            return new Promise((resolve, reject) => {
+                google.script.run
+                    .withSuccessHandler(resolve)
+                    .withFailureHandler(reject)
+                    .getProjectData(projectId);
+            });
         }
     </script>
     
