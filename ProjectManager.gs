@@ -324,8 +324,9 @@ ProjectManager.prototype.createSlide = function(slideData) {
     throw new Error('No current project or project ID provided');
   }
 
-  var slideName = slideData.name || 'Slide ' + (((this.currentProject && this.currentProject.slides) ? this.currentProject.slides.length : 0) + 1);
-  var order = slideData.order !== undefined ? slideData.order : ((this.currentProject && this.currentProject.slides) ? this.currentProject.slides.length : 0);
+  var slideCount = (this.currentProject && this.currentProject.slides) ? this.currentProject.slides.length : 0;
+  var slideName = slideData.name || 'Slide ' + (slideCount + 1);
+  var order = slideData.order !== undefined ? slideData.order : slideCount;
 
   var slide = Object.assign({}, SLIDE_DEFAULTS, {
     projectId: slideData.projectId || this.currentProject.id,
