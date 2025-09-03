@@ -26,12 +26,34 @@ jobs:
         # Verify required fields exist
         jq -e '.tokens.default.access_token' ~/.clasprc.json > /dev/null || { echo "Missing access_token in credentials"; exit 1; }
         echo "✓ Credentials file created and validated successfully"
-    - name: Push code to Apps Script
-      # Use --force if you encounter issues with minor version bumps
-      run: clasp push --force
-    - name: Update deployment
-      # If you have a specific deployment ID to update, use this format
+    - name: Build project files
       run: |
+        # Run the build script to populate dist/ directory
+        chmod +x ./build.sh
+        ./build.sh
+        # Verify dist directory has required files
+        if [ ! -d "dist" ]; then
+          echo "❌ dist directory not created by build script"
+          exit 1
+        fi
+        echo "✓ Build completed, checking required files..."
+        ls -la dist/
+        # Check for key files
+        [ -f "dist/Code.gs" ] || { echo "❌ Missing Code.gs"; exit 1; }
+        [ -f "dist/constants.gs" ] || { echo "❌ Missing constants.gs"; exit 1; }
+        [ -f "dist/appsscript.json" ] || { echo "❌ Missing appsscript.json"; exit 1; }
+        echo "✓ All required files present in dist/"
+    - name: Push code to Apps Script
+      run: |
+        # Change to dist directory (as specified in .clasp.json rootDir)
+        cd dist
+        # Use --force if you encounter issues with minor version bumps
+        clasp push --force
+    - name: Update deployment
+      run: |
+        # Change to dist directory for deployment as well
+        cd dist
+        # If you have a specific deployment ID to update, use this format
         if [ -n "${{ secrets.DEPLOYMENT_ID }}" ]; then
           clasp deploy --deploymentId ${{ secrets.DEPLOYMENT_ID }} --description "Auto-deployment $(date)"
         else
