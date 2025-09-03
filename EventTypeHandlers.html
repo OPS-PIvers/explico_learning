@@ -3,268 +3,174 @@
  * EventTypeHandlers Service for Explico Learning
  * Handles different hotspot event types and their specific behaviors
  */
-
-class EventTypeHandlers {
-  
-  constructor(options = {}) {
+var EventTypeHandlers = (function() {
+  function EventTypeHandlers(options) {
+    options = options || {};
     this.options = {
       animationDuration: 300,
       zoomTransitionDuration: 500,
-      spotlightFadeDuration: 200,
-      ...options
+      spotlightFadeDuration: 200
     };
-    
-    this.activeEvents = new Map(); // Track active event states
-    this.animationFrames = new Map(); // Track animation frames
-    this.eventListeners = new Map();
+    this.options = Object.assign(this.options, options);
+
+    this.activeEvents = {}; // Replaced Map
+    this.animationFrames = {}; // Replaced Map
+    this.eventListeners = {}; // Replaced Map
   }
-  
-  /**
-   * Handle hotspot trigger based on event type
-   * @param {Object} hotspot - Hotspot configuration
-   * @param {HTMLElement} canvas - Canvas element
-   * @param {HTMLElement} hotspotElement - Hotspot DOM element
-   * @returns {Promise<void>}
-   */
-  async handleHotspotEvent(hotspot, canvas, hotspotElement) {
-    // Clear any existing event for this hotspot
+
+  EventTypeHandlers.prototype.handleHotspotEvent = function(hotspot, canvas, hotspotElement) {
     this.clearActiveEvent(hotspot.id);
-    
+
     try {
       switch (hotspot.eventType) {
         case EVENT_TYPES.TEXT_ON_IMAGE:
-          await this.handleTextOnImage(hotspot, canvas, hotspotElement);
+          this.handleTextOnImage(hotspot, canvas, hotspotElement);
           break;
-        
         case EVENT_TYPES.TEXT_POPUP:
-          await this.handleTextPopup(hotspot, canvas, hotspotElement);
+          this.handleTextPopup(hotspot, canvas, hotspotElement);
           break;
-        
         case EVENT_TYPES.PAN_ZOOM:
-          await this.handlePanZoom(hotspot, canvas, hotspotElement);
+          this.handlePanZoom(hotspot, canvas, hotspotElement);
           break;
-        
         case EVENT_TYPES.SPOTLIGHT:
-          await this.handleSpotlight(hotspot, canvas, hotspotElement);
+          this.handleSpotlight(hotspot, canvas, hotspotElement);
           break;
-        
         default:
-          console.warn(`Unknown event type: ${hotspot.eventType}`);
+          console.warn('Unknown event type: ' + hotspot.eventType);
       }
     } catch (error) {
-      console.error(`Error handling hotspot event:`, error);
+      console.error('Error handling hotspot event:', error);
     }
-  }
-  
-  /**
-   * Handle text on image event
-   * @param {Object} hotspot - Hotspot configuration
-   * @param {HTMLElement} canvas - Canvas element
-   * @param {HTMLElement} hotspotElement - Hotspot DOM element
-   */
-  async handleTextOnImage(hotspot, canvas, hotspotElement) {
-    // Remove existing tooltip
+  };
+
+  EventTypeHandlers.prototype.handleTextOnImage = function(hotspot, canvas, hotspotElement) {
     this.clearTooltipForHotspot(hotspot.id);
-    
-    // Create tooltip element
-    const tooltip = this.createTooltip(hotspot);
-    
-    // Position tooltip relative to hotspot
+    var tooltip = this.createTooltip(hotspot);
     this.positionTooltip(tooltip, hotspotElement, hotspot.tooltipPosition);
-    
-    // Add to canvas
     canvas.appendChild(tooltip);
-    
-    // Animate in
-    await this.animateTooltipIn(tooltip);
-    
-    // Store active event
-    this.activeEvents.set(hotspot.id, {
+    this.animateTooltipIn(tooltip);
+
+    var self = this;
+    this.activeEvents[hotspot.id] = {
       type: EVENT_TYPES.TEXT_ON_IMAGE,
       elements: [tooltip],
-      cleanup: () => this.cleanupTextTooltip(tooltip)
-    });
-    
-    // Auto-hide after delay (optional)
+      cleanup: function() { self.cleanupTextTooltip(tooltip); }
+    };
+
     if (hotspot.autoHideDelay) {
-      setTimeout(() => {
-        this.clearActiveEvent(hotspot.id);
+      setTimeout(function() {
+        self.clearActiveEvent(hotspot.id);
       }, hotspot.autoHideDelay);
     }
-  }
-  
-  /**
-   * Handle text popup event
-   * @param {Object} hotspot - Hotspot configuration
-   * @param {HTMLElement} canvas - Canvas element
-   * @param {HTMLElement} hotspotElement - Hotspot DOM element
-   */
-  async handleTextPopup(hotspot, canvas, hotspotElement) {
-    // Create modal overlay
-    const overlay = this.createModalOverlay();
-    
-    // Create popup content
-    const popup = this.createTextPopup(hotspot);
-    
-    // Add to overlay
+  };
+
+  EventTypeHandlers.prototype.handleTextPopup = function(hotspot, canvas, hotspotElement) {
+    var overlay = this.createModalOverlay();
+    var popup = this.createTextPopup(hotspot);
     overlay.appendChild(popup);
-    
-    // Add to document body for full screen coverage
     document.body.appendChild(overlay);
-    
-    // Animate in
-    await this.animatePopupIn(overlay, popup);
-    
-    // Store active event
-    this.activeEvents.set(hotspot.id, {
+    this.animatePopupIn(overlay, popup);
+
+    var self = this;
+    this.activeEvents[hotspot.id] = {
       type: EVENT_TYPES.TEXT_POPUP,
       elements: [overlay],
-      cleanup: () => this.cleanupTextPopup(overlay)
-    });
-    
-    // Add close handlers
+      cleanup: function() { self.cleanupTextPopup(overlay); }
+    };
+
     this.addPopupCloseHandlers(overlay, hotspot.id);
-  }
-  
-  /**
-   * Handle pan/zoom event
-   * @param {Object} hotspot - Hotspot configuration
-   * @param {HTMLElement} canvas - Canvas element
-   * @param {HTMLElement} hotspotElement - Hotspot DOM element
-   */
-  async handlePanZoom(hotspot, canvas, hotspotElement) {
-    const backgroundElement = canvas.querySelector('.background-image, .background-video, .background-youtube');
+  };
+
+  EventTypeHandlers.prototype.handlePanZoom = function(hotspot, canvas, hotspotElement) {
+    var backgroundElement = canvas.querySelector('.background-image, .background-video, .background-youtube');
     if (!backgroundElement) return;
-    
-    // Calculate zoom and pan values
-    const zoomLevel = hotspot.zoomLevel || 1.5;
-    const panOffset = hotspot.panOffset || { x: -9, y: -15 }; // Default from original
-    
-    // Store original transform
-    const originalTransform = backgroundElement.style.transform;
-    
-    // Apply zoom and pan
-    backgroundElement.style.transition = `transform ${this.options.zoomTransitionDuration}ms ease-in-out`;
-    backgroundElement.style.transform = `scale(${zoomLevel}) translate(${panOffset.x}%, ${panOffset.y}%)`;
-    
-    // Add banner overlay if specified
-    let bannerElement = null;
+
+    var zoomLevel = hotspot.zoomLevel || 1.5;
+    var panOffset = hotspot.panOffset || { x: -9, y: -15 };
+    var originalTransform = backgroundElement.style.transform;
+
+    backgroundElement.style.transition = 'transform ' + this.options.zoomTransitionDuration + 'ms ease-in-out';
+    backgroundElement.style.transform = 'scale(' + zoomLevel + ') translate(' + panOffset.x + '%, ' + panOffset.y + '%)';
+
+    var bannerElement = null;
     if (hotspot.bannerText) {
       bannerElement = this.createBannerOverlay(hotspot.bannerText);
       canvas.appendChild(bannerElement);
-      await this.animateBannerIn(bannerElement);
+      this.animateBannerIn(bannerElement);
     }
-    
-    // Store active event
-    this.activeEvents.set(hotspot.id, {
+
+    var self = this;
+    this.activeEvents[hotspot.id] = {
       type: EVENT_TYPES.PAN_ZOOM,
       elements: bannerElement ? [bannerElement] : [],
-      originalTransform,
-      backgroundElement,
-      cleanup: () => this.cleanupPanZoom(backgroundElement, originalTransform, bannerElement)
-    });
-  }
-  
-  /**
-   * Handle spotlight event
-   * @param {Object} hotspot - Hotspot configuration
-   * @param {HTMLElement} canvas - Canvas element
-   * @param {HTMLElement} hotspotElement - Hotspot DOM element
-   */
-  async handleSpotlight(hotspot, canvas, hotspotElement) {
-    // Create spotlight overlay
-    const spotlightOverlay = this.createSpotlightOverlay(hotspot, hotspotElement);
-    
-    // Add to canvas
+      originalTransform: originalTransform,
+      backgroundElement: backgroundElement,
+      cleanup: function() { self.cleanupPanZoom(backgroundElement, originalTransform, bannerElement); }
+    };
+  };
+
+  EventTypeHandlers.prototype.handleSpotlight = function(hotspot, canvas, hotspotElement) {
+    var spotlightOverlay = this.createSpotlightOverlay(hotspot, hotspotElement);
     canvas.appendChild(spotlightOverlay);
-    
-    // Animate in
-    await this.animateSpotlightIn(spotlightOverlay);
-    
-    // Store active event
-    this.activeEvents.set(hotspot.id, {
+    this.animateSpotlightIn(spotlightOverlay);
+
+    var self = this;
+    this.activeEvents[hotspot.id] = {
       type: EVENT_TYPES.SPOTLIGHT,
       elements: [spotlightOverlay],
-      cleanup: () => this.cleanupSpotlight(spotlightOverlay)
+      cleanup: function() { self.cleanupSpotlight(spotlightOverlay); }
+    };
+
+    spotlightOverlay.addEventListener('click', function() {
+      self.clearActiveEvent(hotspot.id);
     });
-    
-    // Add click handler to dismiss
-    spotlightOverlay.addEventListener('click', () => {
-      this.clearActiveEvent(hotspot.id);
-    });
-  }
-  
-  /**
-   * Create tooltip element
-   * @param {Object} hotspot - Hotspot configuration
-   * @returns {HTMLElement} Tooltip element
-   */
-  createTooltip(hotspot) {
-    const tooltip = document.createElement('div');
-    tooltip.className = `hotspot-tooltip absolute z-[${UI_CONFIG.Z_INDEX.TOOLTIP}] bg-gray-900/90 text-white text-sm rounded-md px-3 py-2 shadow-lg max-w-xs pointer-events-none`;
+  };
+
+  EventTypeHandlers.prototype.createTooltip = function(hotspot) {
+    var tooltip = document.createElement('div');
+    tooltip.className = 'hotspot-tooltip absolute z-[' + UI_CONFIG.Z_INDEX.TOOLTIP + '] bg-gray-900/90 text-white text-sm rounded-md px-3 py-2 shadow-lg max-w-xs pointer-events-none';
     tooltip.dataset.hotspotId = hotspot.id;
-    
-    // Add content
     if (hotspot.tooltipContent) {
       tooltip.textContent = hotspot.tooltipContent;
     }
-    
-    // Add arrow based on position
     this.addTooltipArrow(tooltip, hotspot.tooltipPosition);
-    
     return tooltip;
-  }
-  
-  /**
-   * Position tooltip relative to hotspot
-   * @param {HTMLElement} tooltip - Tooltip element
-   * @param {HTMLElement} hotspotElement - Hotspot element
-   * @param {string} position - Tooltip position
-   */
-  positionTooltip(tooltip, hotspotElement, position = TOOLTIP_POSITIONS.BOTTOM) {
-    const hotspotRect = hotspotElement.getBoundingClientRect();
-    const canvasRect = hotspotElement.closest('.main-canvas').getBoundingClientRect();
-    
-    // Calculate position relative to canvas
-    const relativeX = hotspotRect.left - canvasRect.left + hotspotRect.width / 2;
-    const relativeY = hotspotRect.top - canvasRect.top + hotspotRect.height / 2;
-    
+  };
+
+  EventTypeHandlers.prototype.positionTooltip = function(tooltip, hotspotElement, position) {
+    position = position || TOOLTIP_POSITIONS.BOTTOM;
+    var hotspotRect = hotspotElement.getBoundingClientRect();
+    var canvasRect = hotspotElement.closest('.main-canvas').getBoundingClientRect();
+    var relativeX = hotspotRect.left - canvasRect.left + hotspotRect.width / 2;
+    var relativeY = hotspotRect.top - canvasRect.top + hotspotRect.height / 2;
+
     switch (position) {
       case TOOLTIP_POSITIONS.TOP:
-        tooltip.style.left = `${relativeX}px`;
-        tooltip.style.bottom = `${canvasRect.height - relativeY + hotspotRect.height / 2 + 8}px`;
+        tooltip.style.left = relativeX + 'px';
+        tooltip.style.bottom = (canvasRect.height - relativeY + hotspotRect.height / 2 + 8) + 'px';
         tooltip.style.transform = 'translateX(-50%)';
         break;
-      
       case TOOLTIP_POSITIONS.BOTTOM:
-        tooltip.style.left = `${relativeX}px`;
-        tooltip.style.top = `${relativeY + hotspotRect.height / 2 + 8}px`;
+        tooltip.style.left = relativeX + 'px';
+        tooltip.style.top = (relativeY + hotspotRect.height / 2 + 8) + 'px';
         tooltip.style.transform = 'translateX(-50%)';
         break;
-      
       case TOOLTIP_POSITIONS.LEFT:
-        tooltip.style.right = `${canvasRect.width - relativeX + hotspotRect.width / 2 + 8}px`;
-        tooltip.style.top = `${relativeY}px`;
+        tooltip.style.right = (canvasRect.width - relativeX + hotspotRect.width / 2 + 8) + 'px';
+        tooltip.style.top = relativeY + 'px';
         tooltip.style.transform = 'translateY(-50%)';
         break;
-      
       case TOOLTIP_POSITIONS.RIGHT:
-        tooltip.style.left = `${relativeX + hotspotRect.width / 2 + 8}px`;
-        tooltip.style.top = `${relativeY}px`;
+        tooltip.style.left = (relativeX + hotspotRect.width / 2 + 8) + 'px';
+        tooltip.style.top = relativeY + 'px';
         tooltip.style.transform = 'translateY(-50%)';
         break;
     }
-  }
-  
-  /**
-   * Add arrow to tooltip
-   * @param {HTMLElement} tooltip - Tooltip element
-   * @param {string} position - Tooltip position
-   */
-  addTooltipArrow(tooltip, position) {
-    const arrow = document.createElement('div');
+  };
+
+  EventTypeHandlers.prototype.addTooltipArrow = function(tooltip, position) {
+    var arrow = document.createElement('div');
     arrow.className = 'tooltip-arrow absolute';
-    
     switch (position) {
       case TOOLTIP_POSITIONS.TOP:
         arrow.className += ' top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900/90';
@@ -279,363 +185,229 @@ class EventTypeHandlers {
         arrow.className += ' right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-gray-900/90';
         break;
     }
-    
     tooltip.appendChild(arrow);
-  }
-  
-  /**
-   * Create modal overlay
-   * @returns {HTMLElement} Modal overlay element
-   */
-  createModalOverlay() {
-    const overlay = document.createElement('div');
-    overlay.className = `modal-overlay fixed inset-0 bg-black/80 z-[${UI_CONFIG.Z_INDEX.MODAL}] flex items-center justify-center`;
+  };
+
+  EventTypeHandlers.prototype.createModalOverlay = function() {
+    var overlay = document.createElement('div');
+    overlay.className = 'modal-overlay fixed inset-0 bg-black/80 z-[' + UI_CONFIG.Z_INDEX.MODAL + '] flex items-center justify-center';
     overlay.style.opacity = '0';
-    
     return overlay;
-  }
-  
-  /**
-   * Create text popup
-   * @param {Object} hotspot - Hotspot configuration
-   * @returns {HTMLElement} Popup element
-   */
-  createTextPopup(hotspot) {
-    const popup = document.createElement('div');
+  };
+
+  EventTypeHandlers.prototype.createTextPopup = function(hotspot) {
+    var popup = document.createElement('div');
     popup.className = 'text-popup bg-white rounded-lg shadow-xl max-w-md mx-4 transform scale-90';
-    
-    // Header
-    const header = document.createElement('div');
+    var header = document.createElement('div');
     header.className = 'popup-header flex items-center justify-between p-4 border-b border-gray-200';
-    
-    const title = document.createElement('h3');
+    var title = document.createElement('h3');
     title.className = 'text-lg font-semibold text-gray-900';
     title.textContent = hotspot.name || 'Information';
-    
-    const closeButton = document.createElement('button');
+    var closeButton = document.createElement('button');
     closeButton.className = 'text-gray-400 hover:text-gray-600 transition-colors';
     closeButton.innerHTML = '<span class="material-symbols-outlined">close</span>';
-    closeButton.onclick = () => this.clearActiveEvent(hotspot.id);
-    
+    var self = this;
+    closeButton.onclick = function() { self.clearActiveEvent(hotspot.id); };
     header.appendChild(title);
     header.appendChild(closeButton);
-    
-    // Content
-    const content = document.createElement('div');
+    var content = document.createElement('div');
     content.className = 'popup-content p-4';
     content.textContent = hotspot.tooltipContent || 'No content provided.';
-    
     popup.appendChild(header);
     popup.appendChild(content);
-    
     return popup;
-  }
+  };
   
-  /**
-   * Create banner overlay
-   * @param {string} text - Banner text
-   * @returns {HTMLElement} Banner element
-   */
-  createBannerOverlay(text) {
-    const banner = document.createElement('div');
+  EventTypeHandlers.prototype.createBannerOverlay = function(text) {
+    var banner = document.createElement('div');
     banner.className = 'banner-overlay absolute bottom-10 left-1/2 -translate-x-1/2 bg-gray-900/80 text-white text-sm rounded-md px-3 py-2 shadow-lg max-w-xs text-center';
     banner.textContent = text;
     banner.style.opacity = '0';
     banner.style.transform = 'translateX(-50%) translateY(10px)';
-    
     return banner;
-  }
-  
-  /**
-   * Create spotlight overlay
-   * @param {Object} hotspot - Hotspot configuration
-   * @param {HTMLElement} hotspotElement - Hotspot element
-   * @returns {HTMLElement} Spotlight overlay element
-   */
-  createSpotlightOverlay(hotspot, hotspotElement) {
-    const overlay = document.createElement('div');
-    overlay.className = `spotlight-overlay absolute inset-0 pointer-events-auto z-[${UI_CONFIG.Z_INDEX.MODAL}]`;
+  };
+
+  EventTypeHandlers.prototype.createSpotlightOverlay = function(hotspot, hotspotElement) {
+    var overlay = document.createElement('div');
+    overlay.className = 'spotlight-overlay absolute inset-0 pointer-events-auto z-[' + UI_CONFIG.Z_INDEX.MODAL + ']';
     overlay.style.opacity = '0';
-    
-    // Calculate spotlight position and size
-    const hotspotRect = hotspotElement.getBoundingClientRect();
-    const canvasRect = hotspotElement.closest('.main-canvas').getBoundingClientRect();
-    
-    const spotlightSize = hotspot.spotlightSize || 200;
-    const centerX = hotspotRect.left - canvasRect.left + hotspotRect.width / 2;
-    const centerY = hotspotRect.top - canvasRect.top + hotspotRect.height / 2;
-    
-    // Create radial gradient for spotlight effect
-    const intensity = hotspot.spotlightIntensity || 0.8;
-    overlay.style.background = `radial-gradient(circle at ${centerX}px ${centerY}px, transparent ${spotlightSize / 2}px, rgba(0,0,0,${intensity}) ${spotlightSize}px)`;
-    
+    var hotspotRect = hotspotElement.getBoundingClientRect();
+    var canvasRect = hotspotElement.closest('.main-canvas').getBoundingClientRect();
+    var spotlightSize = hotspot.spotlightSize || 200;
+    var centerX = hotspotRect.left - canvasRect.left + hotspotRect.width / 2;
+    var centerY = hotspotRect.top - canvasRect.top + hotspotRect.height / 2;
+    var intensity = hotspot.spotlightIntensity || 0.8;
+    overlay.style.background = 'radial-gradient(circle at ' + centerX + 'px ' + centerY + 'px, transparent ' + (spotlightSize / 2) + 'px, rgba(0,0,0,' + intensity + ') ' + spotlightSize + 'px)';
     return overlay;
-  }
-  
-  /**
-   * Animate tooltip in
-   * @param {HTMLElement} tooltip - Tooltip element
-   * @returns {Promise<void>}
-   */
-  animateTooltipIn(tooltip) {
-    return new Promise(resolve => {
-      tooltip.style.opacity = '0';
-      tooltip.style.transform += ' scale(0.9)';
-      
-      requestAnimationFrame(() => {
-        tooltip.style.transition = `opacity ${this.options.animationDuration}ms ease, transform ${this.options.animationDuration}ms ease`;
-        tooltip.style.opacity = '1';
-        tooltip.style.transform = tooltip.style.transform.replace('scale(0.9)', 'scale(1)');
-        
-        setTimeout(resolve, this.options.animationDuration);
-      });
+  };
+
+  EventTypeHandlers.prototype.animateTooltipIn = function(tooltip) {
+    var self = this;
+    tooltip.style.opacity = '0';
+    tooltip.style.transform += ' scale(0.9)';
+    requestAnimationFrame(function() {
+      tooltip.style.transition = 'opacity ' + self.options.animationDuration + 'ms ease, transform ' + self.options.animationDuration + 'ms ease';
+      tooltip.style.opacity = '1';
+      tooltip.style.transform = tooltip.style.transform.replace('scale(0.9)', 'scale(1)');
     });
-  }
-  
-  /**
-   * Animate popup in
-   * @param {HTMLElement} overlay - Overlay element
-   * @param {HTMLElement} popup - Popup element
-   * @returns {Promise<void>}
-   */
-  animatePopupIn(overlay, popup) {
-    return new Promise(resolve => {
-      requestAnimationFrame(() => {
-        overlay.style.transition = `opacity ${this.options.animationDuration}ms ease`;
-        popup.style.transition = `transform ${this.options.animationDuration}ms ease`;
-        
-        overlay.style.opacity = '1';
-        popup.style.transform = 'scale(1)';
-        
-        setTimeout(resolve, this.options.animationDuration);
-      });
+  };
+
+  EventTypeHandlers.prototype.animatePopupIn = function(overlay, popup) {
+    var self = this;
+    requestAnimationFrame(function() {
+      overlay.style.transition = 'opacity ' + self.options.animationDuration + 'ms ease';
+      popup.style.transition = 'transform ' + self.options.animationDuration + 'ms ease';
+      overlay.style.opacity = '1';
+      popup.style.transform = 'scale(1)';
     });
-  }
-  
-  /**
-   * Animate banner in
-   * @param {HTMLElement} banner - Banner element
-   * @returns {Promise<void>}
-   */
-  animateBannerIn(banner) {
-    return new Promise(resolve => {
-      requestAnimationFrame(() => {
-        banner.style.transition = `opacity ${this.options.animationDuration}ms ease, transform ${this.options.animationDuration}ms ease`;
-        banner.style.opacity = '1';
-        banner.style.transform = 'translateX(-50%) translateY(0)';
-        
-        setTimeout(resolve, this.options.animationDuration);
-      });
+  };
+
+  EventTypeHandlers.prototype.animateBannerIn = function(banner) {
+    var self = this;
+    requestAnimationFrame(function() {
+      banner.style.transition = 'opacity ' + self.options.animationDuration + 'ms ease, transform ' + self.options.animationDuration + 'ms ease';
+      banner.style.opacity = '1';
+      banner.style.transform = 'translateX(-50%) translateY(0)';
     });
-  }
-  
-  /**
-   * Animate spotlight in
-   * @param {HTMLElement} spotlight - Spotlight element
-   * @returns {Promise<void>}
-   */
-  animateSpotlightIn(spotlight) {
-    return new Promise(resolve => {
-      requestAnimationFrame(() => {
-        spotlight.style.transition = `opacity ${this.options.spotlightFadeDuration}ms ease`;
-        spotlight.style.opacity = '1';
-        
-        setTimeout(resolve, this.options.spotlightFadeDuration);
-      });
+  };
+
+  EventTypeHandlers.prototype.animateSpotlightIn = function(spotlight) {
+    var self = this;
+    requestAnimationFrame(function() {
+      spotlight.style.transition = 'opacity ' + self.options.spotlightFadeDuration + 'ms ease';
+      spotlight.style.opacity = '1';
     });
-  }
-  
-  /**
-   * Add popup close handlers
-   * @param {HTMLElement} overlay - Overlay element
-   * @param {string} hotspotId - Hotspot ID
-   */
-  addPopupCloseHandlers(overlay, hotspotId) {
-    // Close on overlay click
-    overlay.addEventListener('click', (e) => {
+  };
+
+  EventTypeHandlers.prototype.addPopupCloseHandlers = function(overlay, hotspotId) {
+    var self = this;
+    overlay.addEventListener('click', function(e) {
       if (e.target === overlay) {
-        this.clearActiveEvent(hotspotId);
+        self.clearActiveEvent(hotspotId);
       }
     });
-    
-    // Close on escape key
-    const escapeHandler = (e) => {
+    var escapeHandler = function(e) {
       if (e.key === 'Escape') {
-        this.clearActiveEvent(hotspotId);
+        self.clearActiveEvent(hotspotId);
         document.removeEventListener('keydown', escapeHandler);
       }
     };
-    
     document.addEventListener('keydown', escapeHandler);
-  }
-  
-  /**
-   * Clear tooltip for specific hotspot
-   * @param {string} hotspotId - Hotspot ID
-   */
-  clearTooltipForHotspot(hotspotId) {
-    const existingTooltip = document.querySelector(`.hotspot-tooltip[data-hotspot-id="${hotspotId}"]`);
+  };
+
+  EventTypeHandlers.prototype.clearTooltipForHotspot = function(hotspotId) {
+    var existingTooltip = document.querySelector('.hotspot-tooltip[data-hotspot-id="' + hotspotId + '"]');
     if (existingTooltip) {
       existingTooltip.remove();
     }
-  }
-  
-  /**
-   * Clear active event for hotspot
-   * @param {string} hotspotId - Hotspot ID
-   */
-  clearActiveEvent(hotspotId) {
-    const activeEvent = this.activeEvents.get(hotspotId);
+  };
+
+  EventTypeHandlers.prototype.clearActiveEvent = function(hotspotId) {
+    var activeEvent = this.activeEvents[hotspotId];
     if (!activeEvent) return;
-    
-    // Run cleanup function
+
     if (activeEvent.cleanup) {
       activeEvent.cleanup();
     }
-    
-    // Remove from active events
-    this.activeEvents.delete(hotspotId);
-  }
-  
-  /**
-   * Clear all active events
-   */
-  clearAllActiveEvents() {
-    for (const hotspotId of this.activeEvents.keys()) {
-      this.clearActiveEvent(hotspotId);
+
+    delete this.activeEvents[hotspotId];
+  };
+
+  EventTypeHandlers.prototype.clearAllActiveEvents = function() {
+    for (var hotspotId in this.activeEvents) {
+        if(this.activeEvents.hasOwnProperty(hotspotId)) {
+            this.clearActiveEvent(hotspotId);
+        }
     }
-  }
+  };
   
-  /**
-   * Cleanup text tooltip
-   * @param {HTMLElement} tooltip - Tooltip element
-   */
-  cleanupTextTooltip(tooltip) {
+  EventTypeHandlers.prototype.cleanupTextTooltip = function(tooltip) {
+      var self = this;
     if (tooltip && tooltip.parentNode) {
-      tooltip.style.transition = `opacity ${this.options.animationDuration}ms ease, transform ${this.options.animationDuration}ms ease`;
+      tooltip.style.transition = 'opacity ' + self.options.animationDuration + 'ms ease, transform ' + self.options.animationDuration + 'ms ease';
       tooltip.style.opacity = '0';
       tooltip.style.transform += ' scale(0.9)';
-      
-      setTimeout(() => {
+      setTimeout(function() {
         if (tooltip.parentNode) {
           tooltip.remove();
         }
-      }, this.options.animationDuration);
+      }, self.options.animationDuration);
     }
-  }
-  
-  /**
-   * Cleanup text popup
-   * @param {HTMLElement} overlay - Overlay element
-   */
-  cleanupTextPopup(overlay) {
+  };
+
+  EventTypeHandlers.prototype.cleanupTextPopup = function(overlay) {
+      var self = this;
     if (overlay && overlay.parentNode) {
-      const popup = overlay.querySelector('.text-popup');
-      
-      overlay.style.transition = `opacity ${this.options.animationDuration}ms ease`;
+      var popup = overlay.querySelector('.text-popup');
+      overlay.style.transition = 'opacity ' + self.options.animationDuration + 'ms ease';
       if (popup) {
-        popup.style.transition = `transform ${this.options.animationDuration}ms ease`;
+        popup.style.transition = 'transform ' + self.options.animationDuration + 'ms ease';
         popup.style.transform = 'scale(0.9)';
       }
       overlay.style.opacity = '0';
-      
-      setTimeout(() => {
+      setTimeout(function() {
         if (overlay.parentNode) {
           overlay.remove();
         }
-      }, this.options.animationDuration);
+      }, self.options.animationDuration);
     }
-  }
-  
-  /**
-   * Cleanup pan/zoom effect
-   * @param {HTMLElement} backgroundElement - Background element
-   * @param {string} originalTransform - Original transform
-   * @param {HTMLElement} bannerElement - Banner element (optional)
-   */
-  cleanupPanZoom(backgroundElement, originalTransform, bannerElement) {
-    // Restore original transform
+  };
+
+  EventTypeHandlers.prototype.cleanupPanZoom = function(backgroundElement, originalTransform, bannerElement) {
+      var self = this;
     if (backgroundElement) {
       backgroundElement.style.transform = originalTransform;
-      
-      // Remove transition after animation completes
-      setTimeout(() => {
+      setTimeout(function() {
         backgroundElement.style.transition = '';
-      }, this.options.zoomTransitionDuration);
+      }, self.options.zoomTransitionDuration);
     }
-    
-    // Remove banner if present
     if (bannerElement && bannerElement.parentNode) {
-      bannerElement.style.transition = `opacity ${this.options.animationDuration}ms ease, transform ${this.options.animationDuration}ms ease`;
+      bannerElement.style.transition = 'opacity ' + self.options.animationDuration + 'ms ease, transform ' + self.options.animationDuration + 'ms ease';
       bannerElement.style.opacity = '0';
       bannerElement.style.transform += ' translateY(10px)';
-      
-      setTimeout(() => {
+      setTimeout(function() {
         if (bannerElement.parentNode) {
           bannerElement.remove();
         }
-      }, this.options.animationDuration);
+      }, self.options.animationDuration);
     }
-  }
-  
-  /**
-   * Cleanup spotlight effect
-   * @param {HTMLElement} spotlightOverlay - Spotlight overlay element
-   */
-  cleanupSpotlight(spotlightOverlay) {
+  };
+
+  EventTypeHandlers.prototype.cleanupSpotlight = function(spotlightOverlay) {
+      var self = this;
     if (spotlightOverlay && spotlightOverlay.parentNode) {
-      spotlightOverlay.style.transition = `opacity ${this.options.spotlightFadeDuration}ms ease`;
+      spotlightOverlay.style.transition = 'opacity ' + self.options.spotlightFadeDuration + 'ms ease';
       spotlightOverlay.style.opacity = '0';
-      
-      setTimeout(() => {
+      setTimeout(function() {
         if (spotlightOverlay.parentNode) {
           spotlightOverlay.remove();
         }
-      }, this.options.spotlightFadeDuration);
+      }, self.options.spotlightFadeDuration);
     }
-  }
-  
-  /**
-   * Get active event for hotspot
-   * @param {string} hotspotId - Hotspot ID
-   * @returns {Object|null} Active event data
-   */
-  getActiveEvent(hotspotId) {
-    return this.activeEvents.get(hotspotId) || null;
-  }
-  
-  /**
-   * Check if hotspot has active event
-   * @param {string} hotspotId - Hotspot ID
-   * @returns {boolean} Whether hotspot has active event
-   */
-  hasActiveEvent(hotspotId) {
-    return this.activeEvents.has(hotspotId);
-  }
-  
-  /**
-   * Get all active events
-   * @returns {Map} Map of active events
-   */
-  getAllActiveEvents() {
-    return new Map(this.activeEvents);
-  }
-  
-  /**
-   * Set animation options
-   * @param {Object} options - Animation options
-   */
-  setAnimationOptions(options) {
-    this.options = { ...this.options, ...options };
-  }
-  
-  /**
-   * Destroy the event type handlers
-   */
-  destroy() {
+  };
+
+  EventTypeHandlers.prototype.getActiveEvent = function(hotspotId) {
+    return this.activeEvents[hotspotId] || null;
+  };
+
+  EventTypeHandlers.prototype.hasActiveEvent = function(hotspotId) {
+    return this.activeEvents.hasOwnProperty(hotspotId);
+  };
+
+  EventTypeHandlers.prototype.getAllActiveEvents = function() {
+    return Object.assign({}, this.activeEvents);
+  };
+
+  EventTypeHandlers.prototype.setAnimationOptions = function(options) {
+    this.options = Object.assign({}, this.options, options);
+  };
+
+  EventTypeHandlers.prototype.destroy = function() {
     this.clearAllActiveEvents();
-    this.animationFrames.clear();
-    this.eventListeners.clear();
-  }
-}
+    this.animationFrames = {};
+    this.eventListeners = {};
+  };
+
+  return new EventTypeHandlers();
+})();
 </script>
