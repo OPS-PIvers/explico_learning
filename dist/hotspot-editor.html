@@ -21,41 +21,51 @@
     <!-- Base Styles -->
     <style type="text/css">
         <?!= include('styles'); ?>
-        /* Include base styles inline for GAS compatibility */
-        :root {
-            --color-primary: #3b82f6;
-            --color-primary-hover: #2563eb;
-            --color-secondary: #6b7280;
-            --color-secondary-hover: #4b5563;
-            --color-success: #10b981;
-            --color-warning: #f59e0b;
-            --color-error: #ef4444;
-            --bg-primary: #f8fafc;
-            --bg-secondary: #ffffff;
-            --text-primary: #1f2937;
-            --text-secondary: #6b7280;
-            --border-color: #e5e7eb;
-            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-            --transition: all 0.2s ease-in-out;
-            --font-primary: 'Noto Sans', sans-serif;
-            --font-secondary: 'Spline Sans', sans-serif;
-        }
+        /* Additional styles for hotspot editor */
 
         .btn {
-            @apply inline-flex items-center px-4 py-2 rounded-lg font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-2) var(--space-4);
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            border: 1px solid transparent;
         }
 
         .btn-primary {
-            @apply bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500;
+            background: var(--brand-primary);
+            color: var(--text-primary);
+        }
+
+        .btn-primary:hover {
+            background: var(--brand-primary-hover);
         }
 
         .btn-secondary {
-            @apply bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            border-color: var(--gray-600);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-600);
+            color: var(--text-primary);
         }
 
         .btn-outline {
-            @apply border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:ring-blue-500;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            border-color: var(--gray-600);
+        }
+
+        .btn-outline:hover {
+            background: var(--gray-600);
+            color: var(--text-primary);
         }
 
         .hotspot {
@@ -206,7 +216,7 @@
         }
     </style>
 </head>
-<body class="bg-[var(--bg-primary)] font-primary">
+<body class="font-primary" style="background-color: var(--bg-primary);">
     <!-- Application Container -->
     <div id="app" class="app-container flex flex-col min-h-screen">
         <!-- Header -->
