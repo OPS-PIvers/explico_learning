@@ -14,87 +14,21 @@ const CONFIG = {
 };
 
 /**
- * Main entry point for web app
- * Routes requests to appropriate HTML pages
+ * Main entry point for web app - Single Page Application
+ * Returns the main app that handles all views client-side
  */
 function doGet(e) {
-  const page = e.parameter.page || 'dashboard';
-  const projectId = e.parameter.project;
-  
   try {
-    switch (page) {
-      case 'editor':
-        if (!projectId) {
-          throw new Error('Project ID required for editor');
-        }
-        return getEditorPage(projectId);
-      
-      case 'dashboard':
-      default:
-        return getDashboardPage();
-    }
-  } catch (error) {
-    console.error('doGet error:', error);
-    return HtmlService.createHtmlOutput('<h1>Error: ' + error.message + '</h1>');
-  }
-}
-
-/**
- * Get the project dashboard page
- */
-function getDashboardPage() {
-  const template = HtmlService.createTemplateFromFile('project-dashboard');
-  
-  // Set template variables
-  template.USER_EMAIL = getCurrentUser().email;
-  template.TOTAL_PROJECTS = getUserProjects().length;
-  template.TOTAL_SLIDES = calculateTotalSlides();
-  template.TOTAL_HOTSPOTS = calculateTotalHotspots();
-  template.LAST_UPDATED = getLastUpdated();
-  template.CONSTANTS = getConstants();
-  
-  const htmlOutput = template.evaluate()
-    .setTitle('Explico Learning - Project Dashboard')
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
-  
-  return htmlOutput;
-}
-
-/**
- * Get the hotspot editor page
- */
-function getEditorPage(projectId) {
-  try {
-    console.log('🚀 Loading editor page for project:', projectId);
+    console.log('🚀 Loading Explico Learning Single Page App');
     
-    const template = HtmlService.createTemplateFromFile('hotspot-editor');
+    const template = HtmlService.createTemplateFromFile('main-app');
     
-    // Get project data with enhanced error handling
-    console.log('📦 Fetching project data...');
-    const project = getProjectData(projectId);
-    if (!project) {
-      console.error('❌ Project not found:', projectId);
-      throw new Error('Project not found: ' + projectId);
-    }
-    
-    console.log('✅ Project data loaded:', {
-      id: project.id,
-      name: project.name,
-      status: project.status,
-      slideCount: (project.slides || []).length
-    });
-    
-    // Set template variables with validation
-    template.PROJECT_ID = projectId;
-    template.PROJECT_NAME = project.name || 'Untitled Project';
-    template.PROJECT_STATUS = project.status || 'draft';
-    
-    // Get constants with error handling
+    // Get constants for the template
     try {
       template.CONSTANTS = getConstants();
-      console.log('✅ Constants loaded for template');
+      console.log('✅ Constants loaded for main app template');
     } catch (constantsError) {
-      console.error('❌ Error loading constants:', constantsError);
+      console.error('❌ Error loading constants for main app:', constantsError);
       template.CONSTANTS = JSON.stringify({
         EVENT_TYPES: { TEXT_POPUP: 'text_popup', TEXT_ON_IMAGE: 'text_on_image' },
         TRIGGER_TYPES: { CLICK: 'click', HOVER: 'hover' },
@@ -102,50 +36,65 @@ function getEditorPage(projectId) {
       });
     }
     
-    console.log('📄 Evaluating template...');
+    console.log('📄 Evaluating main app template...');
     const htmlOutput = template.evaluate()
-      .setTitle((project.name || 'Project') + ' - Hotspot Editor')
+      .setTitle('Explico Learning - Interactive Walkthroughs')
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
     
-    console.log('✅ Editor page generated successfully');
+    console.log('✅ Single page app generated successfully');
     return htmlOutput;
     
   } catch (error) {
-    console.error('❌ Error in getEditorPage:', error);
+    console.error('❌ Error in doGet (single page app):', error);
     
-    // Return error page instead of throwing
+    // Return a simple error page
     const errorHtml = HtmlService.createHtmlOutput(`
       <html>
         <head>
-          <title>Editor Error - Explico Learning</title>
+          <title>Explico Learning - Error</title>
           <style>
-            body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
-            .error { background: #fee; border: 1px solid #fcc; padding: 20px; border-radius: 8px; }
-            .actions { margin-top: 20px; }
-            .btn { display: inline-block; padding: 10px 20px; margin: 5px; text-decoration: none; border-radius: 4px; }
-            .btn-primary { background: #007cba; color: white; }
-            .btn-secondary { background: #666; color: white; }
+            body { 
+              font-family: Arial, sans-serif; 
+              max-width: 600px; 
+              margin: 50px auto; 
+              padding: 20px; 
+              text-align: center; 
+            }
+            .error { 
+              background: #fee; 
+              border: 1px solid #fcc; 
+              padding: 20px; 
+              border-radius: 8px; 
+              margin: 20px 0;
+            }
+            .btn { 
+              display: inline-block; 
+              padding: 10px 20px; 
+              margin: 10px; 
+              text-decoration: none; 
+              border-radius: 4px; 
+              background: #007cba; 
+              color: white; 
+            }
           </style>
         </head>
         <body>
-          <h1>Unable to Load Editor</h1>
+          <h1>🚨 Explico Learning</h1>
           <div class="error">
-            <h3>Error Details:</h3>
-            <p>${error.message}</p>
-            <p><strong>Project ID:</strong> ${projectId || 'Not provided'}</p>
+            <h3>Application Error</h3>
+            <p><strong>Details:</strong> ${error.message}</p>
+            <p>The application failed to load properly.</p>
           </div>
-          <div class="actions">
-            <a href="?page=dashboard" class="btn btn-primary">← Back to Dashboard</a>
-            <a href="javascript:location.reload()" class="btn btn-secondary">Refresh Page</a>
-          </div>
+          <a href="javascript:location.reload()" class="btn">Refresh Page</a>
         </body>
       </html>
-    `).setTitle('Editor Error')
+    `).setTitle('Explico Learning - Error')
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
     
     return errorHtml;
   }
 }
+
 
 /**
  * Include HTML files (for templates)
