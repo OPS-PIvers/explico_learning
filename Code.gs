@@ -438,16 +438,468 @@ function createSlide(projectId, slideData) {
  * Get hotspots for a slide
  */
 function getHotspotsBySlide(slideId) {
-  // Implementation would go here
-  return [];
+  try {
+    if (!slideId) {
+      return [];
+    }
+
+    // Extract project ID from slideId (assuming format: proj_xxx_slide_yyy)
+    var projectId = slideId.split('_slide_')[0];
+    
+    var spreadsheet = SpreadsheetApp.openById(projectId);
+    var hotspotsSheet = spreadsheet.getSheetByName(SHEETS_CONFIG.HOTSPOTS_SHEET);
+    
+    if (!hotspotsSheet) {
+      console.log('Hotspots sheet not found for project:', projectId);
+      return [];
+    }
+
+    var dataRange = hotspotsSheet.getDataRange();
+    if (dataRange.getNumRows() <= 1) {
+      return []; // No data beyond headers
+    }
+
+    var values = dataRange.getValues();
+    var headers = values[0];
+    var hotspots = [];
+
+    // Process each row (skip header row)
+    for (var i = 1; i < values.length; i++) {
+      var row = values[i];
+      
+      // Check if this hotspot belongs to the requested slide
+      if (row[1] === slideId) { // SLIDE_ID is column B (index 1)
+        var hotspot = {
+          id: row[0], // ID
+          slideId: row[1], // SLIDE_ID
+          name: row[2] || '', // NAME
+          color: row[3] || HOTSPOT_DEFAULTS.color, // COLOR
+          size: row[4] || HOTSPOT_DEFAULTS.size, // SIZE
+          position: {
+            x: parseFloat(row[5]) || 50, // POSITION_X
+            y: parseFloat(row[6]) || 50  // POSITION_Y
+          },
+          pulseAnimation: row[7] !== false, // PULSE_ANIMATION
+          triggerType: row[8] || HOTSPOT_DEFAULTS.triggerType, // TRIGGER_TYPE
+          eventType: row[9] || HOTSPOT_DEFAULTS.eventType, // EVENT_TYPE
+          tooltipContent: row[10] || '', // TOOLTIP_CONTENT
+          tooltipPosition: row[11] || TOOLTIP_POSITIONS.BOTTOM, // TOOLTIP_POSITION
+          zoomLevel: parseFloat(row[12]) || 1, // ZOOM_LEVEL
+          panOffset: {
+            x: parseFloat(row[13]) || 0, // PAN_OFFSET_X
+            y: parseFloat(row[14]) || 0  // PAN_OFFSET_Y
+          },
+          bannerText: row[15] || '', // BANNER_TEXT
+          isVisible: row[16] !== false, // IS_VISIBLE
+          order: parseInt(row[17]) || 0, // ORDER
+          createdAt: row[18], // CREATED_AT
+          updatedAt: row[19]  // UPDATED_AT
+        };
+        
+        hotspots.push(hotspot);
+      }
+    }
+
+    return hotspots;
+  } catch (error) {
+    console.error('Error getting hotspots for slide:', slideId, error);
+    return [];
+  }
 }
 
 /**
  * Save hotspots for a slide
  */
 function saveHotspots(slideId, hotspots) {
-  // Implementation would go here
-  return true;
+  try {
+    if (!slideId || !Array.isArray(hotspots)) {
+      throw new Error('Invalid parameters: slideId and hotspots array required');
+    }
+
+    // Extract project ID from slideId
+    var projectId = slideId.split('_slide_')[0];
+    
+    var spreadsheet = SpreadsheetApp.openById(projectId);
+    var hotspotsSheet = spreadsheet.getSheetByName(SHEETS_CONFIG.HOTSPOTS_SHEET);
+    
+    if (!hotspotsSheet) {
+      // Create hotspots sheet if it doesn't exist
+      hotspotsSheet = spreadsheet.insertSheet(SHEETS_CONFIG.HOTSPOTS_SHEET);
+      var headers = [
+        'ID', 'SLIDE_ID', 'NAME', 'COLOR', 'SIZE', 'POSITION_X', 'POSITION_Y',
+        'PULSE_ANIMATION', 'TRIGGER_TYPE', 'EVENT_TYPE', 'TOOLTIP_CONTENT',
+        'TOOLTIP_POSITION', 'ZOOM_LEVEL', 'PAN_OFFSET_X', 'PAN_OFFSET_Y',
+        'BANNER_TEXT', 'IS_VISIBLE', 'ORDER', 'CREATED_AT', 'UPDATED_AT'
+      ];
+      hotspotsSheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    }
+
+    // Get all existing data
+    var dataRange = hotspotsSheet.getDataRange();
+    var existingData = [];
+    
+    if (dataRange.getNumRows() > 1) {
+      var values = dataRange.getValues();
+      // Keep hotspots from other slides
+      for (var i = 1; i < values.length; i++) {
+        if (values[i][1] !== slideId) { // Keep if not this slideId
+          existingData.push(values[i]);
+        }
+      }
+    }
+
+    // Convert hotspots to rows
+    var newRows = [];
+    var now = new Date().toISOString();
+    
+    for (var i = 0; i < hotspots.length; i++) {
+      var hotspot = hotspots[i];
+      
+      // Generate ID if missing
+      if (!hotspot.id) {
+        hotspot.id = 'hotspot_' + Utilities.getUuid();
+      }
+      
+      var row = [
+        hotspot.id,
+        slideId,
+        hotspot.name || '',
+        hotspot.color || HOTSPOT_DEFAULTS.color,
+        hotspot.size || HOTSPOT_DEFAULTS.size,
+        (hotspot.position && hotspot.position.x) || 50,
+        (hotspot.position && hotspot.position.y) || 50,
+        hotspot.pulseAnimation !== false,
+        hotspot.triggerType || HOTSPOT_DEFAULTS.triggerType,
+        hotspot.eventType || HOTSPOT_DEFAULTS.eventType,
+        hotspot.tooltipContent || '',
+        hotspot.tooltipPosition || TOOLTIP_POSITIONS.BOTTOM,
+        hotspot.zoomLevel || 1,
+        (hotspot.panOffset && hotspot.panOffset.x) || 0,
+        (hotspot.panOffset && hotspot.panOffset.y) || 0,
+        hotspot.bannerText || '',
+        hotspot.isVisible !== false,
+        hotspot.order || i,
+        hotspot.createdAt || now,
+        now // Always update updatedAt
+      ];
+      
+      newRows.push(row);
+    }
+
+    // Clear all data except headers
+    if (dataRange.getNumRows() > 1) {
+      hotspotsSheet.getRange(2, 1, dataRange.getNumRows() - 1, dataRange.getNumColumns()).clear();
+    }
+
+    // Write all data (existing + new)
+    var allRows = existingData.concat(newRows);
+    if (allRows.length > 0) {
+      hotspotsSheet.getRange(2, 1, allRows.length, 20).setValues(allRows);
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error saving hotspots for slide:', slideId, error);
+    return false;
+  }
+}
+
+/**
+ * Create a new hotspot
+ */
+function createHotspot(slideId, hotspotData) {
+  try {
+    if (!slideId || !hotspotData) {
+      throw new Error('Invalid parameters: slideId and hotspotData required');
+    }
+
+    // Generate unique ID
+    var hotspotId = 'hotspot_' + Utilities.getUuid();
+    var now = new Date().toISOString();
+
+    // Create hotspot object with defaults
+    var hotspot = {
+      id: hotspotId,
+      slideId: slideId,
+      name: hotspotData.name || HOTSPOT_DEFAULTS.name,
+      color: hotspotData.color || HOTSPOT_DEFAULTS.color,
+      size: hotspotData.size || HOTSPOT_DEFAULTS.size,
+      position: {
+        x: (hotspotData.position && hotspotData.position.x) || 50,
+        y: (hotspotData.position && hotspotData.position.y) || 50
+      },
+      pulseAnimation: hotspotData.pulseAnimation !== false,
+      triggerType: hotspotData.triggerType || HOTSPOT_DEFAULTS.triggerType,
+      eventType: hotspotData.eventType || HOTSPOT_DEFAULTS.eventType,
+      tooltipContent: hotspotData.tooltipContent || '',
+      tooltipPosition: hotspotData.tooltipPosition || TOOLTIP_POSITIONS.BOTTOM,
+      zoomLevel: hotspotData.zoomLevel || 1,
+      panOffset: {
+        x: (hotspotData.panOffset && hotspotData.panOffset.x) || 0,
+        y: (hotspotData.panOffset && hotspotData.panOffset.y) || 0
+      },
+      bannerText: hotspotData.bannerText || '',
+      isVisible: hotspotData.isVisible !== false,
+      order: hotspotData.order || 0,
+      createdAt: now,
+      updatedAt: now
+    };
+
+    // Extract project ID from slideId
+    var projectId = slideId.split('_slide_')[0];
+    
+    var spreadsheet = SpreadsheetApp.openById(projectId);
+    var hotspotsSheet = spreadsheet.getSheetByName(SHEETS_CONFIG.HOTSPOTS_SHEET);
+    
+    if (!hotspotsSheet) {
+      // Create hotspots sheet if it doesn't exist
+      hotspotsSheet = spreadsheet.insertSheet(SHEETS_CONFIG.HOTSPOTS_SHEET);
+      var headers = [
+        'ID', 'SLIDE_ID', 'NAME', 'COLOR', 'SIZE', 'POSITION_X', 'POSITION_Y',
+        'PULSE_ANIMATION', 'TRIGGER_TYPE', 'EVENT_TYPE', 'TOOLTIP_CONTENT',
+        'TOOLTIP_POSITION', 'ZOOM_LEVEL', 'PAN_OFFSET_X', 'PAN_OFFSET_Y',
+        'BANNER_TEXT', 'IS_VISIBLE', 'ORDER', 'CREATED_AT', 'UPDATED_AT'
+      ];
+      hotspotsSheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    }
+
+    // Convert hotspot to row
+    var row = [
+      hotspot.id,
+      hotspot.slideId,
+      hotspot.name,
+      hotspot.color,
+      hotspot.size,
+      hotspot.position.x,
+      hotspot.position.y,
+      hotspot.pulseAnimation,
+      hotspot.triggerType,
+      hotspot.eventType,
+      hotspot.tooltipContent,
+      hotspot.tooltipPosition,
+      hotspot.zoomLevel,
+      hotspot.panOffset.x,
+      hotspot.panOffset.y,
+      hotspot.bannerText,
+      hotspot.isVisible,
+      hotspot.order,
+      hotspot.createdAt,
+      hotspot.updatedAt
+    ];
+
+    // Add to sheet
+    hotspotsSheet.appendRow(row);
+
+    return hotspot;
+  } catch (error) {
+    console.error('Error creating hotspot:', error);
+    throw error;
+  }
+}
+
+/**
+ * Update an existing hotspot
+ */
+function updateHotspot(hotspotId, updates) {
+  try {
+    if (!hotspotId || !updates) {
+      throw new Error('Invalid parameters: hotspotId and updates required');
+    }
+
+    // Find the hotspot across all projects (need to search multiple spreadsheets)
+    // For now, assume slideId is provided in updates to identify project
+    if (!updates.slideId) {
+      throw new Error('slideId required in updates to identify project');
+    }
+
+    var projectId = updates.slideId.split('_slide_')[0];
+    var spreadsheet = SpreadsheetApp.openById(projectId);
+    var hotspotsSheet = spreadsheet.getSheetByName(SHEETS_CONFIG.HOTSPOTS_SHEET);
+    
+    if (!hotspotsSheet) {
+      throw new Error('Hotspots sheet not found');
+    }
+
+    var dataRange = hotspotsSheet.getDataRange();
+    if (dataRange.getNumRows() <= 1) {
+      throw new Error('Hotspot not found');
+    }
+
+    var values = dataRange.getValues();
+    var hotspotRowIndex = -1;
+    var existingHotspot = null;
+
+    // Find the hotspot row
+    for (var i = 1; i < values.length; i++) {
+      if (values[i][0] === hotspotId) {
+        hotspotRowIndex = i + 1; // Sheet rows are 1-indexed
+        existingHotspot = {
+          id: values[i][0],
+          slideId: values[i][1],
+          name: values[i][2],
+          color: values[i][3],
+          size: values[i][4],
+          position: {
+            x: parseFloat(values[i][5]) || 50,
+            y: parseFloat(values[i][6]) || 50
+          },
+          pulseAnimation: values[i][7] !== false,
+          triggerType: values[i][8],
+          eventType: values[i][9],
+          tooltipContent: values[i][10],
+          tooltipPosition: values[i][11],
+          zoomLevel: parseFloat(values[i][12]) || 1,
+          panOffset: {
+            x: parseFloat(values[i][13]) || 0,
+            y: parseFloat(values[i][14]) || 0
+          },
+          bannerText: values[i][15],
+          isVisible: values[i][16] !== false,
+          order: parseInt(values[i][17]) || 0,
+          createdAt: values[i][18],
+          updatedAt: values[i][19]
+        };
+        break;
+      }
+    }
+
+    if (hotspotRowIndex === -1) {
+      throw new Error('Hotspot not found');
+    }
+
+    // Merge updates with existing hotspot
+    var updatedHotspot = {
+      id: existingHotspot.id,
+      slideId: existingHotspot.slideId,
+      name: updates.name !== undefined ? updates.name : existingHotspot.name,
+      color: updates.color !== undefined ? updates.color : existingHotspot.color,
+      size: updates.size !== undefined ? updates.size : existingHotspot.size,
+      position: {
+        x: (updates.position && updates.position.x !== undefined) ? updates.position.x : existingHotspot.position.x,
+        y: (updates.position && updates.position.y !== undefined) ? updates.position.y : existingHotspot.position.y
+      },
+      pulseAnimation: updates.pulseAnimation !== undefined ? updates.pulseAnimation : existingHotspot.pulseAnimation,
+      triggerType: updates.triggerType !== undefined ? updates.triggerType : existingHotspot.triggerType,
+      eventType: updates.eventType !== undefined ? updates.eventType : existingHotspot.eventType,
+      tooltipContent: updates.tooltipContent !== undefined ? updates.tooltipContent : existingHotspot.tooltipContent,
+      tooltipPosition: updates.tooltipPosition !== undefined ? updates.tooltipPosition : existingHotspot.tooltipPosition,
+      zoomLevel: updates.zoomLevel !== undefined ? updates.zoomLevel : existingHotspot.zoomLevel,
+      panOffset: {
+        x: (updates.panOffset && updates.panOffset.x !== undefined) ? updates.panOffset.x : existingHotspot.panOffset.x,
+        y: (updates.panOffset && updates.panOffset.y !== undefined) ? updates.panOffset.y : existingHotspot.panOffset.y
+      },
+      bannerText: updates.bannerText !== undefined ? updates.bannerText : existingHotspot.bannerText,
+      isVisible: updates.isVisible !== undefined ? updates.isVisible : existingHotspot.isVisible,
+      order: updates.order !== undefined ? updates.order : existingHotspot.order,
+      createdAt: existingHotspot.createdAt,
+      updatedAt: new Date().toISOString()
+    };
+
+    // Convert to row
+    var row = [
+      updatedHotspot.id,
+      updatedHotspot.slideId,
+      updatedHotspot.name,
+      updatedHotspot.color,
+      updatedHotspot.size,
+      updatedHotspot.position.x,
+      updatedHotspot.position.y,
+      updatedHotspot.pulseAnimation,
+      updatedHotspot.triggerType,
+      updatedHotspot.eventType,
+      updatedHotspot.tooltipContent,
+      updatedHotspot.tooltipPosition,
+      updatedHotspot.zoomLevel,
+      updatedHotspot.panOffset.x,
+      updatedHotspot.panOffset.y,
+      updatedHotspot.bannerText,
+      updatedHotspot.isVisible,
+      updatedHotspot.order,
+      updatedHotspot.createdAt,
+      updatedHotspot.updatedAt
+    ];
+
+    // Update the row
+    hotspotsSheet.getRange(hotspotRowIndex, 1, 1, 20).setValues([row]);
+
+    return updatedHotspot;
+  } catch (error) {
+    console.error('Error updating hotspot:', hotspotId, error);
+    throw error;
+  }
+}
+
+/**
+ * Delete a hotspot
+ */
+function deleteHotspot(hotspotId, slideId) {
+  try {
+    if (!hotspotId) {
+      throw new Error('hotspotId required');
+    }
+
+    // If slideId provided, use it to identify project
+    if (slideId) {
+      var projectId = slideId.split('_slide_')[0];
+      return deleteHotspotFromProject(hotspotId, projectId);
+    }
+
+    // If no slideId provided, we need to search all user projects
+    // This is less efficient but more flexible
+    var folder = getOrCreateProjectFolder();
+    var files = folder.getFilesByType(MimeType.GOOGLE_SHEETS);
+    
+    while (files.hasNext()) {
+      var file = files.next();
+      try {
+        if (deleteHotspotFromProject(hotspotId, file.getId())) {
+          return true;
+        }
+      } catch (error) {
+        // Continue searching in other projects
+        continue;
+      }
+    }
+
+    return false; // Hotspot not found in any project
+  } catch (error) {
+    console.error('Error deleting hotspot:', hotspotId, error);
+    return false;
+  }
+}
+
+/**
+ * Helper function to delete hotspot from a specific project
+ */
+function deleteHotspotFromProject(hotspotId, projectId) {
+  try {
+    var spreadsheet = SpreadsheetApp.openById(projectId);
+    var hotspotsSheet = spreadsheet.getSheetByName(SHEETS_CONFIG.HOTSPOTS_SHEET);
+    
+    if (!hotspotsSheet) {
+      return false;
+    }
+
+    var dataRange = hotspotsSheet.getDataRange();
+    if (dataRange.getNumRows() <= 1) {
+      return false;
+    }
+
+    var values = dataRange.getValues();
+
+    // Find the hotspot row
+    for (var i = 1; i < values.length; i++) {
+      if (values[i][0] === hotspotId) {
+        // Delete the row
+        hotspotsSheet.deleteRow(i + 1);
+        return true;
+      }
+    }
+
+    return false;
+  } catch (error) {
+    throw error;
+  }
 }
 
 // ============================================================================

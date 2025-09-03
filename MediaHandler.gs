@@ -3,70 +3,68 @@
  * Handles background media management, validation, and optimization
  */
 
-class MediaHandler {
+function MediaHandler(options) {
+  options = options || {};
+  this.options = {
+    maxFileSize: UI_CONFIG.MAX_FILE_SIZE,
+    allowedImageTypes: UI_CONFIG.ALLOWED_IMAGE_TYPES,
+    allowedVideoTypes: UI_CONFIG.ALLOWED_VIDEO_TYPES,
+    thumbnailSize: { width: 240, height: 135 }, // 16:9 aspect ratio
+    cacheEnabled: true,
+    compressionQuality: 0.8
+  };
+  this.options = Object.assign(this.options, options);
   
-  constructor(options = {}) {
-    this.options = {
-      maxFileSize: UI_CONFIG.MAX_FILE_SIZE,
-      allowedImageTypes: UI_CONFIG.ALLOWED_IMAGE_TYPES,
-      allowedVideoTypes: UI_CONFIG.ALLOWED_VIDEO_TYPES,
-      thumbnailSize: { width: 240, height: 135 }, // 16:9 aspect ratio
-      cacheEnabled: true,
-      compressionQuality: 0.8,
-      ...options
-    };
-    
-    this.mediaCache = new Map(); // Cache for processed media
-    this.thumbnailCache = new Map(); // Cache for generated thumbnails
-    this.loadingPromises = new Map(); // Track loading promises
-  }
+  this.mediaCache = {}; // Cache for processed media
+  this.thumbnailCache = {}; // Cache for generated thumbnails
+  this.loadingPromises = {}; // Track loading promises
+}
   
-  /**
-   * Process media URL and return media information
-   * @param {string} url - Media URL
-   * @returns {Promise<Object>} Media information
-   */
-  async processMediaUrl(url) {
+/**
+ * Process media URL and return media information
+ * @param {string} url - Media URL
+ * @returns {Object} Media information
+ */
+MediaHandler.prototype.processMediaUrl = function(url) {
     if (!url || typeof url !== 'string') {
       throw new Error('Invalid media URL provided');
     }
     
     // Check cache first
-    if (this.options.cacheEnabled && this.mediaCache.has(url)) {
-      return this.mediaCache.get(url);
+    if (this.options.cacheEnabled && this.mediaCache[url]) {
+      return this.mediaCache[url];
     }
     
     // Check if already loading
-    if (this.loadingPromises.has(url)) {
-      return this.loadingPromises.get(url);
+    if (this.loadingPromises[url]) {
+      return this.loadingPromises[url];
     }
     
     // Start processing
-    const processingPromise = this._processMediaUrl(url);
-    this.loadingPromises.set(url, processingPromise);
+    var result = this._processMediaUrl(url);
+    this.loadingPromises[url] = result;
     
     try {
-      const result = await processingPromise;
       
       // Cache result
       if (this.options.cacheEnabled) {
-        this.mediaCache.set(url, result);
+        this.mediaCache[url] = result;
       }
       
       return result;
     } finally {
-      this.loadingPromises.delete(url);
+      delete this.loadingPromises[url];
     }
   }
   
-  /**
-   * Internal media processing method
-   * @param {string} url - Media URL
-   * @returns {Promise<Object>} Media information
-   */
-  async _processMediaUrl(url) {
-    const mediaType = this.detectMediaType(url);
-    const mediaInfo = {
+/**
+ * Internal media processing method
+ * @param {string} url - Media URL
+ * @returns {Object} Media information
+ */
+MediaHandler.prototype._processMediaUrl = function(url) {
+    var mediaType = this.detectMediaType(url);
+    var mediaInfo = {
       url: url,
       type: mediaType,
       isValid: false,
@@ -78,19 +76,19 @@ class MediaHandler {
     try {
       switch (mediaType) {
         case MEDIA_TYPES.IMAGE:
-          await this.processImage(url, mediaInfo);
+          this.processImage(url, mediaInfo);
           break;
         
         case MEDIA_TYPES.VIDEO:
-          await this.processVideo(url, mediaInfo);
+          this.processVideo(url, mediaInfo);
           break;
         
         case MEDIA_TYPES.YOUTUBE:
-          await this.processYouTube(url, mediaInfo);
+          this.processYouTube(url, mediaInfo);
           break;
         
         default:
-          throw new Error(`Unsupported media type: ${mediaType}`);
+          throw new Error('Unsupported media type: ' + mediaType);
       }
       
       mediaInfo.isValid = true;
@@ -102,13 +100,13 @@ class MediaHandler {
     return mediaInfo;
   }
   
-  /**
-   * Detect media type from URL
-   * @param {string} url - Media URL
-   * @returns {string} Media type
-   */
-  detectMediaType(url) {
-    const lowercaseUrl = url.toLowerCase();
+/**
+ * Detect media type from URL
+ * @param {string} url - Media URL
+ * @returns {string} Media type
+ */
+MediaHandler.prototype.detectMediaType = function(url) {
+    var lowercaseUrl = url.toLowerCase();
     
     // YouTube detection
     if (this.isYouTubeUrl(url)) {
@@ -116,38 +114,42 @@ class MediaHandler {
     }
     
     // Video file extensions
-    const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.avi', '.wmv', '.flv', '.mkv'];
-    if (videoExtensions.some(ext => lowercaseUrl.includes(ext))) {
-      return MEDIA_TYPES.VIDEO;
+    var videoExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.avi', '.wmv', '.flv', '.mkv'];
+    for (var i = 0; i < videoExtensions.length; i++) {
+      if (lowercaseUrl.indexOf(videoExtensions[i]) !== -1) {
+        return MEDIA_TYPES.VIDEO;
+      }
     }
     
     // Image file extensions
-    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg'];
-    if (imageExtensions.some(ext => lowercaseUrl.includes(ext))) {
-      return MEDIA_TYPES.IMAGE;
+    var imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg'];
+    for (var j = 0; j < imageExtensions.length; j++) {
+      if (lowercaseUrl.indexOf(imageExtensions[j]) !== -1) {
+        return MEDIA_TYPES.IMAGE;
+      }
     }
     
     // Default to image for unknown types
     return MEDIA_TYPES.IMAGE;
-  }
-  
-  /**
-   * Check if URL is a YouTube URL
-   * @param {string} url - URL to check
-   * @returns {boolean} Whether URL is YouTube
-   */
-  isYouTubeUrl(url) {
-    const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+};
+
+/**
+ * Check if URL is a YouTube URL
+ * @param {string} url - URL to check
+ * @returns {boolean} Whether URL is YouTube
+ */
+MediaHandler.prototype.isYouTubeUrl = function(url) {
+    var youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
     return youtubeRegex.test(url);
-  }
-  
-  /**
-   * Extract YouTube video ID from URL
-   * @param {string} url - YouTube URL
-   * @returns {string|null} Video ID
-   */
-  extractYouTubeId(url) {
-    const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+};
+
+/**
+ * Extract YouTube video ID from URL
+ * @param {string} url - YouTube URL
+ * @returns {string|null} Video ID
+ */
+MediaHandler.prototype.extractYouTubeId = function(url) {
+    var match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
     return match ? match[1] : null;
   }
   

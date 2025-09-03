@@ -419,8 +419,8 @@
             currentSlide: null,
             selectedHotspot: null,
             creationMode: false,
-            hotspots: new Map(),
-            slides: new Map()
+            hotspots: {},
+            slides: {}
         };
 
         // Get project ID from URL parameters or template
@@ -430,21 +430,27 @@
         }
 
         // Initialize the editor application
-        document.addEventListener('DOMContentLoaded', async function() {
+        document.addEventListener('DOMContentLoaded', function() {
             console.log('Initializing Hotspot Editor...');
             
             try {
-                const projectId = getProjectId();
+                var projectId = getProjectId();
                 console.log('Loading project:', projectId);
                 
                 // Load actual project data from Google Sheets
-                await loadProjectData(projectId);
-                
-                // Setup event listeners
-                setupEventListeners();
-                
-                window.ExplicoApp.initialized = true;
-                console.log('Editor initialized successfully');
+                loadProjectData(projectId, function(error) {
+                    if (error) {
+                        console.error('Failed to initialize editor:', error);
+                        showError('Failed to initialize editor: ' + error.message);
+                        return;
+                    }
+                    
+                    // Setup event listeners
+                    setupEventListeners();
+                    
+                    window.ExplicoApp.initialized = true;
+                    console.log('Editor initialized successfully');
+                });
                 
             } catch (error) {
                 console.error('Failed to initialize editor:', error);
@@ -453,45 +459,54 @@
         });
 
         // Load project from Google Sheets via GAS
-        async function loadProjectData(projectId) {
+        function loadProjectData(projectId, callback) {
             try {
                 console.log('Loading project data for:', projectId);
                 
                 // Use Google Apps Script function to get project data
-                const projectData = await new Promise((resolve, reject) => {
-                    google.script.run
-                        .withSuccessHandler(resolve)
-                        .withFailureHandler(reject)
-                        .getProjectData(projectId);
-                });
-                
-                if (!projectData) {
-                    throw new Error('Project not found');
-                }
-                
-                window.ExplicoApp.currentProject = projectData;
-                document.getElementById('project-title').textContent = projectData.name;
-                
-                // Load slides
-                if (projectData.slides && projectData.slides.length > 0) {
-                    projectData.slides.forEach(slide => {
-                        window.ExplicoApp.slides.set(slide.id, slide);
-                    });
-                    renderSlidesList();
-                } else {
-                    // Show empty state or create first slide
-                    showEmptySlideState();
-                }
+                google.script.run
+                    .withSuccessHandler(function(projectData) {
+                        try {
+                            if (!projectData) {
+                                callback(new Error('Project not found'));
+                                return;
+                            }
+                            
+                            window.ExplicoApp.currentProject = projectData;
+                            document.getElementById('project-title').textContent = projectData.name;
+                            
+                            // Load slides
+                            if (projectData.slides && projectData.slides.length > 0) {
+                                for (var i = 0; i < projectData.slides.length; i++) {
+                                    var slide = projectData.slides[i];
+                                    window.ExplicoApp.slides[slide.id] = slide;
+                                }
+                                renderSlidesList();
+                            } else {
+                                // Show empty state or create first slide
+                                showEmptySlideState();
+                            }
+                            
+                            callback(null); // Success
+                        } catch (error) {
+                            callback(error);
+                        }
+                    })
+                    .withFailureHandler(function(error) {
+                        console.error('Error loading project data:', error);
+                        callback(error);
+                    })
+                    .getProjectData(projectId);
                 
             } catch (error) {
                 console.error('Error loading project data:', error);
-                throw error;
+                callback(error);
             }
         }
         
         // Show empty state for no slides
         function showEmptySlideState() {
-            const slidesList = document.getElementById('slides-list');
+            var slidesList = document.getElementById('slides-list');
             slidesList.innerHTML = `
                 <div class="text-center py-8 text-gray-500">
                     <span class="material-symbols-outlined text-4xl mb-2">slideshow</span>
@@ -505,10 +520,16 @@
 
         // Render slides in sidebar
         function renderSlidesList() {
-            const slidesList = document.getElementById('slides-list');
-            const slides = Array.from(window.ExplicoApp.slides.values()).sort((a, b) => a.order - b.order);
+            var slidesList = document.getElementById('slides-list');
+            var slidesArray = [];
+            for (var key in window.ExplicoApp.slides) {
+                if (window.ExplicoApp.slides.hasOwnProperty(key)) {
+                    slidesArray.push(window.ExplicoApp.slides[key]);
+                }
+            }
+            var slides = slidesArray.sort(function(a, b) { return a.order - b.order; });
 
-            slidesList.innerHTML = slides.map(slide => `
+            slidesList.innerHTML = slides.map(function(slide) { return `
                 <div class="slide-item p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 ${slide.id === window.ExplicoApp.currentSlide?.id ? 'bg-blue-50 border-blue-200' : ''}" 
                      data-slide-id="${slide.id}" onclick="selectSlide('${slide.id}')">
                     <div class="flex items-center space-x-3">
@@ -527,7 +548,7 @@
                         </div>
                     </div>
                 </div>
-            `).join('');
+            `; }).join('');
         }
 
         // Select a slide for editing
