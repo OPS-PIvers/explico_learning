@@ -1,12 +1,26 @@
 #!/bin/bash
 
 # Create dist directory if it doesn't exist
+# Create dist directory if it doesn't exist
 rm -rf dist
 mkdir -p dist
 
-# Copy and rename .js files to .gs
+# Copy and rename .js files to .gs for server-side
 for file in services/*.js; do
   cp "$file" "dist/$(basename "$file" .js).gs"
+done
+
+# Create .html files for client-side JS
+for file in services/*.js; do
+  echo "<script>" > "dist/$(basename "$file" .js).html"
+  cat "$file" >> "dist/$(basename "$file" .js).html"
+  echo "</script>" >> "dist/$(basename "$file" .js).html"
+done
+
+for file in components/*.js; do
+  echo "<script>" > "dist/$(basename "$file" .js).html"
+  cat "$file" >> "dist/$(basename "$file" .js).html"
+  echo "</script>" >> "dist/$(basename "$file" .js).html"
 done
 
 cp templates/*.html dist/
