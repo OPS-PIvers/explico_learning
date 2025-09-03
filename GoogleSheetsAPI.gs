@@ -545,11 +545,36 @@ GoogleSheetsAPI.prototype.rowToSlide = function(row) {
   };
 };
 
+/**
+ * Safely gets a nested property value with type checking and default value.
+ * @param {Object} obj - The object to access.
+ * @param {Array|string} path - The property path (array or dot-separated string).
+ * @param {string} type - The expected type of the value.
+ * @param {*} defaultValue - The default value to return if not found or type mismatch.
+ * @return {*} The property value or defaultValue.
+ */
+function getProp(obj, path, type, defaultValue) {
+  if (typeof path === 'string') {
+    path = path.split('.');
+  }
+  var value = obj;
+  for (var i = 0; i < path.length; i++) {
+    if (value == null || typeof value !== 'object') {
+      return defaultValue;
+    }
+    value = value[path[i]];
+  }
+  if (typeof value === type) {
+    return value;
+  }
+  return defaultValue;
+}
+
 GoogleSheetsAPI.prototype.hotspotToRow = function(hotspot) {
-  var positionX = (hotspot.position && typeof hotspot.position.x === 'number') ? hotspot.position.x : 50;
-  var positionY = (hotspot.position && typeof hotspot.position.y === 'number') ? hotspot.position.y : 50;
-  var panOffsetX = (hotspot.panOffset && typeof hotspot.panOffset.x === 'number') ? hotspot.panOffset.x : 0;
-  var panOffsetY = (hotspot.panOffset && typeof hotspot.panOffset.y === 'number') ? hotspot.panOffset.y : 0;
+  var positionX = getProp(hotspot, ['position', 'x'], 'number', 50);
+  var positionY = getProp(hotspot, ['position', 'y'], 'number', 50);
+  var panOffsetX = getProp(hotspot, ['panOffset', 'x'], 'number', 0);
+  var panOffsetY = getProp(hotspot, ['panOffset', 'y'], 'number', 0);
 
   return [
     hotspot.id,
