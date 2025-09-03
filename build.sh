@@ -7,11 +7,13 @@ mkdir -p dist
 
 # Copy and rename .js files to .gs for server-side
 for file in services/*.js; do
-  cp "$file" "dist/$(basename "$file" .js).gs"
+  if [[ "$file" != *"_client.js" ]]; then
+    cp "$file" "dist/$(basename "$file" .js).gs"
+  fi
 done
 
 # Create .html files for client-side JS
-for file in services/*.js; do
+for file in services/*_client.js; do
   echo "<script>" > "dist/js_$(basename "$file" .js).html"
   cat "$file" >> "dist/js_$(basename "$file" .js).html"
   echo "</script>" >> "dist/js_$(basename "$file" .js).html"
