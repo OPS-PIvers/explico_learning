@@ -19,7 +19,7 @@
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     
     <!-- Base Styles -->
-    <?!= HtmlService.createHtmlOutputFromFile('styles').getContent(); ?>
+    <?!= include('styles'); ?>
 </head>
 <body class="bg-[var(--bg-primary)] font-primary">
     <!-- Application Container -->
@@ -200,24 +200,7 @@
         </div>
     </div>
     
-    <!-- Core Constants -->
-    <script>
-        <?!= HtmlService.createHtmlOutputFromFile('constants').getContent(); ?>
-    </script>
     
-    <!-- Utility Components -->
-    <script>
-        <?!= HtmlService.createHtmlOutputFromFile('FormControls').getContent(); ?>
-        <?!= HtmlService.createHtmlOutputFromFile('StatusBadge').getContent(); ?>
-        <?!= HtmlService.createHtmlOutputFromFile('ProgressBar').getContent(); ?>
-        <?!= HtmlService.createHtmlOutputFromFile('ProjectDashboard').getContent(); ?>
-    </script>
-    
-    <!-- Business Logic Services -->
-    <script>
-        <?!= HtmlService.createHtmlOutputFromFile('services/GoogleSheetsAPI').getContent(); ?>
-        <?!= HtmlService.createHtmlOutputFromFile('services/ProjectManager').getContent(); ?>
-    </script>
     
     <!-- Google Apps Script Integration -->
     <script>
