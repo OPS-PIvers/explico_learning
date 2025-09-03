@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # Create dist directory if it doesn't exist
+rm -rf dist
 mkdir -p dist
 
 # Copy and rename .js files to .gs
