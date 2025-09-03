@@ -12,15 +12,15 @@ done
 
 # Create .html files for client-side JS
 for file in services/*.js; do
-  echo "<script>" > "dist/$(basename "$file" .js).html"
-  cat "$file" >> "dist/$(basename "$file" .js).html"
-  echo "</script>" >> "dist/$(basename "$file" .js).html"
+  echo "<script>" > "dist/js_$(basename "$file" .js).html"
+  cat "$file" >> "dist/js_$(basename "$file" .js).html"
+  echo "</script>" >> "dist/js_$(basename "$file" .js).html"
 done
 
 for file in components/*.js; do
-  echo "<script>" > "dist/$(basename "$file" .js).html"
-  cat "$file" >> "dist/$(basename "$file" .js).html"
-  echo "</script>" >> "dist/$(basename "$file" .js).html"
+  echo "<script>" > "dist/js_$(basename "$file" .js).html"
+  cat "$file" >> "dist/js_$(basename "$file" .js).html"
+  echo "</script>" >> "dist/js_$(basename "$file" .js).html"
 done
 
 cp templates/*.html dist/
