@@ -142,6 +142,8 @@ Follow the existing component pattern:
 - Validate OAuth permissions in deployed webapp
 - Test with multiple projects and large datasets
 - Verify component synchronization in real-time editing scenarios
+- **Always test frontend functionality using Playwright MCP** after deployments
+- **Always check Context7 MCP for library updates** before making changes
 
 ## Deployment Notes
 
