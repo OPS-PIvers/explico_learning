@@ -5,9 +5,7 @@
 
 class ProjectManager_server {
   
-  constructor() {
-    this.sheetsAPI = new GoogleSheetsAPI();
-  }
+  constructor() {}
   
   /**
    * Create a new project
@@ -15,8 +13,9 @@ class ProjectManager_server {
    * @returns {Object} Created project
    */
   createNewProject(projectData) {
-    this.sheetsAPI.initialize();
-    const createdProject = this.sheetsAPI.createProject(projectData);
+    const sheetsAPI = new GoogleSheetsAPI();
+    sheetsAPI.initialize();
+    const createdProject = sheetsAPI.createProject(projectData);
     return createdProject;
   }
   
@@ -26,9 +25,10 @@ class ProjectManager_server {
    * @returns {Object} Opened project
    */
   openProject(projectId) {
-    this.sheetsAPI.initialize(projectId);
-    const project = this.sheetsAPI.getProject(projectId);
-    project.slides = this.sheetsAPI.getSlidesByProject(projectId);
+    const sheetsAPI = new GoogleSheetsAPI();
+    sheetsAPI.initialize(projectId);
+    const project = sheetsAPI.getProject(projectId);
+    project.slides = sheetsAPI.getSlidesByProject(projectId);
     return project;
   }
   
@@ -38,8 +38,9 @@ class ProjectManager_server {
    * @returns {boolean} Success status
    */
   saveCurrentProject(projectData) {
-    this.sheetsAPI.initialize(projectData.id);
-    this.sheetsAPI.updateProject(projectData.id, projectData);
+    const sheetsAPI = new GoogleSheetsAPI();
+    sheetsAPI.initialize(projectData.id);
+    sheetsAPI.updateProject(projectData.id, projectData);
     return true;
   }
   
@@ -49,8 +50,9 @@ class ProjectManager_server {
    * @returns {boolean} Success status
    */
   deleteProject(projectId) {
-    this.sheetsAPI.initialize(projectId);
-    this.sheetsAPI.deleteProject(projectId);
+    const sheetsAPI = new GoogleSheetsAPI();
+    sheetsAPI.initialize(projectId);
+    sheetsAPI.deleteProject(projectId);
     return true;
   }
   
@@ -60,25 +62,26 @@ class ProjectManager_server {
    * @returns {Object} Duplicated project
    */
   duplicateProject(projectId) {
-    this.sheetsAPI.initialize(projectId);
-    const originalProject = this.sheetsAPI.getProject(projectId);
-    const duplicatedProject = this.sheetsAPI.createProject({
+    const sheetsAPI = new GoogleSheetsAPI();
+    sheetsAPI.initialize(projectId);
+    const originalProject = sheetsAPI.getProject(projectId);
+    const duplicatedProject = sheetsAPI.createProject({
       ...originalProject,
       name: `${originalProject.name} (Copy)`,
     });
-    const originalSlides = this.sheetsAPI.getSlidesByProject(projectId);
+    const originalSlides = sheetsAPI.getSlidesByProject(projectId);
     for (const slide of originalSlides) {
-      const duplicatedSlide = this.sheetsAPI.createSlide({
+      const duplicatedSlide = sheetsAPI.createSlide({
         ...slide,
         projectId: duplicatedProject.id,
       });
-      const originalHotspots = this.sheetsAPI.getHotspotsBySlide(slide.id);
+      const originalHotspots = sheetsAPI.getHotspotsBySlide(slide.id);
       const duplicatedHotspots = originalHotspots.map(hotspot => ({
         ...hotspot,
         slideId: duplicatedSlide.id,
       }));
       if (duplicatedHotspots.length > 0) {
-        this.sheetsAPI.saveHotspots(duplicatedHotspots);
+        sheetsAPI.saveHotspots(duplicatedHotspots);
       }
     }
     return duplicatedProject;
@@ -89,8 +92,9 @@ class ProjectManager_server {
    * @returns {Array<Object>} Array of projects
    */
   getAllProjects() {
-    this.sheetsAPI.initialize();
-    const projects = this.sheetsAPI.getAllProjects();
+    const sheetsAPI = new GoogleSheetsAPI();
+    sheetsAPI.initialize();
+    const projects = sheetsAPI.getAllProjects();
     return projects;
   }
   
@@ -100,8 +104,9 @@ class ProjectManager_server {
    * @returns {Object} Created slide
    */
   createSlide(slideData) {
-    this.sheetsAPI.initialize(slideData.projectId);
-    const createdSlide = this.sheetsAPI.createSlide(slideData);
+    const sheetsAPI = new GoogleSheetsAPI();
+    sheetsAPI.initialize(slideData.projectId);
+    const createdSlide = sheetsAPI.createSlide(slideData);
     return createdSlide;
   }
   
@@ -111,7 +116,8 @@ class ProjectManager_server {
    * @returns {Object} Selected slide
    */
   selectSlide(slideId) {
-    const slide = this.sheetsAPI.getSlide(slideId);
+    const sheetsAPI = new GoogleSheetsAPI();
+    const slide = sheetsAPI.getSlide(slideId);
     return slide;
   }
   
@@ -121,9 +127,10 @@ class ProjectManager_server {
    * @returns {boolean} Success status
    */
   deleteSlide(slideId) {
-    const slide = this.sheetsAPI.getSlide(slideId);
-    this.sheetsAPI.initialize(slide.projectId);
-    this.sheetsAPI.deleteSlide(slideId);
+    const sheetsAPI = new GoogleSheetsAPI();
+    const slide = sheetsAPI.getSlide(slideId);
+    sheetsAPI.initialize(slide.projectId);
+    sheetsAPI.deleteSlide(slideId);
     return true;
   }
   
@@ -135,9 +142,10 @@ class ProjectManager_server {
    * @returns {Object} Updated slide
    */
   updateSlideBackground(slideId, backgroundUrl, backgroundType) {
-    const slide = this.sheetsAPI.getSlide(slideId);
-    this.sheetsAPI.initialize(slide.projectId);
-    const updatedSlide = this.sheetsAPI.updateSlide(slideId, {
+    const sheetsAPI = new GoogleSheetsAPI();
+    const slide = sheetsAPI.getSlide(slideId);
+    sheetsAPI.initialize(slide.projectId);
+    const updatedSlide = sheetsAPI.updateSlide(slideId, {
       backgroundUrl: backgroundUrl,
       backgroundType: backgroundType,
     });

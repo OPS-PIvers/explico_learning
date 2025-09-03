@@ -31,5 +31,5 @@ echo "<style>" > dist/styles.html
 cat styles.css >> dist/styles.html
 echo "</style>" >> dist/styles.html
 cp utils/styles.css dist/
-cp Z_Code.gs dist/Code.gs
+cp Code.gs dist/
 cp constants.gs dist/

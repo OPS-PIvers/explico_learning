@@ -13,7 +13,7 @@ const CONFIG = {
   SUPPORTED_VIDEO_TYPES: ['video/mp4', 'video/webm', 'video/mov']
 };
 
-const projectManager = new ProjectManager_server();
+
 
 /**
  * Main entry point for web app - Single Page Application
@@ -148,45 +148,56 @@ function getCurrentUser() {
 // ============================================================================
 
 function createNewProject(projectData) {
+  const projectManager = new ProjectManager_server();
   return projectManager.createNewProject(projectData);
 }
 
 function openProject(projectId) {
+  const projectManager = new ProjectManager_server();
   return projectManager.openProject(projectId);
 }
 
 function saveCurrentProject(projectData) {
+  const projectManager = new ProjectManager_server();
   return projectManager.saveCurrentProject(projectData);
 }
 
 function deleteProject(projectId) {
+  const projectManager = new ProjectManager_server();
   return projectManager.deleteProject(projectId);
 }
 
 function duplicateProject(projectId) {
+  const projectManager = new ProjectManager_server();
   return projectManager.duplicateProject(projectId);
 }
 
 function getAllProjects() {
+  const projectManager = new ProjectManager_server();
   return projectManager.getAllProjects();
 }
 
 function createSlide(slideData) {
+  const projectManager = new ProjectManager_server();
   return projectManager.createSlide(slideData);
 }
 
 function selectSlide(slideId) {
+  const projectManager = new ProjectManager_server();
   return projectManager.selectSlide(slideId);
 }
 
 function deleteSlide(slideId) {
+  const projectManager = new ProjectManager_server();
   return projectManager.deleteSlide(slideId);
 }
 
 function updateSlideBackground(slideId, backgroundUrl, backgroundType) {
+  const projectManager = new ProjectManager_server();
   return projectManager.updateSlideBackground(slideId, backgroundUrl, backgroundType);
 }
 
 function reorderSlides(fromIndex, toIndex) {
+  const projectManager = new ProjectManager_server();
   return projectManager.reorderSlides(fromIndex, toIndex);
 }
