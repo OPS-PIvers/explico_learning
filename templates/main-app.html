@@ -273,9 +273,7 @@
             try {
                 // Initialize services
                 const projectManager = new ProjectManager();
-                await projectManager.initialize({
-                    sheetsAPI: new GoogleSheetsAPI()
-                });
+                await projectManager.initialize();
                 
                 // Initialize dashboard component
                 const dashboard = new ProjectDashboard(document.getElementById('projects-container'));

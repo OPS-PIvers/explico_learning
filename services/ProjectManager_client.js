@@ -29,7 +29,7 @@ class ProjectManager {
    * @param {Object} components - Component instances
    * @returns {Promise<void>}
    */
-  async initialize(components = {}) {
+  initialize(components = {}) {
     this.setComponents(components);
     this.isInitialized = true;
     console.log('ProjectManager client initialized successfully');
