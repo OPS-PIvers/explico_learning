@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Project Dashboard - Explico Learning</title>
     
-    <!-- Permissions Policy to suppress browser warnings for Google Apps Script -->
-    <meta http-equiv="Permissions-Policy" content="ambient-light-sensor=(), speaker=(), vibrate=(), vr=()">
     
     <!-- Preconnect to external services -->
     <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
@@ -18,15 +16,8 @@
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64,">
     
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <!-- Suppress Tailwind CDN production warning BEFORE loading Tailwind -->
     <script>
-        // Suppress Tailwind CDN production warning for Google Apps Script environment
-        tailwind.config = {
-            corePlugins: {
-                preflight: false,
-            }
-        };
         // Override console.warn to filter Tailwind production warnings
         const originalWarn = console.warn;
         console.warn = function(...args) {
@@ -35,6 +26,17 @@
                 return; // Suppress this specific warning
             }
             originalWarn.apply(console, args);
+        };
+    </script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        // Suppress Tailwind CDN production warning for Google Apps Script environment
+        tailwind.config = {
+            corePlugins: {
+                preflight: false,
+            }
         };
     </script>
     
