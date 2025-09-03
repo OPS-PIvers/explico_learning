@@ -19,7 +19,6 @@ jobs:
       run: npm install -g @google/clasp@2.4.2
     - name: Authenticate clasp
       run: |
-        # Decode the Base64 secret and write it to the file, removing newlines
         echo "${{ secrets.CLASPRC_JSON }}" | tr -d '\n' | base64 --decode > ~/.clasprc.json
     - name: Push code to Apps Script
       # Use --force if you encounter issues with minor version bumps
