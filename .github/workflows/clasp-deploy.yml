@@ -22,17 +22,34 @@ jobs:
         echo '${{ secrets.CLASPRC_JSON }}' > ~/.clasprc.json
         # Validate JSON format (fails if not valid)
         jq empty ~/.clasprc.json || { echo "Invalid JSON in credentials"; cat ~/.clasprc.json; exit 1; }
+    - name: Build project files
+      run: |
+        # Make build script executable and run it
+        chmod +x ./build.sh
+        echo "🔧 Building project files..."
+        ./build.sh
+        echo "✅ Build completed successfully"
+        # List built files for verification
+        echo "📁 Files in dist directory:"
+        ls -la dist/
     - name: Push code to Apps Script
       # Use --force if you encounter issues with minor version bumps
-      run: clasp push --force
+      run: |
+        echo "🚀 Pushing code to Google Apps Script..."
+        clasp push --force
+        echo "✅ Code pushed successfully"
     - name: Update deployment
       # If you have a specific deployment ID to update, use this format
       run: |
+        echo "🚢 Updating deployment..."
         if [ -n "${{ secrets.DEPLOYMENT_ID }}" ]; then
+          echo "📄 Using existing deployment ID: ${{ secrets.DEPLOYMENT_ID }}"
           clasp deploy --deploymentId ${{ secrets.DEPLOYMENT_ID }} --description "Auto-deployment $(date)"
         else
+          echo "📄 Creating new deployment"
           clasp deploy --description "Auto-deployment $(date)"
         fi
+        echo "✅ Deployment updated successfully"
     # Optional: Clean up the credentials file (good practice)
     - name: Clean up credentials
       if: always() # Run even if previous steps failed

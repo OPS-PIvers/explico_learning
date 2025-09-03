@@ -20,6 +20,34 @@
     
     <!-- Base Styles -->
     <style type="text/css">
+        /* Ensure CSS variables are loaded first with fallbacks */
+        :root {
+            /* Fallback CSS variables in case styles.html doesn't load */
+            --bg-primary: #111827;
+            --bg-secondary: #1f2937;
+            --brand-primary: #2d3f89;
+            --brand-primary-hover: #3c52b2;
+            --brand-green: #2dd67e;
+            --brand-red: #ad2122;
+            --text-primary: #ffffff;
+            --text-secondary: #d1d5db;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --space-1: 0.25rem;
+            --space-2: 0.5rem;
+            --space-3: 0.75rem;
+            --space-4: 1rem;
+            --space-6: 1.5rem;
+            --radius-md: 0.375rem;
+            --radius-lg: 0.5rem;
+            --radius-full: 9999px;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --transition-normal: 200ms ease;
+            --z-dropdown: 1000;
+        }
+        
         <?!= include('styles'); ?>
         /* Additional styles for project dashboard */
 

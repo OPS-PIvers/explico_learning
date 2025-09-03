@@ -20,6 +20,23 @@
     
     <!-- Base Styles -->
     <style type="text/css">
+        /* Ensure CSS variables are loaded first with fallbacks */
+        :root {
+            /* Fallback CSS variables in case styles.html doesn't load */
+            --bg-primary: #111827;
+            --bg-secondary: #1f2937;
+            --brand-primary: #2d3f89;
+            --brand-primary-hover: #3c52b2;
+            --text-primary: #ffffff;
+            --text-secondary: #d1d5db;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --space-2: 0.5rem;
+            --space-4: 1rem;
+            --radius-md: 0.375rem;
+            --transition-normal: 200ms ease;
+        }
+        
         <?!= include('styles'); ?>
         /* Additional styles for hotspot editor */
 
@@ -373,12 +390,28 @@
     </div>
 
     <!-- Core Constants -->
-    <!--
     <script>
-        const CONSTANTS = <?!= CONSTANTS ?>;
-        console.log('Constants loaded');
+        // Initialize constants with error handling
+        let CONSTANTS;
+        try {
+            CONSTANTS = <?!= CONSTANTS ?>;
+            console.log('✅ Constants loaded successfully:', Object.keys(CONSTANTS || {}).length, 'categories');
+        } catch (error) {
+            console.error('❌ Failed to load constants:', error);
+            CONSTANTS = {
+                EVENT_TYPES: { TEXT_POPUP: 'text_popup', TEXT_ON_IMAGE: 'text_on_image' },
+                TRIGGER_TYPES: { CLICK: 'click', HOVER: 'hover' },
+                PROJECT_STATUS: { DRAFT: 'draft', PUBLISHED: 'published' }
+            };
+            console.log('📄 Using fallback constants');
+        }
+        
+        // Validate essential constants
+        if (!CONSTANTS || typeof CONSTANTS !== 'object') {
+            console.error('❌ Constants validation failed, using minimal fallback');
+            CONSTANTS = { EVENT_TYPES: {}, TRIGGER_TYPES: {}, PROJECT_STATUS: {} };
+        }
     </script>
-    -->
     
     <!-- Utility Components -->
     <!--
@@ -435,82 +468,272 @@
 
         // Get project ID from URL parameters or template
         function getProjectId() {
-            // In GAS, project ID will be passed via template
-            return '<?!= typeof PROJECT_ID !== "undefined" ? PROJECT_ID : "demo" ?>';
+            let projectId;
+            try {
+                // In GAS, project ID will be passed via template
+                projectId = '<?!= typeof PROJECT_ID !== "undefined" ? PROJECT_ID : "" ?>';
+                
+                // Validate project ID
+                if (!projectId || projectId === '' || projectId === 'undefined') {
+                    console.warn('⚠️ No PROJECT_ID provided via template, checking URL parameters');
+                    
+                    // Fallback: try to get from URL parameters
+                    const urlParams = new URLSearchParams(window.location.search);
+                    projectId = urlParams.get('project');
+                    
+                    if (!projectId) {
+                        console.error('❌ No project ID found in template or URL');
+                        return null;
+                    }
+                }
+                
+                console.log('✅ Project ID loaded:', projectId);
+                return projectId;
+                
+            } catch (error) {
+                console.error('❌ Error getting project ID:', error);
+                
+                // Final fallback: try URL parameters
+                try {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const fallbackId = urlParams.get('project');
+                    if (fallbackId) {
+                        console.log('📄 Using fallback project ID from URL:', fallbackId);
+                        return fallbackId;
+                    }
+                } catch (urlError) {
+                    console.error('❌ URL parameter fallback also failed:', urlError);
+                }
+                
+                return null;
+            }
         }
 
         // Initialize the editor application
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Initializing Hotspot Editor...');
+            console.log('🚀 Initializing Hotspot Editor...');
             
             try {
                 var projectId = getProjectId();
-                console.log('Loading project:', projectId);
+                
+                if (!projectId) {
+                    showError('No project ID provided. Please navigate to this page from the project dashboard.', {
+                        persistent: true,
+                        actionText: 'Go to Dashboard', 
+                        actionCallback: () => window.location.href = '?page=dashboard'
+                    });
+                    return;
+                }
+                
+                console.log('🔍 Loading project:', projectId);
+                
+                // Show initial loading state
+                const loadingIndicator = showLoading('Initializing editor...');
                 
                 // Load actual project data from Google Sheets
                 loadProjectData(projectId, function(error) {
+                    hideLoading();
+                    
                     if (error) {
-                        console.error('Failed to initialize editor:', error);
-                        showError('Failed to initialize editor: ' + error.message);
+                        console.error('❌ Failed to initialize editor:', error);
+                        
+                        // Show specific error with action buttons
+                        if (error.message.includes('not found')) {
+                            showError(error.message, {
+                                persistent: true,
+                                actionText: 'Go to Dashboard',
+                                actionCallback: () => window.location.href = '?page=dashboard'
+                            });
+                        } else if (error.message.includes('timed out')) {
+                            showError(error.message, {
+                                actionText: 'Retry',
+                                actionCallback: () => location.reload()
+                            });
+                        } else if (error.message.includes('Authorization')) {
+                            showError(error.message, {
+                                actionText: 'Sign In',
+                                actionCallback: () => location.reload()
+                            });
+                        } else {
+                            showError(error.message, {
+                                actionText: 'Retry',
+                                actionCallback: () => location.reload()
+                            });
+                        }
                         return;
                     }
                     
-                    // Setup event listeners
-                    setupEventListeners();
-                    
-                    window.ExplicoApp.initialized = true;
-                    console.log('Editor initialized successfully');
+                    try {
+                        // Setup event listeners
+                        setupEventListeners();
+                        
+                        window.ExplicoApp.initialized = true;
+                        console.log('✅ Editor initialized successfully');
+                        showSuccess('Editor loaded successfully!');
+                        
+                        // Log app state for debugging
+                        console.log('🔧 App State:', {
+                            project: window.ExplicoApp.currentProject?.name,
+                            slides: Object.keys(window.ExplicoApp.slides).length,
+                            initialized: window.ExplicoApp.initialized
+                        });
+                        
+                    } catch (setupError) {
+                        console.error('❌ Error during editor setup:', setupError);
+                        showError('Editor setup failed: ' + setupError.message, {
+                            actionText: 'Reload',
+                            actionCallback: () => location.reload()
+                        });
+                    }
                 });
                 
             } catch (error) {
-                console.error('Failed to initialize editor:', error);
-                showError('Failed to initialize editor: ' + error.message);
+                hideLoading();
+                console.error('❌ Critical initialization error:', error);
+                showError('Critical error during initialization: ' + error.message, {
+                    persistent: true,
+                    actionText: 'Reload Page',
+                    actionCallback: () => location.reload()
+                });
             }
         });
 
         // Load project from Google Sheets via GAS
         function loadProjectData(projectId, callback) {
+            if (!projectId) {
+                const error = new Error('No project ID provided');
+                console.error('❌ Load project data failed:', error);
+                callback(error);
+                return;
+            }
+            
+            console.log('🔄 Loading project data for:', projectId);
+            
+            // Add loading indicator
+            const projectTitle = document.getElementById('project-title');
+            if (projectTitle) {
+                projectTitle.textContent = 'Loading project...';
+                projectTitle.classList.add('animate-pulse');
+            }
+            
+            // Set up timeout for the request
+            let hasCompleted = false;
+            const timeoutId = setTimeout(function() {
+                if (!hasCompleted) {
+                    hasCompleted = true;
+                    console.error('⏰ Project data loading timed out after 15 seconds');
+                    const timeoutError = new Error('Project loading timed out. Please check your connection and try again.');
+                    callback(timeoutError);
+                }
+            }, 15000); // 15 second timeout
+            
             try {
-                console.log('Loading project data for:', projectId);
+                // Validate google.script.run is available
+                if (typeof google === 'undefined' || !google.script || !google.script.run) {
+                    clearTimeout(timeoutId);
+                    const gasError = new Error('Google Apps Script runtime not available. Please refresh the page.');
+                    console.error('❌ Google Apps Script not available:', gasError);
+                    callback(gasError);
+                    return;
+                }
                 
                 // Use Google Apps Script function to get project data
                 google.script.run
                     .withSuccessHandler(function(projectData) {
+                        if (hasCompleted) return; // Timeout already occurred
+                        hasCompleted = true;
+                        clearTimeout(timeoutId);
+                        
                         try {
+                            console.log('📦 Received project data:', projectData);
+                            
                             if (!projectData) {
-                                callback(new Error('Project not found'));
+                                const notFoundError = new Error(`Project "${projectId}" not found. It may have been deleted or you may not have access.`);
+                                console.error('❌ Project not found:', notFoundError);
+                                callback(notFoundError);
                                 return;
                             }
                             
-                            window.ExplicoApp.currentProject = projectData;
-                            document.getElementById('project-title').textContent = projectData.name;
-                            
-                            // Load slides
-                            if (projectData.slides && projectData.slides.length > 0) {
-                                for (var i = 0; i < projectData.slides.length; i++) {
-                                    var slide = projectData.slides[i];
-                                    window.ExplicoApp.slides[slide.id] = slide;
-                                }
-                                renderSlidesList();
-                            } else {
-                                // Show empty state or create first slide
-                                showEmptySlideState();
+                            // Validate project data structure
+                            if (typeof projectData !== 'object') {
+                                const structureError = new Error('Invalid project data received from server');
+                                console.error('❌ Invalid project data structure:', projectData);
+                                callback(structureError);
+                                return;
                             }
                             
+                            // Store project data
+                            window.ExplicoApp.currentProject = projectData;
+                            
+                            // Update UI with project information
+                            if (projectTitle) {
+                                projectTitle.textContent = projectData.name || 'Untitled Project';
+                                projectTitle.classList.remove('animate-pulse');
+                            }
+                            
+                            // Load slides with error handling
+                            try {
+                                if (projectData.slides && Array.isArray(projectData.slides) && projectData.slides.length > 0) {
+                                    console.log('📄 Loading', projectData.slides.length, 'slides');
+                                    for (var i = 0; i < projectData.slides.length; i++) {
+                                        var slide = projectData.slides[i];
+                                        if (slide && slide.id) {
+                                            window.ExplicoApp.slides[slide.id] = slide;
+                                        }
+                                    }
+                                    renderSlidesList();
+                                    console.log('✅ Slides loaded successfully');
+                                } else {
+                                    console.log('📝 No slides found, showing empty state');
+                                    showEmptySlideState();
+                                }
+                            } catch (slideError) {
+                                console.error('⚠️ Error processing slides:', slideError);
+                                showEmptySlideState(); // Fallback to empty state
+                            }
+                            
+                            console.log('✅ Project data loaded successfully');
                             callback(null); // Success
-                        } catch (error) {
-                            callback(error);
+                            
+                        } catch (processingError) {
+                            console.error('❌ Error processing project data:', processingError);
+                            callback(processingError);
                         }
                     })
                     .withFailureHandler(function(error) {
-                        console.error('Error loading project data:', error);
-                        callback(error);
+                        if (hasCompleted) return; // Timeout already occurred
+                        hasCompleted = true;
+                        clearTimeout(timeoutId);
+                        
+                        console.error('❌ Google Apps Script call failed:', error);
+                        
+                        // Enhanced error message based on error type
+                        let userFriendlyError;
+                        if (error && error.message) {
+                            if (error.message.includes('Authorization')) {
+                                userFriendlyError = new Error('Authorization required. Please refresh the page and sign in again.');
+                            } else if (error.message.includes('not found')) {
+                                userFriendlyError = new Error(`Project "${projectId}" was not found. It may have been deleted.`);
+                            } else {
+                                userFriendlyError = new Error(`Server error: ${error.message}. Please try again.`);
+                            }
+                        } else {
+                            userFriendlyError = new Error('Failed to load project data. Please check your connection and try again.');
+                        }
+                        
+                        callback(userFriendlyError);
                     })
                     .getProjectData(projectId);
+                    
+                console.log('📤 Project data request sent to Google Apps Script');
                 
             } catch (error) {
-                console.error('Error loading project data:', error);
-                callback(error);
+                if (hasCompleted) return;
+                hasCompleted = true;
+                clearTimeout(timeoutId);
+                
+                console.error('❌ Error setting up project data request:', error);
+                callback(new Error('Failed to request project data: ' + error.message));
             }
         }
         
@@ -926,26 +1149,122 @@
             }
         }
 
-        // Show error message
-        function showError(message) {
+        // Show error message with improved UX
+        function showError(message, options = {}) {
+            console.error('🚨 User Error:', message);
+            
+            // Remove existing error messages
+            const existingErrors = document.querySelectorAll('.error-notification');
+            existingErrors.forEach(error => error.remove());
+            
+            const {
+                duration = 8000,
+                actionText = null,
+                actionCallback = null,
+                persistent = false
+            } = options;
+            
             const errorDiv = document.createElement('div');
-            errorDiv.className = 'fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded shadow-lg z-50';
+            errorDiv.className = 'error-notification fixed top-4 right-4 max-w-md bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg shadow-lg z-50';
+            
+            let actionButton = '';
+            if (actionText && actionCallback) {
+                actionButton = `
+                    <button onclick="(${actionCallback.toString()})()" class="ml-2 px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors">
+                        ${actionText}
+                    </button>
+                `;
+            }
+            
             errorDiv.innerHTML = `
+                <div class="flex items-start">
+                    <span class="material-symbols-outlined text-red-600 text-lg mr-3 flex-shrink-0 mt-0.5">error</span>
+                    <div class="flex-1">
+                        <div class="text-sm font-medium mb-1">Something went wrong</div>
+                        <div class="text-sm">${message}</div>
+                        <div class="mt-2 flex items-center">
+                            <button onclick="location.reload()" class="text-sm text-red-600 hover:text-red-800 underline">
+                                Refresh Page
+                            </button>
+                            ${actionButton}
+                        </div>
+                    </div>
+                    ${!persistent ? `<button onclick="this.closest('.error-notification').remove()" class="ml-2 text-red-400 hover:text-red-600 flex-shrink-0">
+                        <span class="material-symbols-outlined text-sm">close</span>
+                    </button>` : ''}
+                </div>
+            `;
+            
+            document.body.appendChild(errorDiv);
+            
+            // Add slide-in animation
+            requestAnimationFrame(() => {
+                errorDiv.style.transform = 'translateX(0)';
+            });
+            
+            // Auto-remove if not persistent
+            if (!persistent) {
+                setTimeout(() => {
+                    if (errorDiv.parentElement) {
+                        errorDiv.style.transform = 'translateX(100%)';
+                        setTimeout(() => errorDiv.remove(), 300);
+                    }
+                }, duration);
+            }
+        }
+        
+        // Show success message
+        function showSuccess(message, duration = 4000) {
+            console.log('✅ Success:', message);
+            
+            const successDiv = document.createElement('div');
+            successDiv.className = 'fixed top-4 right-4 max-w-md bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg shadow-lg z-50';
+            successDiv.innerHTML = `
                 <div class="flex items-center">
-                    <span class="material-symbols-outlined text-sm mr-2">error</span>
-                    <span>${message}</span>
-                    <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-red-500 hover:text-red-700">
+                    <span class="material-symbols-outlined text-green-600 text-sm mr-3">check_circle</span>
+                    <span class="text-sm">${message}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-green-400 hover:text-green-600">
                         <span class="material-symbols-outlined text-sm">close</span>
                     </button>
                 </div>
             `;
-            document.body.appendChild(errorDiv);
-
+            
+            document.body.appendChild(successDiv);
+            
             setTimeout(() => {
-                if (errorDiv.parentElement) {
-                    errorDiv.remove();
+                if (successDiv.parentElement) {
+                    successDiv.style.transform = 'translateX(100%)';
+                    setTimeout(() => successDiv.remove(), 300);
                 }
-            }, 5000);
+            }, duration);
+        }
+        
+        // Show loading indicator
+        function showLoading(message = 'Loading...') {
+            const existingLoading = document.querySelector('.loading-notification');
+            if (existingLoading) {
+                existingLoading.remove();
+            }
+            
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'loading-notification fixed top-4 right-4 max-w-md bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-lg shadow-lg z-50';
+            loadingDiv.innerHTML = `
+                <div class="flex items-center">
+                    <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-3"></div>
+                    <span class="text-sm">${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(loadingDiv);
+            return loadingDiv;
+        }
+        
+        // Hide loading indicator
+        function hideLoading() {
+            const existingLoading = document.querySelector('.loading-notification');
+            if (existingLoading) {
+                existingLoading.remove();
+            }
         }
     </script>
 </body>

@@ -64,25 +64,87 @@ function getDashboardPage() {
  * Get the hotspot editor page
  */
 function getEditorPage(projectId) {
-  const template = HtmlService.createTemplateFromFile('hotspot-editor');
-  
-  // Get project data
-  const project = getProjectData(projectId);
-  if (!project) {
-    throw new Error('Project not found: ' + projectId);
+  try {
+    console.log('🚀 Loading editor page for project:', projectId);
+    
+    const template = HtmlService.createTemplateFromFile('hotspot-editor');
+    
+    // Get project data with enhanced error handling
+    console.log('📦 Fetching project data...');
+    const project = getProjectData(projectId);
+    if (!project) {
+      console.error('❌ Project not found:', projectId);
+      throw new Error('Project not found: ' + projectId);
+    }
+    
+    console.log('✅ Project data loaded:', {
+      id: project.id,
+      name: project.name,
+      status: project.status,
+      slideCount: (project.slides || []).length
+    });
+    
+    // Set template variables with validation
+    template.PROJECT_ID = projectId;
+    template.PROJECT_NAME = project.name || 'Untitled Project';
+    template.PROJECT_STATUS = project.status || 'draft';
+    
+    // Get constants with error handling
+    try {
+      template.CONSTANTS = getConstants();
+      console.log('✅ Constants loaded for template');
+    } catch (constantsError) {
+      console.error('❌ Error loading constants:', constantsError);
+      template.CONSTANTS = JSON.stringify({
+        EVENT_TYPES: { TEXT_POPUP: 'text_popup', TEXT_ON_IMAGE: 'text_on_image' },
+        TRIGGER_TYPES: { CLICK: 'click', HOVER: 'hover' },
+        PROJECT_STATUS: { DRAFT: 'draft', PUBLISHED: 'published' }
+      });
+    }
+    
+    console.log('📄 Evaluating template...');
+    const htmlOutput = template.evaluate()
+      .setTitle((project.name || 'Project') + ' - Hotspot Editor')
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+    
+    console.log('✅ Editor page generated successfully');
+    return htmlOutput;
+    
+  } catch (error) {
+    console.error('❌ Error in getEditorPage:', error);
+    
+    // Return error page instead of throwing
+    const errorHtml = HtmlService.createHtmlOutput(`
+      <html>
+        <head>
+          <title>Editor Error - Explico Learning</title>
+          <style>
+            body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+            .error { background: #fee; border: 1px solid #fcc; padding: 20px; border-radius: 8px; }
+            .actions { margin-top: 20px; }
+            .btn { display: inline-block; padding: 10px 20px; margin: 5px; text-decoration: none; border-radius: 4px; }
+            .btn-primary { background: #007cba; color: white; }
+            .btn-secondary { background: #666; color: white; }
+          </style>
+        </head>
+        <body>
+          <h1>Unable to Load Editor</h1>
+          <div class="error">
+            <h3>Error Details:</h3>
+            <p>${error.message}</p>
+            <p><strong>Project ID:</strong> ${projectId || 'Not provided'}</p>
+          </div>
+          <div class="actions">
+            <a href="?page=dashboard" class="btn btn-primary">← Back to Dashboard</a>
+            <a href="javascript:location.reload()" class="btn btn-secondary">Refresh Page</a>
+          </div>
+        </body>
+      </html>
+    `).setTitle('Editor Error')
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+    
+    return errorHtml;
   }
-  
-  // Set template variables
-  template.PROJECT_ID = projectId;
-  template.PROJECT_NAME = project.name;
-  template.PROJECT_STATUS = project.status || 'draft';
-  template.CONSTANTS = getConstants();
-  
-  const htmlOutput = template.evaluate()
-    .setTitle(project.name + ' - Hotspot Editor')
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
-  
-  return htmlOutput;
 }
 
 /**
@@ -230,63 +292,135 @@ function createNewProject(projectData) {
  * Get project data by ID
  */
 function getProjectData(projectId) {
+  const startTime = new Date();
+  
   try {
+    console.log('🔍 Getting project data for ID:', projectId);
+    
+    if (!projectId) {
+      console.error('❌ No project ID provided');
+      throw new Error('Project ID is required');
+    }
+    
     let spreadsheet;
     
     try {
       // Try to open existing spreadsheet
+      console.log('📂 Attempting to open spreadsheet:', projectId);
       spreadsheet = SpreadsheetApp.openById(projectId);
+      console.log('✅ Spreadsheet opened successfully');
     } catch (error) {
-      console.log('Spreadsheet not found, creating new one for project:', projectId);
-      // If spreadsheet doesn't exist, create it
-      spreadsheet = createProjectSpreadsheet(projectId);
+      console.log('⚠️ Spreadsheet not found, creating new one for project:', projectId);
+      console.log('📝 Error details:', error.message);
+      
+      try {
+        // If spreadsheet doesn't exist, create it
+        spreadsheet = createProjectSpreadsheet(projectId);
+        console.log('✅ New spreadsheet created');
+      } catch (createError) {
+        console.error('❌ Failed to create new spreadsheet:', createError);
+        throw new Error('Unable to create or access project spreadsheet: ' + createError.message);
+      }
     }
     
-    // Ensure the spreadsheet has the proper structure
-    ensureSpreadsheetStructure(spreadsheet);
+    try {
+      // Ensure the spreadsheet has the proper structure
+      console.log('🔧 Ensuring spreadsheet structure...');
+      ensureSpreadsheetStructure(spreadsheet);
+      console.log('✅ Spreadsheet structure verified');
+    } catch (structureError) {
+      console.error('❌ Failed to setup spreadsheet structure:', structureError);
+      throw new Error('Spreadsheet structure setup failed: ' + structureError.message);
+    }
     
     const projectSheet = spreadsheet.getSheetByName('Projects');
     
     if (!projectSheet) {
-      console.error('Projects sheet not found after structure setup');
-      return null;
+      console.error('❌ Projects sheet not found after structure setup');
+      throw new Error('Projects sheet could not be created or accessed');
     }
     
-    const data = projectSheet.getDataRange().getValues();
-    if (data.length < 2) {
-      // If no project data exists, create a default project record
-      const defaultProject = {
-        id: projectId,
-        name: 'Untitled Project',
-        description: '',
-        status: 'draft',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        createdBy: getCurrentUser().email
-      };
+    try {
+      const data = projectSheet.getDataRange().getValues();
+      console.log('📊 Project sheet data rows:', data.length);
       
-      // Add the project record to the sheet
-      const headers = projectSheet.getRange(1, 1, 1, projectSheet.getLastColumn()).getValues()[0];
-      const values = headers.map(header => {
-        const key = header.toLowerCase().replace(/\s+/g, '');
-        return defaultProject[key] || '';
+      if (data.length < 2) {
+        console.log('📝 No project data exists, creating default project record...');
+        
+        // If no project data exists, create a default project record
+        const currentUser = getCurrentUser();
+        const defaultProject = {
+          id: projectId,
+          name: 'Untitled Project',
+          description: '',
+          status: 'draft',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          createdBy: currentUser.email
+        };
+        
+        // Add the project record to the sheet
+        const headers = projectSheet.getRange(1, 1, 1, projectSheet.getLastColumn()).getValues()[0];
+        const values = headers.map(header => {
+          const key = header.toLowerCase().replace(/\s+/g, '');
+          return defaultProject[key] || '';
+        });
+        projectSheet.appendRow(values);
+        
+        console.log('✅ Default project record created');
+        
+        // Add default slide data
+        defaultProject.slides = [];
+        
+        return defaultProject;
+      }
+      
+      const project = parseProjectRow(data[1], projectId);
+      if (!project) {
+        console.error('❌ Failed to parse project data');
+        throw new Error('Invalid project data format');
+      }
+      
+      console.log('📋 Project parsed:', {
+        name: project.name,
+        status: project.status,
+        createdAt: project.createdAt
       });
-      projectSheet.appendRow(values);
       
-      return defaultProject;
+      // Add slides data with error handling
+      try {
+        console.log('📄 Loading slides for project...');
+        project.slides = getSlidesByProject(projectId, spreadsheet);
+        console.log('✅ Loaded', (project.slides || []).length, 'slides');
+      } catch (slidesError) {
+        console.error('⚠️ Error loading slides:', slidesError);
+        project.slides = []; // Fallback to empty array
+      }
+      
+      const endTime = new Date();
+      const duration = endTime - startTime;
+      console.log('✅ Project data loaded successfully in', duration, 'ms');
+      
+      return project;
+      
+    } catch (dataError) {
+      console.error('❌ Error reading project data:', dataError);
+      throw new Error('Failed to read project data: ' + dataError.message);
     }
-    
-    const project = parseProjectRow(data[1], projectId);
-    if (project) {
-      // Add slides data
-      project.slides = getSlidesByProject(projectId, spreadsheet);
-    }
-    
-    return project;
     
   } catch (error) {
-    console.error('Error getting project data:', projectId, error);
-    return null;
+    const endTime = new Date();
+    const duration = endTime - startTime;
+    console.error('❌ Error getting project data after', duration, 'ms:', error);
+    
+    // Re-throw with more context
+    if (error.message.includes('not found') || error.message.includes('does not exist')) {
+      throw new Error(`Project "${projectId}" was not found or has been deleted.`);
+    } else if (error.message.includes('Authorization') || error.message.includes('permission')) {
+      throw new Error('You do not have permission to access this project.');
+    } else {
+      throw new Error('Failed to load project: ' + error.message);
+    }
   }
 }
 
