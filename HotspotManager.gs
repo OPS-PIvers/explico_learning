@@ -501,9 +501,8 @@ HotspotManager.prototype.debouncedSave = function(hotspotId) {
 };
 
 HotspotManager.prototype.setupAutoSave = function() {
-  // This function is intentionally left empty because its previous content
-  // (window.addEventListener and setInterval) is not compatible with the
-  // Google Apps Script server-side environment.
+  // Auto-save functionality is not available in the Google Apps Script server-side environment.
+  console.warn('Auto-save functionality is not available in the server environment.');
 };
 
 HotspotManager.prototype.on = function(event, callback) {
