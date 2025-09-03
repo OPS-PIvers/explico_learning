@@ -3,8 +3,11 @@
 # Create dist directory if it doesn't exist
 mkdir -p dist
 
-# Copy files to dist
-cp services/*.js dist/
+# Copy and rename .js files to .gs
+for file in services/*.js; do
+  cp "$file" "dist/$(basename "$file" .js).gs"
+done
+
 cp templates/*.html dist/
 cp appsscript.json dist/
 cp styles.css dist/
