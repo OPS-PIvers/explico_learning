@@ -147,9 +147,9 @@ function getCurrentUser() {
 // PROJECT MANAGEMENT (exposed to client)
 // ============================================================================
 
-function createNewProject(projectData) {
+async function createNewProject(projectData) {
   const projectManager = new ProjectManager_server();
-  return projectManager.createNewProject(projectData);
+  return await projectManager.createNewProject(projectData);
 }
 
 function openProject(projectId) {

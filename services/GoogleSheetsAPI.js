@@ -74,11 +74,11 @@ class GoogleSheetsAPI {
   async ensureSheetExists(sheetName) {
     try {
       // Try to get the sheet
-      SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+      SpreadsheetApp.openById(this.options.spreadsheetId).getSheetByName(sheetName);
     } catch (error) {
       // Sheet doesn't exist, create it
       console.log(`Creating sheet: ${sheetName}`);
-      SpreadsheetApp.getActiveSpreadsheet().insertSheet(sheetName);
+      SpreadsheetApp.openById(this.options.spreadsheetId).insertSheet(sheetName);
     }
   }
   
@@ -88,7 +88,7 @@ class GoogleSheetsAPI {
    * @returns {Promise<void>}
    */
   async setupSheetHeaders(sheetName) {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+    const sheet = SpreadsheetApp.openById(this.options.spreadsheetId).getSheetByName(sheetName);
     const headers = this.getSheetHeaders(sheetName);
     
     // Check if headers already exist
@@ -137,6 +137,56 @@ class GoogleSheetsAPI {
       
       default:
         return [];
+    }
+  }
+  
+  /**
+   * Create a new spreadsheet for a project
+   * @param {string} projectName - Name of the project
+   * @returns {Promise<string>} Created spreadsheet ID
+   */
+  async createProjectSpreadsheet(projectName) {
+    try {
+      // Create new spreadsheet
+      const spreadsheet = SpreadsheetApp.create(`Explico Learning - ${projectName}`);
+      const spreadsheetId = spreadsheet.getId();
+      
+      // Move to proper folder if needed
+      const projectFolderId = this.getOrCreateProjectFolder();
+      if (projectFolderId) {
+        const file = DriveApp.getFileById(spreadsheetId);
+        const folder = DriveApp.getFolderById(projectFolderId);
+        folder.addFile(file);
+        DriveApp.getRootFolder().removeFile(file);
+      }
+      
+      console.log(`Created project spreadsheet: ${spreadsheetId} for project: ${projectName}`);
+      return spreadsheetId;
+      
+    } catch (error) {
+      console.error('Failed to create project spreadsheet:', error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Get or create the main projects folder
+   * @returns {string|null} Folder ID or null if creation fails
+   */
+  getOrCreateProjectFolder() {
+    try {
+      const folderName = 'Explico Learning Projects';
+      const folders = DriveApp.getFoldersByName(folderName);
+      
+      if (folders.hasNext()) {
+        return folders.next().getId();
+      } else {
+        const newFolder = DriveApp.createFolder(folderName);
+        return newFolder.getId();
+      }
+    } catch (error) {
+      console.warn('Could not create/access project folder:', error);
+      return null;
     }
   }
   
@@ -458,7 +508,11 @@ class GoogleSheetsAPI {
    * @returns {Promise<void>}
    */
   async insertRow(sheetName, rowData) {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+    if (!this.options.spreadsheetId) {
+      throw new Error('Spreadsheet ID required for sheet operations');
+    }
+    
+    const sheet = SpreadsheetApp.openById(this.options.spreadsheetId).getSheetByName(sheetName);
     sheet.appendRow(rowData);
   }
   
@@ -468,7 +522,7 @@ class GoogleSheetsAPI {
    * @returns {Promise<Array<Array>>} Array of row arrays
    */
   async getAllRows(sheetName) {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+    const sheet = SpreadsheetApp.openById(this.options.spreadsheetId).getSheetByName(sheetName);
     const lastRow = sheet.getLastRow();
     
     if (lastRow <= 1) return []; // No data rows
@@ -496,7 +550,7 @@ class GoogleSheetsAPI {
    * @returns {Promise<boolean>} Success status
    */
   async updateRowById(sheetName, id, newData) {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+    const sheet = SpreadsheetApp.openById(this.options.spreadsheetId).getSheetByName(sheetName);
     const rows = await this.getAllRows(sheetName);
     const rowIndex = rows.findIndex(row => row[0] === id);
     
@@ -518,7 +572,7 @@ class GoogleSheetsAPI {
    * @returns {Promise<boolean>} Success status
    */
   async deleteRowById(sheetName, id) {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+    const sheet = SpreadsheetApp.openById(this.options.spreadsheetId).getSheetByName(sheetName);
     const rows = await this.getAllRows(sheetName);
     const rowIndex = rows.findIndex(row => row[0] === id);
     
@@ -540,7 +594,7 @@ class GoogleSheetsAPI {
    * @returns {Promise<number>} Number of deleted rows
    */
   async deleteRowsByColumn(sheetName, column, value) {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+    const sheet = SpreadsheetApp.openById(this.options.spreadsheetId).getSheetByName(sheetName);
     const rows = await this.getAllRows(sheetName);
     const columnIndex = this.columnLetterToIndex(column);
     

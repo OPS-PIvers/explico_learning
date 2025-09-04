@@ -12,10 +12,22 @@ class ProjectManager_server {
    * @param {Object} projectData - Initial project data
    * @returns {Object} Created project
    */
-  createNewProject(projectData) {
+  async createNewProject(projectData) {
     const sheetsAPI = new GoogleSheetsAPI();
-    sheetsAPI.initialize();
-    const createdProject = sheetsAPI.createProject(projectData);
+    
+    // Step 1: Create a new spreadsheet for this project
+    const spreadsheetId = await sheetsAPI.createProjectSpreadsheet(projectData.name || 'Untitled Project');
+    
+    // Step 2: Initialize the GoogleSheetsAPI with the new spreadsheet ID
+    await sheetsAPI.initialize(spreadsheetId);
+    
+    // Step 3: Create the project record in the spreadsheet
+    const projectWithSpreadsheetId = {
+      ...projectData,
+      spreadsheetId: spreadsheetId
+    };
+    const createdProject = await sheetsAPI.createProject(projectWithSpreadsheetId);
+    
     return createdProject;
   }
   
