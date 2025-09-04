@@ -28,6 +28,10 @@ class ProjectManager_server {
     };
     const createdProject = await sheetsAPI.createProject(projectWithSpreadsheetId);
     
+    // Step 4: Add project to master registry
+    await sheetsAPI.initializeRegistry();
+    await sheetsAPI.addProjectToRegistry(createdProject);
+    
     return createdProject;
   }
   
@@ -61,10 +65,32 @@ class ProjectManager_server {
    * @param {string} projectId - Project ID
    * @returns {boolean} Success status
    */
-  deleteProject(projectId) {
+  async deleteProject(projectId) {
     const sheetsAPI = new GoogleSheetsAPI();
-    sheetsAPI.initialize(projectId);
-    sheetsAPI.deleteProject(projectId);
+    
+    // Step 1: Initialize registry to get project spreadsheet ID
+    await sheetsAPI.initializeRegistry();
+    const projects = await sheetsAPI.getAllProjects();
+    const project = projects.find(p => p.id === projectId);
+    
+    if (!project) {
+      throw new Error(`Project ${projectId} not found`);
+    }
+    
+    // Step 2: Initialize with project spreadsheet and delete project data
+    await sheetsAPI.initialize(project.spreadsheetId);
+    await sheetsAPI.deleteProject(projectId);
+    
+    // Step 3: Remove from registry
+    await sheetsAPI.removeProjectFromRegistry(projectId);
+    
+    // Step 4: Delete the spreadsheet file
+    try {
+      DriveApp.getFileById(project.spreadsheetId).setTrashed(true);
+    } catch (error) {
+      console.warn('Could not delete spreadsheet file:', error);
+    }
+    
     return true;
   }
   
@@ -103,10 +129,10 @@ class ProjectManager_server {
    * Get all projects
    * @returns {Array<Object>} Array of projects
    */
-  getAllProjects() {
+  async getAllProjects() {
     const sheetsAPI = new GoogleSheetsAPI();
-    sheetsAPI.initialize();
-    const projects = sheetsAPI.getAllProjects();
+    await sheetsAPI.initializeRegistry();
+    const projects = await sheetsAPI.getAllProjects();
     return projects;
   }
   

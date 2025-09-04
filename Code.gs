@@ -162,9 +162,9 @@ function saveCurrentProject(projectData) {
   return projectManager.saveCurrentProject(projectData);
 }
 
-function deleteProject(projectId) {
+async function deleteProject(projectId) {
   const projectManager = new ProjectManager_server();
-  return projectManager.deleteProject(projectId);
+  return await projectManager.deleteProject(projectId);
 }
 
 function duplicateProject(projectId) {
@@ -172,14 +172,14 @@ function duplicateProject(projectId) {
   return projectManager.duplicateProject(projectId);
 }
 
-function getAllProjects() {
+async function getAllProjects() {
   const projectManager = new ProjectManager_server();
-  return projectManager.getAllProjects();
+  return await projectManager.getAllProjects();
 }
 
-function getUserProjects() {
+async function getUserProjects() {
   const projectManager = new ProjectManager_server();
-  return projectManager.getAllProjects();
+  return await projectManager.getAllProjects();
 }
 
 function createSlide(slideData) {

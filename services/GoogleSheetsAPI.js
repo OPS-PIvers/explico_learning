@@ -7,7 +7,8 @@ class GoogleSheetsAPI {
   
   constructor(options = {}) {
     this.options = {
-      spreadsheetId: null, // Will be set per project
+      spreadsheetId: null, // Will be set per project or registry
+      registrySpreadsheetId: null, // Master registry spreadsheet
       batchSize: 100,
       retryAttempts: 3,
       retryDelay: 1000,
@@ -15,13 +16,14 @@ class GoogleSheetsAPI {
     };
     
     this.initialized = false;
+    this.registryInitialized = false;
     this.spreadsheetCache = new Map();
     this.batchQueue = [];
     this.isBatchProcessing = false;
   }
   
   /**
-   * Initialize the Google Sheets API service
+   * Initialize the Google Sheets API service for project-specific operations
    * @param {string} spreadsheetId - Google Sheets spreadsheet ID
    * @returns {Promise<boolean>} Success status
    */
@@ -39,6 +41,24 @@ class GoogleSheetsAPI {
       return true;
     } catch (error) {
       console.error('Failed to initialize Google Sheets API:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Initialize the Google Sheets API service for registry operations
+   * @returns {Promise<boolean>} Success status
+   */
+  async initializeRegistry() {
+    try {
+      // Get or create the master registry spreadsheet
+      this.options.registrySpreadsheetId = await this.getOrCreateRegistrySpreadsheet();
+      await this.setupRegistryStructure();
+      this.registryInitialized = true;
+      console.log('Registry initialized with spreadsheet ID:', this.options.registrySpreadsheetId);
+      return true;
+    } catch (error) {
+      console.error('Failed to initialize registry:', error);
       throw error;
     }
   }
@@ -189,6 +209,73 @@ class GoogleSheetsAPI {
       return null;
     }
   }
+
+  /**
+   * Get or create the master registry spreadsheet
+   * @returns {Promise<string>} Registry spreadsheet ID
+   */
+  async getOrCreateRegistrySpreadsheet() {
+    try {
+      const registryName = 'Explico Learning - Project Registry';
+      const files = DriveApp.getFilesByName(registryName);
+      
+      if (files.hasNext()) {
+        const existingFile = files.next();
+        console.log('Found existing registry spreadsheet:', existingFile.getId());
+        return existingFile.getId();
+      } else {
+        // Create new registry spreadsheet
+        const spreadsheet = SpreadsheetApp.create(registryName);
+        const spreadsheetId = spreadsheet.getId();
+        
+        // Move to proper folder if needed
+        const projectFolderId = this.getOrCreateProjectFolder();
+        if (projectFolderId) {
+          const file = DriveApp.getFileById(spreadsheetId);
+          const folder = DriveApp.getFolderById(projectFolderId);
+          folder.addFile(file);
+          DriveApp.getRootFolder().removeFile(file);
+        }
+        
+        console.log('Created new registry spreadsheet:', spreadsheetId);
+        return spreadsheetId;
+      }
+    } catch (error) {
+      console.error('Failed to create/access registry spreadsheet:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Setup registry spreadsheet structure
+   * @returns {Promise<void>}
+   */
+  async setupRegistryStructure() {
+    try {
+      const registrySheet = SpreadsheetApp.openById(this.options.registrySpreadsheetId).getActiveSheet();
+      registrySheet.setName('Project Registry');
+      
+      // Setup registry headers
+      const headers = [
+        'Project ID', 'Name', 'Description', 'Spreadsheet ID', 
+        'Status', 'Created At', 'Updated At', 'Created By'
+      ];
+      
+      // Check if headers already exist
+      const existingHeaders = registrySheet.getRange(1, 1, 1, headers.length).getValues()[0];
+      const hasHeaders = existingHeaders.some(header => header !== '');
+      
+      if (!hasHeaders) {
+        registrySheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+        registrySheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
+        registrySheet.getRange(1, 1, 1, headers.length).setBackground('#f0f0f0');
+        console.log('Registry structure setup complete');
+      }
+    } catch (error) {
+      console.error('Failed to setup registry structure:', error);
+      throw error;
+    }
+  }
   
   /**
    * Create a new project
@@ -247,14 +334,88 @@ class GoogleSheetsAPI {
   }
   
   /**
-   * Get all projects
+   * Get all projects from registry
    * @returns {Promise<Array<Object>>} Array of projects
    */
   async getAllProjects() {
-    this.ensureInitialized();
+    this.ensureRegistryInitialized();
     
-    const rows = await this.getAllRows(SHEETS_CONFIG.PROJECTS_SHEET);
-    return rows.map(row => this.rowToProject(row));
+    const rows = await this.getRegistryRows();
+    return rows.map(row => this.registryRowToProject(row));
+  }
+
+  /**
+   * Add project to registry
+   * @param {Object} project - Project data with spreadsheet ID
+   * @returns {Promise<boolean>} Success status
+   */
+  async addProjectToRegistry(project) {
+    this.ensureRegistryInitialized();
+    
+    const registryRow = this.projectToRegistryRow(project);
+    const registrySheet = SpreadsheetApp.openById(this.options.registrySpreadsheetId).getSheetByName('Project Registry');
+    registrySheet.appendRow(registryRow);
+    
+    console.log('Added project to registry:', project.id);
+    return true;
+  }
+
+  /**
+   * Update project in registry
+   * @param {string} projectId - Project ID
+   * @param {Object} updates - Updates to apply
+   * @returns {Promise<boolean>} Success status
+   */
+  async updateProjectInRegistry(projectId, updates) {
+    this.ensureRegistryInitialized();
+    
+    const registrySheet = SpreadsheetApp.openById(this.options.registrySpreadsheetId).getSheetByName('Project Registry');
+    const rows = await this.getRegistryRows();
+    const rowIndex = rows.findIndex(row => row[0] === projectId);
+    
+    if (rowIndex === -1) {
+      throw new Error(`Project ${projectId} not found in registry`);
+    }
+    
+    // Get existing project data and apply updates
+    const existingProject = this.registryRowToProject(rows[rowIndex]);
+    const updatedProject = {
+      ...existingProject,
+      ...updates,
+      updatedAt: new Date().toISOString()
+    };
+    
+    const actualRowNumber = rowIndex + 2; // +2 because index is 0-based and we skip header
+    const updatedRow = this.projectToRegistryRow(updatedProject);
+    const range = registrySheet.getRange(actualRowNumber, 1, 1, updatedRow.length);
+    range.setValues([updatedRow]);
+    
+    console.log('Updated project in registry:', projectId);
+    return true;
+  }
+
+  /**
+   * Remove project from registry
+   * @param {string} projectId - Project ID
+   * @returns {Promise<boolean>} Success status
+   */
+  async removeProjectFromRegistry(projectId) {
+    this.ensureRegistryInitialized();
+    
+    const registrySheet = SpreadsheetApp.openById(this.options.registrySpreadsheetId).getSheetByName('Project Registry');
+    const rows = await this.getRegistryRows();
+    const rowIndex = rows.findIndex(row => row[0] === projectId);
+    
+    if (rowIndex === -1) {
+      console.warn('Project not found in registry:', projectId);
+      return false;
+    }
+    
+    const actualRowNumber = rowIndex + 2; // +2 because index is 0-based and we skip header
+    registrySheet.deleteRow(actualRowNumber);
+    
+    console.log('Removed project from registry:', projectId);
+    return true;
   }
   
   /**
@@ -841,12 +1002,72 @@ class GoogleSheetsAPI {
   }
   
   /**
-   * Ensure the service is initialized
+   * Get all rows from registry sheet (excluding header)
+   * @returns {Promise<Array<Array>>} Array of row arrays
+   */
+  async getRegistryRows() {
+    const registrySheet = SpreadsheetApp.openById(this.options.registrySpreadsheetId).getSheetByName('Project Registry');
+    const lastRow = registrySheet.getLastRow();
+    
+    if (lastRow <= 1) return []; // No data rows
+    
+    const range = registrySheet.getRange(2, 1, lastRow - 1, registrySheet.getLastColumn());
+    return range.getValues();
+  }
+
+  /**
+   * Convert project object to registry row array
+   * @param {Object} project - Project object
+   * @returns {Array} Registry row data array
+   */
+  projectToRegistryRow(project) {
+    return [
+      project.id,
+      project.name || '',
+      project.description || '',
+      project.spreadsheetId || '',
+      project.status || PROJECT_STATUS.DRAFT,
+      project.createdAt,
+      project.updatedAt,
+      project.createdBy || Session.getActiveUser().getEmail()
+    ];
+  }
+
+  /**
+   * Convert registry row array to project object
+   * @param {Array} row - Registry row data array
+   * @returns {Object} Project object
+   */
+  registryRowToProject(row) {
+    return {
+      id: row[0],
+      name: row[1],
+      description: row[2],
+      spreadsheetId: row[3],
+      status: row[4],
+      createdAt: row[5],
+      updatedAt: row[6],
+      createdBy: row[7]
+    };
+  }
+
+  /**
+   * Ensure the service is initialized for project operations
    * @throws {Error} If not initialized
    */
   ensureInitialized() {
     if (!this.initialized) {
       throw new Error('GoogleSheetsAPI not initialized. Call initialize() first.');
+    }
+  }
+
+  /**
+   * Ensure the service is initialized for registry operations
+   * @throws {Error} If registry not initialized
+   */
+  ensureRegistryInitialized() {
+    if (!this.registryInitialized) {
+      throw new Error('GoogleSheetsAPI registry not initialized. Call initializeRegistry() first.');
     }
   }
   
