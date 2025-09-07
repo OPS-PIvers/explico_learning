@@ -99,30 +99,62 @@ class ProjectManager_server {
    * @param {string} projectId - Project ID to duplicate
    * @returns {Object} Duplicated project
    */
-  duplicateProject(projectId) {
-    const sheetsAPI = new GoogleSheetsAPI();
-    sheetsAPI.initialize(projectId);
-    const originalProject = sheetsAPI.getProject(projectId);
-    const duplicatedProject = sheetsAPI.createProject({
-      ...originalProject,
+  async duplicateProject(projectId) {
+    // Step 1: Get original project data
+    const originalSheetsAPI = new GoogleSheetsAPI();
+
+    // We need the spreadsheetId of the original project. Let's get it from the registry.
+    await originalSheetsAPI.initializeRegistry();
+    const allProjects = await originalSheetsAPI.getAllProjects();
+    const originalProjectFromRegistry = allProjects.find(p => p.id === projectId);
+
+    if (!originalProjectFromRegistry) {
+      throw new Error(`Project ${projectId} not found in registry.`);
+    }
+
+    // Now initialize with the original project's spreadsheet to get its contents
+    await originalSheetsAPI.initialize(originalProjectFromRegistry.spreadsheetId);
+    const originalProject = await originalSheetsAPI.getProject(projectId);
+    const originalSlides = await originalSheetsAPI.getSlidesByProject(projectId);
+
+    // Step 2: Create a new project
+    const newProjectData = {
       name: `${originalProject.name} (Copy)`,
-    });
-    const originalSlides = sheetsAPI.getSlidesByProject(projectId);
+      description: originalProject.description,
+      settings: originalProject.settings,
+      // any other fields to copy
+    };
+    const newProject = await this.createNewProject(newProjectData);
+
+    // Step 3: Initialize a new sheetsAPI instance for the new project
+    const newSheetsAPI = new GoogleSheetsAPI();
+    await newSheetsAPI.initialize(newProject.spreadsheetId);
+
+    // Step 4: Copy slides and hotspots
     for (const slide of originalSlides) {
-      const duplicatedSlide = sheetsAPI.createSlide({
+      // Get hotspots for the original slide
+      const originalHotspots = await originalSheetsAPI.getHotspotsBySlide(slide.id);
+
+      // Create a new slide for the new project
+      const newSlideData = {
         ...slide,
-        projectId: duplicatedProject.id,
-      });
-      const originalHotspots = sheetsAPI.getHotspotsBySlide(slide.id);
-      const duplicatedHotspots = originalHotspots.map(hotspot => ({
-        ...hotspot,
-        slideId: duplicatedSlide.id,
-      }));
-      if (duplicatedHotspots.length > 0) {
-        sheetsAPI.saveHotspots(duplicatedHotspots);
+        projectId: newProject.id,
+      };
+      delete newSlideData.id; // Let createSlide generate a new ID
+      const newSlide = await newSheetsAPI.createSlide(newSlideData);
+
+      // Create new hotspots for the new slide
+      if (originalHotspots && originalHotspots.length > 0) {
+        const newHotspots = originalHotspots.map(hotspot => {
+          const newHotspot = { ...hotspot, slideId: newSlide.id };
+          delete newHotspot.id; // Let saveHotspots generate a new ID
+          return newHotspot;
+        });
+        await newSheetsAPI.saveHotspots(newHotspots);
       }
     }
-    return duplicatedProject;
+
+    return newProject;
   }
   
   /**
