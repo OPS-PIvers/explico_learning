@@ -40,11 +40,22 @@ class ProjectManager_server {
    * @param {string} projectId - Project ID
    * @returns {Object} Opened project
    */
-  openProject(projectId) {
+  async openProject(projectId) {
     const sheetsAPI = new GoogleSheetsAPI();
-    sheetsAPI.initialize(projectId);
-    const project = sheetsAPI.getProject(projectId);
-    project.slides = sheetsAPI.getSlidesByProject(projectId);
+
+    // Step 1: Initialize registry to get project spreadsheet ID
+    await sheetsAPI.initializeRegistry();
+    const projects = await sheetsAPI.getAllProjects();
+    const projectInfo = projects.find(p => p.id === projectId);
+
+    if (!projectInfo) {
+      throw new Error(`Project ${projectId} not found`);
+    }
+
+    // Step 2: Initialize with project spreadsheet and get project data
+    await sheetsAPI.initialize(projectInfo.spreadsheetId);
+    const project = await sheetsAPI.getProject(projectId);
+    project.slides = await sheetsAPI.getSlidesByProject(projectId);
     return project;
   }
   
