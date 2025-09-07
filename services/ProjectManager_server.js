@@ -56,6 +56,12 @@ class ProjectManager_server {
     await sheetsAPI.initialize(projectInfo.spreadsheetId);
     const project = await sheetsAPI.getProject(projectId);
     project.slides = await sheetsAPI.getSlidesByProject(projectId);
+
+    // Now, for each slide, get its hotspots
+    for (const slide of project.slides) {
+      slide.hotspots = await sheetsAPI.getHotspotsBySlide(slide.id);
+    }
+
     return project;
   }
   
