@@ -137,6 +137,47 @@ function test_duplicateProject() {
   });
 }
 
+function test_createNewProject() {
+  // This test requires a more invasive mock to inspect the state of the sheetsAPI instance
+  // created within createNewProject. For this test, we'll check the return value,
+  // which is a strong indicator of success.
+
+  // Replace the real GoogleSheetsAPI with our mock
+  GoogleSheetsAPI = MockGoogleSheetsAPI;
+
+  const projectManager = new ProjectManager_server();
+
+  console.log('Test started for createNewProject...');
+
+  const newProjectData = {
+    name: 'Test Project',
+    description: 'A test project.'
+  };
+
+  projectManager.createNewProject(newProjectData).then(createdProject => {
+    console.log('Project created:', JSON.stringify(createdProject, null, 2));
+    let success = true;
+
+    // Assertion 1: Returned project has spreadsheetId
+    if (createdProject.spreadsheetId && createdProject.spreadsheetId === 'ssid_2') {
+      console.log('SUCCESS: Returned project has the correct spreadsheetId.');
+    } else {
+      console.error(`FAILURE: Returned project has incorrect or missing spreadsheetId. Expected 'ssid_2', got '${createdProject.spreadsheetId}'`);
+      success = false;
+    }
+
+    if (success) {
+        console.log('TEST PASSED');
+    } else {
+        console.log('TEST FAILED');
+    }
+
+  }).catch(e => {
+    console.error('FAILURE: An error occurred during project creation.', e);
+    console.log('TEST FAILED');
+  });
+}
+
 function test_openProject() {
   // Replace the real GoogleSheetsAPI with our mock
   GoogleSheetsAPI = MockGoogleSheetsAPI;
