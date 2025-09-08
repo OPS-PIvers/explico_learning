@@ -152,9 +152,11 @@ class ProjectManager_server {
       // Get hotspots for the original slide
       const originalHotspots = await originalSheetsAPI.getHotspotsBySlide(slide.id);
 
-      // Create a new slide for the new project
+      // Create a deep copy of the slide data to prevent shared references
+      const slideCopy = JSON.parse(JSON.stringify(slide));
+
       const newSlideData = {
-        ...slide,
+        ...slideCopy,
         projectId: newProject.id,
       };
       delete newSlideData.id; // Let createSlide generate a new ID
