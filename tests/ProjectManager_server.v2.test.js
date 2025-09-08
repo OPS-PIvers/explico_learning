@@ -20,6 +20,9 @@ class MockGoogleSheetsAPIForV2 {
                 id: 'slide_1',
                 projectId: 'proj_1',
                 name: 'Slide 1',
+                settings: {
+                    isSpecial: true
+                },
                 createdAt: '2023-01-01T00:00:00.000Z',
                 updatedAt: '2023-01-01T00:00:00.000Z',
             }]
@@ -135,7 +138,52 @@ async function test_duplicateProject_hotspot_ids() {
     }
 }
 
+async function test_duplicateProject_deepCopy() {
+    console.log('--- Running test_duplicateProject_deepCopy ---');
+
+    // Setup
+    const OriginalGoogleSheetsAPI = GoogleSheetsAPI;
+    GoogleSheetsAPI = MockGoogleSheetsAPIForV2;
+    const projectManager = new ProjectManager_server();
+
+    // We need access to the mock API instance to verify the state.
+    const mockApiInstance = new MockGoogleSheetsAPIForV2();
+    // Replace the global mock with our instance for this test
+    GoogleSheetsAPI = function() { return mockApiInstance; };
+
+    try {
+        // Execute
+        const duplicatedProject = await projectManager.duplicateProject('proj_1');
+        assert(duplicatedProject, 'Duplicated project should be created.');
+
+        // Verify
+        const originalSlide = mockApiInstance.slides['ssid_1'][0];
+        const newSlides = mockApiInstance.slides[duplicatedProject.spreadsheetId];
+        assert(newSlides && newSlides.length > 0, 'New slides should be created for the duplicated project.');
+        const duplicatedSlide = newSlides[0];
+
+        assert(duplicatedSlide.settings, 'Duplicated slide should have a settings object.');
+
+        // Modify the duplicated slide's settings
+        duplicatedSlide.settings.isSpecial = false;
+
+        // Check the original slide's settings
+        assert(originalSlide.settings.isSpecial === true,
+            'Original slide settings should not be modified after duplicating. Expected isSpecial=true.');
+
+        console.log('TEST PASSED');
+    } catch (e) {
+        console.error('TEST FAILED:', e.message);
+        console.error(e.stack);
+    } finally {
+        // Teardown
+        GoogleSheetsAPI = OriginalGoogleSheetsAPI;
+    }
+}
+
+
 // Helper to run tests in Apps Script environment
-function runV2Tests() {
-    test_duplicateProject_hotspot_ids();
+async function runV2Tests() {
+    await test_duplicateProject_hotspot_ids();
+    await test_duplicateProject_deepCopy();
 }
