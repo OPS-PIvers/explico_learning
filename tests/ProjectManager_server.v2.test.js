@@ -30,6 +30,7 @@ class MockGoogleSheetsAPIForV2 {
         this.hotspots = {
             'slide_1': [{
                 id: 'hotspot_1',
+                projectId: 'proj_1',
                 slideId: 'slide_1',
                 name: 'Hotspot 1',
                 createdAt: '2023-01-01T00:00:00.000Z',
@@ -181,9 +182,42 @@ async function test_duplicateProject_deepCopy() {
     }
 }
 
+async function test_duplicateProject_hotspot_projectId() {
+    console.log('--- Running test_duplicateProject_hotspot_projectId ---');
+
+    // Setup
+    const OriginalGoogleSheetsAPI = GoogleSheetsAPI;
+    const mockApiInstance = new MockGoogleSheetsAPIForV2();
+    GoogleSheetsAPI = function() { return mockApiInstance; };
+
+    const projectManager = new ProjectManager_server();
+
+    try {
+        // Execute
+        const duplicatedProject = await projectManager.duplicateProject('proj_1');
+        assert(duplicatedProject, 'Duplicated project should be created.');
+
+        // Verify
+        const savedHotspots = mockApiInstance.savedHotspots;
+        assert(savedHotspots && savedHotspots.length > 0, 'Hotspots should be saved.');
+
+        const newHotspot = savedHotspots[0];
+        assert(newHotspot.projectId === duplicatedProject.id, `Hotspot projectId should be updated to new project id. Expected ${duplicatedProject.id}, got ${newHotspot.projectId}`);
+
+        console.log('TEST PASSED');
+    } catch (e) {
+        console.error('TEST FAILED:', e.message);
+        console.error(e.stack);
+    } finally {
+        // Teardown
+        GoogleSheetsAPI = OriginalGoogleSheetsAPI;
+    }
+}
+
 
 // Helper to run tests in Apps Script environment
 async function runV2Tests() {
     await test_duplicateProject_hotspot_ids();
     await test_duplicateProject_deepCopy();
+    await test_duplicateProject_hotspot_projectId();
 }

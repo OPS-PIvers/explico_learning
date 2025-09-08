@@ -169,6 +169,7 @@ class ProjectManager_server {
             ...hotspot,
             id: newSheetsAPI.generateId('hotspot'),
             slideId: newSlide.id,
+            projectId: newProject.id,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
           };
