@@ -203,6 +203,13 @@ function test_openProject() {
       success = false;
     }
 
+    if (p.slides[0].hotspots && p.slides[0].hotspots.length === 1 && p.slides[0].hotspots[0].id === 'hotspot_1') {
+      console.log('SUCCESS: Project hotspots are correct.');
+    } else {
+      console.error('FAILURE: Project hotspots are incorrect.');
+      success = false;
+    }
+
     if (success) {
         console.log('TEST PASSED');
     } else {
