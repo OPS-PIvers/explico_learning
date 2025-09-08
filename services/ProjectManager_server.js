@@ -162,16 +162,13 @@ class ProjectManager_server {
 
       // Create new hotspots for the new slide
       if (originalHotspots && originalHotspots.length > 0) {
-        const newHotspots = originalHotspots.map(hotspot => {
-          const newHotspot = {
-            ...hotspot,
-            id: newSheetsAPI.generateId('hotspot'),
-            slideId: newSlide.id,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          };
-          return newHotspot;
-        });
+        const newHotspots = originalHotspots.map(hotspot => ({
+          ...hotspot,
+          id: newSheetsAPI.generateId('hotspot'), // Generate a new unique ID
+          slideId: newSlide.id,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }));
         await newSheetsAPI.saveHotspots(newHotspots);
       }
     }

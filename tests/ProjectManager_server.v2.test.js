@@ -138,4 +138,49 @@ async function test_duplicateProject_hotspot_ids() {
 // Helper to run tests in Apps Script environment
 function runV2Tests() {
     test_duplicateProject_hotspot_ids();
+    test_duplicateProject_hotspot_ids_are_unique();
+}
+
+let lastSavedHotspots = [];
+
+// A new mock class to support the new test
+class MockGoogleSheetsAPIForV2_NewTest extends MockGoogleSheetsAPIForV2 {
+    async saveHotspots(hotspots) {
+        lastSavedHotspots = hotspots;
+        return super.saveHotspots(hotspots);
+    }
+}
+
+async function test_duplicateProject_hotspot_ids_are_unique() {
+    console.log('--- Running test_duplicateProject_hotspot_ids_are_unique ---');
+
+    // Setup: Replace the real GoogleSheetsAPI with our new mock
+    const OriginalGoogleSheetsAPI = GoogleSheetsAPI;
+    GoogleSheetsAPI = MockGoogleSheetsAPIForV2_NewTest;
+
+    const projectManager = new ProjectManager_server();
+
+    try {
+        // Execute
+        await projectManager.duplicateProject('proj_1');
+
+        // Verify
+        assert(lastSavedHotspots && lastSavedHotspots.length > 0, 'Hotspots should be saved.');
+
+        const originalHotspot = new MockGoogleSheetsAPIForV2().hotspots['slide_1'][0];
+        const newHotspot = lastSavedHotspots[0];
+
+        assert(newHotspot.id, 'New hotspot must have an ID.');
+        assert(newHotspot.id !== originalHotspot.id, 'New hotspot ID must be different from the original.');
+        assert(newHotspot.slideId !== originalHotspot.slideId, 'New hotspot slideId must be different from the original.');
+
+        console.log('TEST PASSED');
+
+    } catch (e) {
+        console.error('TEST FAILED:', e.message);
+    } finally {
+        // Teardown
+        GoogleSheetsAPI = OriginalGoogleSheetsAPI;
+        lastSavedHotspots = []; // Reset for next test run
+    }
 }
