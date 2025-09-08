@@ -290,7 +290,8 @@ class GoogleSheetsAPI {
       ...projectData,
       id: this.generateId('proj'),
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
+      spreadsheetId: this.options.spreadsheetId
     };
     
     await this.insertRow(SHEETS_CONFIG.PROJECTS_SHEET, this.projectToRow(project));
