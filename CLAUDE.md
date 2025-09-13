@@ -13,6 +13,23 @@ Explico Learning is a Google Apps Script-based interactive walkthrough editor th
 ## Development Commands
 
 ### Deployment
+
+#### Quick Deployment with Claude Command
+```bash
+# Complete workflow: build → push → redeploy (recommended)
+/clasp
+
+# Just build the project
+/clasp build
+
+# Build and push (no deploy)
+/clasp push
+
+# Just redeploy current version
+/clasp redeploy
+```
+
+#### Manual Deployment Commands
 ```bash
 # Build project files (copies to dist/)
 ./build.sh
@@ -22,6 +39,9 @@ clasp push --force
 
 # Deploy new version
 clasp deploy --description "Version description"
+
+# Update existing deployment (recommended)
+clasp deploy --deploymentId "DEPLOYMENT_ID" --description "Updated version"
 
 # View deployments
 clasp deployments
