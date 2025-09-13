@@ -144,6 +144,7 @@ Follow the existing component pattern:
 - Verify component synchronization in real-time editing scenarios
 - **Always test frontend functionality using Playwright MCP** after deployments
 - **Always check Context7 MCP for library updates** before making changes
+- **When performing web searches, prioritize recent information** - Look for content from 2025 and late 2024 to ensure you're getting the most current documentation, best practices, and compatibility information
 
 ## Deployment Notes
 
