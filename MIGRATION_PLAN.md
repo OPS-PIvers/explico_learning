@@ -32,11 +32,28 @@ This document outlines the complete migration strategy to convert the Explico Le
 #### 1.1 Install Development Dependencies
 ```bash
 npm init -y
+
+# Core build tools
 npm install --save-dev typescript @types/node webpack webpack-cli
 npm install --save-dev gas-webpack-plugin html-webpack-plugin
 npm install --save-dev @babel/core @babel/preset-env @babel/preset-react
 npm install --save-dev @babel/preset-typescript babel-loader
 npm install --save-dev css-loader style-loader
+
+# Testing framework
+npm install --save-dev jest @types/jest ts-jest
+npm install --save-dev @testing-library/react @testing-library/jest-dom
+npm install --save-dev @testing-library/user-event
+
+# Linting and formatting
+npm install --save-dev eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin
+npm install --save-dev eslint-plugin-react eslint-plugin-react-hooks
+npm install --save-dev prettier eslint-config-prettier eslint-plugin-prettier
+
+# Google Apps Script types
+npm install --save-dev @types/google-apps-script
+
+# React dependencies
 npm install --save react react-dom @types/react @types/react-dom
 ```
 
@@ -117,14 +134,96 @@ module.exports = {
 };
 ```
 
-#### 1.4 Update Package.json Scripts
+#### 1.4 Development Configuration Files
+
+**ESLint Configuration (`.eslintrc.js`)**:
+```javascript
+module.exports = {
+  parser: '@typescript-eslint/parser',
+  extends: [
+    'eslint:recommended',
+    '@typescript-eslint/recommended',
+    'plugin:react/recommended',
+    'plugin:react-hooks/recommended',
+    'prettier'
+  ],
+  plugins: ['@typescript-eslint', 'react', 'react-hooks'],
+  env: {
+    browser: true,
+    node: true,
+    es6: true,
+    jest: true
+  },
+  settings: {
+    react: {
+      version: 'detect'
+    }
+  },
+  rules: {
+    '@typescript-eslint/no-unused-vars': 'error',
+    '@typescript-eslint/no-explicit-any': 'warn',
+    'react/prop-types': 'off' // Using TypeScript for prop validation
+  }
+};
+```
+
+**Prettier Configuration (`.prettierrc`)**:
+```json
+{
+  "semi": true,
+  "trailingComma": "es5",
+  "singleQuote": true,
+  "printWidth": 100,
+  "tabWidth": 2
+}
+```
+
+**Jest Configuration (`jest.config.js`)**:
+```javascript
+module.exports = {
+  preset: 'ts-jest',
+  testEnvironment: 'jsdom',
+  setupFilesAfterEnv: ['<rootDir>/src/setupTests.ts'],
+  moduleNameMapping: {
+    '\\.(css|less|scss|sass)$': 'identity-obj-proxy'
+  },
+  testMatch: [
+    '<rootDir>/src/**/__tests__/**/*.{ts,tsx}',
+    '<rootDir>/src/**/*.{test,spec}.{ts,tsx}'
+  ],
+  collectCoverageFrom: [
+    'src/**/*.{ts,tsx}',
+    '!src/**/*.d.ts',
+    '!src/setupTests.ts'
+  ]
+};
+```
+
+**Test Setup (`src/setupTests.ts`)**:
+```typescript
+import '@testing-library/jest-dom';
+```
+
+#### 1.5 Update Package.json Scripts
 ```json
 {
   "scripts": {
-    "build": "webpack",
-    "dev": "webpack --watch",
-    "deploy": "npm run build && clasp push --force",
-    "type-check": "tsc --noEmit"
+    "build": "npm run type-check && npm run lint && webpack --mode production",
+    "build:dev": "webpack --mode development",
+    "dev": "webpack --mode development --watch",
+    "type-check": "tsc --noEmit",
+    "type-check:watch": "tsc --noEmit --watch",
+    "lint": "eslint src/**/*.{ts,tsx}",
+    "lint:fix": "eslint src/**/*.{ts,tsx} --fix",
+    "format": "prettier --write src/**/*.{ts,tsx,css,md}",
+    "format:check": "prettier --check src/**/*.{ts,tsx,css,md}",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "quality": "npm run type-check && npm run lint && npm run format:check && npm run test",
+    "deploy": "npm run quality && npm run build && clasp push --force",
+    "deploy:dev": "npm run build:dev && clasp push --force",
+    "deploy-new": "npm run quality && npm run build && clasp push --force && clasp deploy"
   }
 }
 ```
@@ -153,9 +252,12 @@ module.exports = {
 │   │   │   ├── MainCanvas.tsx
 │   │   │   ├── ConfigPanel.tsx
 │   │   │   ├── Sidebar.tsx
-│   │   │   └── common/           # Shared components
+│   │   │   ├── common/           # Shared components
+│   │   │   └── __tests__/        # Component tests
 │   │   ├── hooks/               # Custom React hooks
+│   │   │   └── __tests__/        # Hook tests
 │   │   ├── utils/               # Client utilities
+│   │   │   └── __tests__/        # Utility tests
 │   │   ├── styles/              # CSS/styled-components
 │   │   ├── main-app.tsx         # Dashboard entry point
 │   │   └── editor-template.tsx  # Editor entry point
@@ -388,6 +490,127 @@ export class ProjectManager {
 }
 ```
 
+#### 3.4 Example Component Tests
+Create comprehensive tests for React components:
+
+**Component Test Example**:
+```tsx
+// src/client/components/__tests__/ProjectDashboard.test.tsx
+import React from 'react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { ProjectDashboard } from '../ProjectDashboard';
+import { Project } from '../../../shared/types';
+
+// Mock Google Apps Script
+const mockGoogleScript = {
+  run: {
+    getProjects: jest.fn(),
+    createProject: jest.fn()
+  }
+};
+
+Object.defineProperty(window, 'google', {
+  value: { script: mockGoogleScript },
+  writable: true
+});
+
+const mockProjects: Project[] = [
+  {
+    id: '1',
+    title: 'Test Project',
+    description: 'Test Description',
+    createdAt: new Date('2025-01-01'),
+    updatedAt: new Date('2025-01-01'),
+    spreadsheetId: 'test-sheet-id'
+  }
+];
+
+describe('ProjectDashboard', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('renders loading state initially', () => {
+    mockGoogleScript.run.getProjects.mockImplementation(() => new Promise(() => {}));
+    render(<ProjectDashboard />);
+    expect(screen.getByText('Loading projects...')).toBeInTheDocument();
+  });
+
+  it('renders projects after loading', async () => {
+    mockGoogleScript.run.getProjects.mockResolvedValue(mockProjects);
+    render(<ProjectDashboard />);
+    
+    await waitFor(() => {
+      expect(screen.getByText('Test Project')).toBeInTheDocument();
+    });
+  });
+
+  it('creates new project when button clicked', async () => {
+    const user = userEvent.setup();
+    const newProject = { ...mockProjects[0], id: '2', title: 'New Project' };
+    
+    mockGoogleScript.run.getProjects.mockResolvedValue(mockProjects);
+    mockGoogleScript.run.createProject.mockResolvedValue(newProject);
+    
+    render(<ProjectDashboard />);
+    
+    await waitFor(() => {
+      expect(screen.getByText('Test Project')).toBeInTheDocument();
+    });
+    
+    const createButton = screen.getByRole('button', { name: /create project/i });
+    await user.click(createButton);
+    
+    expect(mockGoogleScript.run.createProject).toHaveBeenCalledWith('New Project', '');
+  });
+});
+```
+
+**Utility Test Example**:
+```tsx
+// src/shared/utils/__tests__/validation.test.ts
+import { validateHotspot, validateProject } from '../validation';
+import { EventType, TriggerType } from '../../types';
+
+describe('validation utils', () => {
+  describe('validateHotspot', () => {
+    it('validates correct hotspot data', () => {
+      const validHotspot = {
+        id: 'test-id',
+        slideId: 'slide-1',
+        x: 100,
+        y: 100,
+        width: 50,
+        height: 50,
+        eventType: EventType.TEXT_POPUP,
+        triggerType: TriggerType.CLICK,
+        config: { text: 'Test text' }
+      };
+      
+      expect(validateHotspot(validHotspot)).toBe(true);
+    });
+
+    it('rejects hotspot with invalid coordinates', () => {
+      const invalidHotspot = {
+        id: 'test-id',
+        slideId: 'slide-1',
+        x: -10, // Invalid negative coordinate
+        y: 100,
+        width: 50,
+        height: 50,
+        eventType: EventType.TEXT_POPUP,
+        triggerType: TriggerType.CLICK,
+        config: { text: 'Test text' }
+      };
+      
+      expect(validateHotspot(invalidHotspot)).toBe(false);
+    });
+  });
+});
+```
+```
+
 ### Phase 4: Build System Updates
 
 #### 4.1 Updated Build Script
@@ -450,6 +673,7 @@ Complete package.json with all necessary dependencies and scripts:
     "@types/node": "^20.0.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
+    "@types/jest": "^29.5.0",
     "@babel/core": "^7.23.0",
     "@babel/preset-env": "^7.23.0", 
     "@babel/preset-react": "^7.23.0",
@@ -459,9 +683,23 @@ Complete package.json with all necessary dependencies and scripts:
     "gas-webpack-plugin": "^2.6.0",
     "html-webpack-plugin": "^5.5.0",
     "style-loader": "^3.3.0",
+    "identity-obj-proxy": "^3.0.0",
     "typescript": "^5.2.0",
     "webpack": "^5.89.0",
-    "webpack-cli": "^5.1.0"
+    "webpack-cli": "^5.1.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.0",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/jest-dom": "^6.1.0",
+    "@testing-library/user-event": "^14.5.0",
+    "eslint": "^8.50.0",
+    "@typescript-eslint/parser": "^6.7.0",
+    "@typescript-eslint/eslint-plugin": "^6.7.0",
+    "eslint-plugin-react": "^7.33.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "prettier": "^3.0.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.0"
   },
   "dependencies": {
     "react": "^18.2.0",
@@ -489,19 +727,27 @@ Complete package.json with all necessary dependencies and scripts:
    - Add proper type annotations
    - Test server functionality
 
-4. **Client-Side Migration** (Days 5-7)
+4. **Client-Side Migration** (Days 5-6)
    - Create React components from HTML/JS
    - Implement state management with React hooks
    - Convert form controls to React components
    - Style with CSS modules or styled-components
 
-5. **Integration & Testing** (Days 8-9)
+5. **Testing Implementation** (Day 7)
+   - Write unit tests for utility functions
+   - Add component tests using React Testing Library
+   - Create integration tests for key workflows
+   - Set up test coverage reporting
+
+6. **Integration & Quality Assurance** (Days 8-9)
+   - Run full test suite and fix failures
+   - Verify TypeScript compilation with strict checks
+   - Fix all linting and formatting issues
    - Test client-server communication
    - Verify all existing functionality works
-   - Fix any TypeScript compilation errors
    - Test build and deployment pipeline
 
-6. **Optimization** (Day 10)
+7. **Optimization** (Day 10)
    - Bundle size optimization
    - Code splitting for better performance
    - Add error boundaries and loading states
