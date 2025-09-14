@@ -1,4 +1,33 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Explico Learning - Projects</title><link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💡</text></svg>"><meta name="description" content="Create interactive walkthrough presentations with hotspots and media"><meta name="keywords" content="interactive, presentation, walkthrough, hotspots, education, explico"><meta name="author" content="Explico Learning"><meta property="og:title" content="Explico Learning - Interactive Presentations"><meta property="og:description" content="Create interactive walkthrough presentations with hotspots and media"><meta property="og:type" content="website"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"><style>/* Critical CSS for loading state */
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explico Learning - Projects</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💡</text></svg>">
+
+    <!-- Meta tags for SEO and social sharing -->
+    <meta name="description" content="Create interactive walkthrough presentations with hotspots and media">
+    <meta name="keywords" content="interactive, presentation, walkthrough, hotspots, education, explico">
+    <meta name="author" content="Explico Learning">
+
+    <!-- Open Graph meta tags -->
+    <meta property="og:title" content="Explico Learning - Interactive Presentations">
+    <meta property="og:description" content="Create interactive walkthrough presentations with hotspots and media">
+    <meta property="og:type" content="website">
+
+    <!-- Preload critical resources -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Main app styles will be injected by webpack -->
+    <style>
+        /* Critical CSS for loading state */
         body {
             margin: 0;
             padding: 0;
@@ -38,7 +67,31 @@
         /* Hide initial loading when React takes over */
         .app-loaded .initial-loading {
             display: none;
-        }</style><script defer="defer" src="main-app.js"></script></head><body><div class="initial-loading"><div class="loading-spinner"></div><div class="loading-text">Loading Explico Learning...</div></div><div id="app-root"></div><div id="error-fallback" style="display: none; padding: 40px; text-align: center; color: #721c24; background: #f8d7da; margin: 20px; border-radius: 4px;"><h2>🚫 Application Error</h2><p>Something went wrong loading the application.</p><button onclick="window.location.reload()" style="padding: 8px 16px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">Reload Page</button></div><script>// Initialize Google Apps Script client library
+        }
+    </style>
+</head>
+<body>
+    <!-- Initial loading state -->
+    <div class="initial-loading">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Loading Explico Learning...</div>
+    </div>
+
+    <!-- React app will mount here -->
+    <div id="app-root"></div>
+
+    <!-- Error fallback -->
+    <div id="error-fallback" style="display: none; padding: 40px; text-align: center; color: #721c24; background: #f8d7da; margin: 20px; border-radius: 4px;">
+        <h2>🚫 Application Error</h2>
+        <p>Something went wrong loading the application.</p>
+        <button onclick="window.location.reload()" style="padding: 8px 16px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">
+            Reload Page
+        </button>
+    </div>
+
+    <!-- Google Apps Script API -->
+    <script>
+        // Initialize Google Apps Script client library
         window.addEventListener('error', function(e) {
             console.error('Application error:', e.error);
             document.getElementById('error-fallback').style.display = 'block';
@@ -101,4 +154,9 @@
                     }
                 };
             }
-        }, 2000);</script></body></html>
+        }, 2000);
+    </script>
+
+    <!-- Main app bundle will be injected by webpack -->
+</body>
+</html>

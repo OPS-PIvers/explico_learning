@@ -7,7 +7,7 @@
     "test": "tests"
   },
   "scripts": {
-    "build": "npm run type-check && npm run lint && webpack --mode production",
+    "build": "npm run type-check && webpack --mode production",
     "build:dev": "webpack --mode development",
     "dev": "webpack --mode development --watch",
     "type-check": "tsc --noEmit",

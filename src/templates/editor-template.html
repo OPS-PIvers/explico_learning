@@ -1,4 +1,31 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Explico Learning - Hotspot Editor</title><link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✏️</text></svg>"><meta name="description" content="Interactive hotspot editor for creating engaging walkthrough experiences"><meta name="keywords" content="hotspot, editor, interactive, presentation, walkthrough"><meta name="author" content="Explico Learning"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"><style>/* Critical CSS for loading state */
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explico Learning - Hotspot Editor</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✏️</text></svg>">
+
+    <!-- Meta tags -->
+    <meta name="description" content="Interactive hotspot editor for creating engaging walkthrough experiences">
+    <meta name="keywords" content="hotspot, editor, interactive, presentation, walkthrough">
+    <meta name="author" content="Explico Learning">
+
+    <!-- Prevent zoom on mobile inputs -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <!-- Preload critical resources -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Editor styles will be injected by webpack -->
+    <style>
+        /* Critical CSS for loading state */
         body {
             margin: 0;
             padding: 0;
@@ -66,7 +93,55 @@
 
         ::-webkit-scrollbar-thumb:hover {
             background: #a8a8a8;
-        }</style><script defer="defer" src="editor-template.js"></script></head><body><script>window.projectId = '<?= typeof projectId !== "undefined" ? projectId : "" ?>';</script><div class="initial-loading"><div class="loading-spinner"></div><div class="loading-text">Loading Hotspot Editor...</div></div><div id="app-root"></div><div id="error-fallback" style="display: none; padding: 40px; text-align: center; color: #721c24; background: #f8d7da; margin: 20px; border-radius: 4px;"><h2>🚫 Editor Error</h2><p>Something went wrong loading the hotspot editor.</p><div style="margin-top: 16px; display: flex; justify-content: center; gap: 12px;"><button onclick="window.location.reload()" style="padding: 8px 16px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">Reload Editor</button> <button onclick="window.history.back()" style="padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">Go Back</button></div></div><div id="shortcuts-help" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 2000; max-width: 400px;"><h3 style="margin-top: 0;">Keyboard Shortcuts</h3><ul style="list-style: none; padding: 0; margin: 0;"><li style="padding: 4px 0;"><kbd>Ctrl/Cmd + S</kbd> - Save project</li><li style="padding: 4px 0;"><kbd>Delete</kbd> - Delete selected hotspot</li><li style="padding: 4px 0;"><kbd>Esc</kbd> - Deselect hotspot</li><li style="padding: 4px 0;"><kbd>?</kbd> - Show/hide shortcuts</li></ul><button onclick="document.getElementById('shortcuts-help').style.display='none'" style="margin-top: 16px; padding: 6px 12px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Close</button></div><script>// Initialize Google Apps Script client library
+        }
+    </style>
+</head>
+<body>
+    <!-- Project ID will be set by server -->
+    <script>
+        window.projectId = '<?= typeof projectId !== "undefined" ? projectId : "" ?>';
+    </script>
+
+    <!-- Initial loading state -->
+    <div class="initial-loading">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Loading Hotspot Editor...</div>
+    </div>
+
+    <!-- React app will mount here -->
+    <div id="app-root"></div>
+
+    <!-- Error fallback -->
+    <div id="error-fallback" style="display: none; padding: 40px; text-align: center; color: #721c24; background: #f8d7da; margin: 20px; border-radius: 4px;">
+        <h2>🚫 Editor Error</h2>
+        <p>Something went wrong loading the hotspot editor.</p>
+        <div style="margin-top: 16px; display: flex; justify-content: center; gap: 12px;">
+            <button onclick="window.location.reload()" style="padding: 8px 16px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                Reload Editor
+            </button>
+            <button onclick="window.history.back()" style="padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                Go Back
+            </button>
+        </div>
+    </div>
+
+    <!-- Keyboard shortcuts help -->
+    <div id="shortcuts-help" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 2000; max-width: 400px;">
+        <h3 style="margin-top: 0;">Keyboard Shortcuts</h3>
+        <ul style="list-style: none; padding: 0; margin: 0;">
+            <li style="padding: 4px 0;"><kbd>Ctrl/Cmd + S</kbd> - Save project</li>
+            <li style="padding: 4px 0;"><kbd>Delete</kbd> - Delete selected hotspot</li>
+            <li style="padding: 4px 0;"><kbd>Esc</kbd> - Deselect hotspot</li>
+            <li style="padding: 4px 0;"><kbd>?</kbd> - Show/hide shortcuts</li>
+        </ul>
+        <button onclick="document.getElementById('shortcuts-help').style.display='none'" style="margin-top: 16px; padding: 6px 12px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+            Close
+        </button>
+    </div>
+
+    <!-- Google Apps Script API -->
+    <script>
+        // Initialize Google Apps Script client library
         window.addEventListener('error', function(e) {
             console.error('Editor error:', e.error);
             document.getElementById('error-fallback').style.display = 'block';
@@ -183,4 +258,9 @@
                 indicator.style.opacity = '0';
                 setTimeout(() => document.body.removeChild(indicator), 300);
             }, 2000);
-        };</script></body></html>
+        };
+    </script>
+
+    <!-- Editor app bundle will be injected by webpack -->
+</body>
+</html>
