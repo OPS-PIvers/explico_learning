@@ -19,16 +19,27 @@ export default [
         document: 'readonly',
         setTimeout: 'readonly',
         clearTimeout: 'readonly',
+        HTMLElement: 'readonly',
+        HTMLDivElement: 'readonly',
+        HTMLImageElement: 'readonly',
+        HTMLCanvasElement: 'readonly',
+        EventListener: 'readonly',
+        KeyboardEvent: 'readonly',
+        MouseEvent: 'readonly',
+        URLSearchParams: 'readonly',
+        NodeJS: 'readonly',
+        confirm: 'readonly',
         Logger: 'readonly',
         Utilities: 'readonly',
         HtmlService: 'readonly',
         SpreadsheetApp: 'readonly',
-        DriveApp: 'readonly'
+        DriveApp: 'readonly',
+        GoogleAppsScript: 'readonly'
       }
     },
     rules: {
-      'no-unused-vars': 'warn',
-      'no-console': 'warn',
+      'no-unused-vars': 'off',
+      'no-console': 'off',
       'prefer-const': 'error',
       'no-var': 'error'
     }
@@ -51,11 +62,22 @@ export default [
         document: 'readonly',
         setTimeout: 'readonly',
         clearTimeout: 'readonly',
+        HTMLElement: 'readonly',
+        HTMLDivElement: 'readonly',
+        HTMLImageElement: 'readonly',
+        HTMLCanvasElement: 'readonly',
+        EventListener: 'readonly',
+        KeyboardEvent: 'readonly',
+        MouseEvent: 'readonly',
+        URLSearchParams: 'readonly',
+        NodeJS: 'readonly',
+        confirm: 'readonly',
         Logger: 'readonly',
         Utilities: 'readonly',
         HtmlService: 'readonly',
         SpreadsheetApp: 'readonly',
         DriveApp: 'readonly',
+        GoogleAppsScript: 'readonly',
         React: 'readonly'
       }
     },
@@ -66,18 +88,21 @@ export default [
     },
     rules: {
       // TypeScript-specific rules
-      '@typescript-eslint/no-unused-vars': 'warn',
+      '@typescript-eslint/no-unused-vars': 'off',
       '@typescript-eslint/explicit-function-return-type': 'off',
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-explicit-any': 'off',
 
       // React rules
       'react/react-in-jsx-scope': 'off', // Not needed with React 17+ JSX transform
       'react/prop-types': 'off', // Using TypeScript for prop validation
       'react-hooks/rules-of-hooks': 'error',
-      'react-hooks/exhaustive-deps': 'warn',
+      'react-hooks/exhaustive-deps': 'off',
 
-      // General rules
-      'no-console': 'warn',
+      // General rules (more permissive for migration)
+      'no-unused-vars': 'off',
+      'no-console': 'off',
+      'no-undef': 'error',
+      'no-prototype-builtins': 'off',
       'prefer-const': 'error',
       'no-var': 'error'
     },

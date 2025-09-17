@@ -313,6 +313,14 @@ export const UI_CONFIG = {
     defaultSize: 50,
     snapGrid: 5
   },
+  Z_INDEX: {
+    CANVAS: 1,
+    HOTSPOT: 10,
+    SELECTED_HOTSPOT: 20,
+    POPUP: 100,
+    MODAL: 1000,
+    TOOLTIP: 2000
+  },
   zIndex: {
     canvas: 1,
     hotspot: 10,
@@ -325,7 +333,14 @@ export const UI_CONFIG = {
     mobile: 768,
     tablet: 1024,
     desktop: 1200
-  }
+  },
+  // Legacy backward compatibility
+  MAX_HOTSPOTS_PER_SLIDE: 50,
+  MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB
+  ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+  ALLOWED_VIDEO_TYPES: ['video/mp4', 'video/webm', 'video/ogg'],
+  MIN_ZOOM_LEVEL: 0.1,
+  MAX_ZOOM_LEVEL: 5
 };
 
 // Color Palette
@@ -363,4 +378,46 @@ export const API_ENDPOINTS = {
   hotspots: '/hotspots',
   media: '/media',
   analytics: '/analytics'
+};
+
+// API Configuration
+export const API_CONFIG = {
+  YOUTUBE_EMBED_URL: 'https://www.youtube.com/embed/'
+};
+
+// Tooltip Positions
+export const TOOLTIP_POSITIONS = {
+  TOP: 'top',
+  BOTTOM: 'bottom',
+  LEFT: 'left',
+  RIGHT: 'right'
+};
+
+// Project Status
+export const PROJECT_STATUS = {
+  DRAFT: 'draft',
+  PUBLISHED: 'published',
+  ARCHIVED: 'archived'
+};
+
+// Maintain backward compatibility with old property names
+export const LEGACY_CONFIG = {
+  MAX_HOTSPOTS_PER_SLIDE: 50,
+  MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB
+  ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+  ALLOWED_VIDEO_TYPES: ['video/mp4', 'video/webm', 'video/ogg'],
+  MIN_ZOOM_LEVEL: 0.1,
+  MAX_ZOOM_LEVEL: 5,
+  PROJECTS_SHEET: 'Projects',
+  SLIDES_SHEET: 'Slides',
+  HOTSPOTS_SHEET: 'Hotspots',
+  ANALYTICS_SHEET: 'Analytics'
+};
+
+// Legacy SHEETS_CONFIG for backward compatibility
+export const LEGACY_SHEETS_CONFIG = {
+  PROJECTS_SHEET: 'Projects',
+  SLIDES_SHEET: 'Slides',
+  HOTSPOTS_SHEET: 'Hotspots',
+  ANALYTICS_SHEET: 'Analytics'
 };

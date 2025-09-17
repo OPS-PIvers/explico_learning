@@ -27,6 +27,8 @@ export interface Slide {
   mediaUrl: string;
   duration?: number;
   transition: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface Hotspot {
@@ -59,6 +61,15 @@ export interface HotspotConfig {
   delay?: number;
   panZoomConfig?: PanZoomConfig;
   spotlightConfig?: SpotlightConfig;
+  // Legacy properties for backward compatibility
+  tooltipContent?: string;
+  tooltipPosition?: string;
+  zoomLevel?: number;
+  panOffset?: { x: number; y: number };
+  bannerText?: string;
+  autoHideDelay?: number;
+  spotlightSize?: number;
+  spotlightIntensity?: number;
 }
 
 export interface PanZoomConfig {
@@ -229,6 +240,21 @@ export interface SidebarProps {
   onSlideReorder?: (slides: Slide[]) => void;
   onSlideCreate?: (request: CreateSlideRequest) => void;
   onSlideDelete?: (id: string) => void;
+}
+
+// Analytics Interface
+export interface AnalyticsEvent {
+  id: string;
+  projectId: string;
+  slideId?: string;
+  hotspotId?: string;
+  eventType: string;
+  data?: any;
+  userId?: string;
+  sessionId?: string;
+  timestamp: Date;
+  ipAddress?: string;
+  userAgent?: string;
 }
 
 // Utility types
