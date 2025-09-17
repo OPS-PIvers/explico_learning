@@ -2,6 +2,7 @@
   "name": "explico-learning-typescript",
   "version": "1.0.0",
   "description": "Explico Learning - TypeScript/React Migration",
+  "type": "module",
   "main": "dist/Code.gs",
   "directories": {
     "test": "tests"
