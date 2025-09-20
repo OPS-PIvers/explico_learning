@@ -8,7 +8,8 @@ mkdir -p dist
 
 # Build client files with webpack
 echo "Building client files with webpack..."
-npx webpack --mode production
+npm ci --production=false
+npm run build:dev
 
 if [ $? -ne 0 ]; then
     echo "Client build failed! Check the errors above."
