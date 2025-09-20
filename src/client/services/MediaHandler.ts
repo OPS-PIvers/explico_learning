@@ -204,7 +204,7 @@ export class MediaHandler {
    * Check if URL is a YouTube URL
    */
   isYouTubeUrl(url: string): boolean {
-    const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+    const youtubeRegex = /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/ |.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/;
     return youtubeRegex.test(url);
   }
 
@@ -212,7 +212,7 @@ export class MediaHandler {
    * Extract YouTube video ID from URL
    */
   extractYouTubeId(url: string): string | null {
-    const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+    const match = url.match(/(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/ |.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/);
     return match ? match[1] : null;
   }
 

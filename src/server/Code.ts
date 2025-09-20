@@ -36,7 +36,7 @@ function doGet(e: GoogleAppsScript.Events.DoGet): GoogleAppsScript.HTML.HtmlOutp
           .setTitle('Explico Learning - Projects')
           .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 
-      case 'editor':
+      case 'editor': {
         if (!projectId) {
           throw new Error('Project ID required for editor');
         }
@@ -45,6 +45,7 @@ function doGet(e: GoogleAppsScript.Events.DoGet): GoogleAppsScript.HTML.HtmlOutp
         return template.evaluate()
           .setTitle('Explico Learning - Editor')
           .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+      }
 
       default:
         throw new Error(`Unknown page: ${page}`);
@@ -276,7 +277,7 @@ function setupSpreadsheetStructure(spreadsheet: GoogleAppsScript.Spreadsheet.Spr
 
 // Make functions available globally for gas-webpack-plugin
 // gas-webpack-plugin will detect these assignments and create top-level function declarations
-declare var global: any;
+declare let global: any;
 global.doGet = doGet;
 global.include = include;
 global.getProjects = getProjects;

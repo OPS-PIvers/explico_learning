@@ -318,6 +318,24 @@ export const HotspotEditor: React.FC<HotspotEditorProps> = ({
     loadProjectData();
   }, [loadProjectData]);
 
+  // Live region announcements - moved before conditional returns
+  const [liveMessage, setLiveMessage] = useState('');
+
+  // Update live message for screen readers
+  useEffect(() => {
+    if (state.activeSlide) {
+      setLiveMessage(`Active slide: ${state.activeSlide.title}`);
+    }
+  }, [state.activeSlide]);
+
+  useEffect(() => {
+    if (state.selectedHotspot) {
+      setLiveMessage(`Selected hotspot: ${state.selectedHotspot.config.text || 'Hotspot'}`);
+    } else if (liveMessage.includes('Selected hotspot')) {
+      setLiveMessage('Selection cleared');
+    }
+  }, [state.selectedHotspot, liveMessage]);
+
   // Handle keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -361,24 +379,6 @@ export const HotspotEditor: React.FC<HotspotEditorProps> = ({
   if (!state.project) {
     return <ErrorMessage message="Project not found" />;
   }
-
-  // Live region announcements
-  const [liveMessage, setLiveMessage] = useState('');
-
-  // Update live message for screen readers
-  useEffect(() => {
-    if (state.activeSlide) {
-      setLiveMessage(`Active slide: ${state.activeSlide.title}`);
-    }
-  }, [state.activeSlide]);
-
-  useEffect(() => {
-    if (state.selectedHotspot) {
-      setLiveMessage(`Selected hotspot: ${state.selectedHotspot.config.text || 'Hotspot'}`);
-    } else if (liveMessage.includes('Selected hotspot')) {
-      setLiveMessage('Selection cleared');
-    }
-  }, [state.selectedHotspot]);
 
   return (
     <ErrorBoundary>
