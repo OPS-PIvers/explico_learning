@@ -33,6 +33,12 @@ export default {
       }
     }
   },
+  node: {
+    // Keep global for gas-webpack-plugin, disable others for GAS compatibility
+    global: true,
+    __filename: false,
+    __dirname: false
+  },
   // Disable problematic features for Google Apps Script
   devtool: false,
   module: {
@@ -51,14 +57,13 @@ export default {
   plugins: [
     // GAS Plugin for server-side TypeScript compilation
     new GasPlugin({
-      // Only apply to server-side code
       include: ['Code'],
-      // Autodetect global functions and make them available
-      autoGlobalExportsFiles: ['src/server/Code.ts'],
-      // Remove webpack runtime for cleaner output
+      autoGlobalExportsFiles: [
+        path.resolve(__dirname, 'src/server/Code.ts')
+      ],
       comment: false
     }),
-    new HtmlWebpackPlugin({
+new HtmlWebpackPlugin({
       template: './src/templates/main-app.html',
       filename: 'main-app.html',
       chunks: ['main-app'],

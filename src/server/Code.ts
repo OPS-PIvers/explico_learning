@@ -1,15 +1,7 @@
 // Main entry point for Google Apps Script
 // Migrated from Code.gs to TypeScript
 
-// Inline constants for GAS compatibility
-const PROJECT_DEFAULTS = {
-  settings: {
-    autoSave: true,
-    version: '1.0.0',
-    theme: 'light',
-    analytics: true
-  }
-};
+// Essential constants will be imported from compiled constants.ts via webpack
 
 // Google Apps Script globals are available via @types/google-apps-script
 
@@ -32,7 +24,7 @@ interface Project {
 /**
  * Main entry point for web app requests
  */
-export function doGet(e: GoogleAppsScript.Events.DoGet): GoogleAppsScript.HTML.HtmlOutput {
+function doGet(e: GoogleAppsScript.Events.DoGet): GoogleAppsScript.HTML.HtmlOutput {
   const page = e.parameter.page || 'dashboard';
   const projectId = e.parameter.project;
 
@@ -75,14 +67,14 @@ export function doGet(e: GoogleAppsScript.Events.DoGet): GoogleAppsScript.HTML.H
 /**
  * Include HTML files for templates
  */
-export function include(filename: string): string {
+function include(filename: string): string {
   return HtmlService.createHtmlOutputFromFile(filename).getContent();
 }
 
 /**
  * Get all projects for the current user
  */
-export function getProjects(): Project[] {
+function getProjects(): Project[] {
   try {
     // TODO: Implement actual project loading from Google Sheets
     // For now, return sample data
@@ -93,7 +85,12 @@ export function getProjects(): Project[] {
       createdAt: new Date(),
       updatedAt: new Date(),
       spreadsheetId: 'sample-spreadsheet-id',
-      settings: PROJECT_DEFAULTS.settings
+      settings: {
+        autoSave: true,
+        version: '1.0.0',
+        theme: 'light',
+        analytics: true
+      }
     };
 
     return [sampleProject];
@@ -107,7 +104,7 @@ export function getProjects(): Project[] {
 /**
  * Create a new project
  */
-export function createProject(title: string, description: string): Project {
+function createProject(title: string, description: string): Project {
   try {
     // TODO: Implement actual project creation with Google Sheets
     const projectId = `proj_${Utilities.getUuid()}`;
@@ -119,7 +116,12 @@ export function createProject(title: string, description: string): Project {
       createdAt: new Date(),
       updatedAt: new Date(),
       spreadsheetId: createProjectSpreadsheet(title),
-      settings: PROJECT_DEFAULTS.settings
+      settings: {
+        autoSave: true,
+        version: '1.0.0',
+        theme: 'light',
+        analytics: true
+      }
     };
 
     Logger.log(`Created project: ${projectId}`);
@@ -134,7 +136,7 @@ export function createProject(title: string, description: string): Project {
 /**
  * Delete a project and its associated data
  */
-export function deleteProject(projectId: string): void {
+function deleteProject(projectId: string): void {
   try {
     // TODO: Implement actual project deletion
     Logger.log(`Deleted project: ${projectId}`);
@@ -148,7 +150,7 @@ export function deleteProject(projectId: string): void {
 /**
  * Get project data including slides and hotspots
  */
-export function getProjectData(projectId: string): any {
+function getProjectData(projectId: string): any {
   try {
     // TODO: Implement actual data loading from Google Sheets
     return {
@@ -159,7 +161,12 @@ export function getProjectData(projectId: string): any {
         createdAt: new Date(),
         updatedAt: new Date(),
         spreadsheetId: 'sample-spreadsheet',
-        settings: PROJECT_DEFAULTS.settings
+        settings: {
+        autoSave: true,
+        version: '1.0.0',
+        theme: 'light',
+        analytics: true
+      }
       },
       slides: [
         {
@@ -184,7 +191,7 @@ export function getProjectData(projectId: string): any {
 /**
  * Save hotspots for a project
  */
-export function saveHotspots(projectId: string, hotspots: any[]): void {
+function saveHotspots(projectId: string, hotspots: any[]): void {
   try {
     // TODO: Implement actual saving to Google Sheets
     Logger.log(`Saved ${hotspots.length} hotspots for project: ${projectId}`);
@@ -198,7 +205,7 @@ export function saveHotspots(projectId: string, hotspots: any[]): void {
 /**
  * Save slides for a project
  */
-export function saveSlides(projectId: string, slides: any[]): void {
+function saveSlides(projectId: string, slides: any[]): void {
   try {
     // TODO: Implement actual saving to Google Sheets
     Logger.log(`Saved ${slides.length} slides for project: ${projectId}`);
@@ -267,5 +274,14 @@ function setupSpreadsheetStructure(spreadsheet: GoogleAppsScript.Spreadsheet.Spr
   }
 }
 
-// Functions are automatically exported by gas-webpack-plugin
-// No manual global exports needed
+// Make functions available globally for gas-webpack-plugin
+// gas-webpack-plugin will detect these assignments and create top-level function declarations
+declare var global: any;
+global.doGet = doGet;
+global.include = include;
+global.getProjects = getProjects;
+global.createProject = createProject;
+global.deleteProject = deleteProject;
+global.getProjectData = getProjectData;
+global.saveHotspots = saveHotspots;
+global.saveSlides = saveSlides;

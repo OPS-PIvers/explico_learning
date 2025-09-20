@@ -1,11 +1,31 @@
 // Server-side constants for Google Apps Script
 // Migrated from constants.gs to TypeScript
 
-// Re-export shared constants
-export * from '../shared/constants';
+// Inline essential shared constants for GAS compatibility
+const EVENT_TYPES = {
+  TEXT_POPUP: 'text_popup',
+  PAN_ZOOM: 'pan_zoom',
+  SPOTLIGHT: 'spotlight',
+  TEXT_ON_IMAGE: 'text_on_image'
+};
+
+const MEDIA_TYPES = {
+  IMAGE: 'image',
+  VIDEO: 'video',
+  YOUTUBE: 'youtube'
+};
+
+const PROJECT_DEFAULTS = {
+  settings: {
+    autoSave: true,
+    version: '1.0.0',
+    theme: 'light',
+    analytics: true
+  }
+};
 
 // Server-specific constants
-export const GAS_CONFIG = {
+const GAS_CONFIG = {
   maxExecutionTime: 300000, // 5 minutes in milliseconds
   maxResponseSize: 50 * 1024 * 1024, // 50MB
   batchSize: 1000, // Maximum rows to process at once
@@ -14,7 +34,7 @@ export const GAS_CONFIG = {
 };
 
 // Google Sheets API limits
-export const SHEETS_LIMITS = {
+const SHEETS_LIMITS = {
   maxCells: 10000000, // 10 million cells per spreadsheet
   maxColumns: 18278, // Maximum columns (ZZZ)
   maxRows: 1000000, // Maximum rows per sheet
@@ -23,7 +43,7 @@ export const SHEETS_LIMITS = {
 };
 
 // Drive API configuration
-export const DRIVE_CONFIG = {
+const DRIVE_CONFIG = {
   folderName: 'Explico Learning Projects',
   mimeTypes: {
     spreadsheet: 'application/vnd.google-apps.spreadsheet',
@@ -34,7 +54,7 @@ export const DRIVE_CONFIG = {
 };
 
 // Error codes specific to server operations
-export const SERVER_ERROR_CODES = {
+const SERVER_ERROR_CODES = {
   SHEETS_QUOTA_EXCEEDED: 'SHEETS_QUOTA_EXCEEDED',
   DRIVE_QUOTA_EXCEEDED: 'DRIVE_QUOTA_EXCEEDED',
   EXECUTION_TIMEOUT: 'EXECUTION_TIMEOUT',
@@ -43,7 +63,7 @@ export const SERVER_ERROR_CODES = {
 };
 
 // Cache configuration for PropertiesService
-export const CACHE_CONFIG = {
+const CACHE_CONFIG = {
   expirationTime: 3600, // 1 hour in seconds
   keys: {
     userProjects: 'user_projects',
@@ -54,7 +74,7 @@ export const CACHE_CONFIG = {
 };
 
 // Logging levels
-export enum LogLevel {
+enum LogLevel {
   DEBUG = 0,
   INFO = 1,
   WARN = 2,
@@ -62,4 +82,4 @@ export enum LogLevel {
 }
 
 // Current log level (can be changed for debugging)
-export const CURRENT_LOG_LEVEL = LogLevel.INFO;
+const CURRENT_LOG_LEVEL = LogLevel.INFO;

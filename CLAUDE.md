@@ -16,7 +16,7 @@ Explico Learning is a Google Apps Script-based interactive walkthrough editor th
 
 #### Quick Deployment with Claude Command
 ```bash
-# Complete workflow: build → push → redeploy (recommended)
+# Complete workflow: build → push → update deployment (recommended)
 /clasp
 
 # Just build the project
@@ -25,8 +25,23 @@ Explico Learning is a Google Apps Script-based interactive walkthrough editor th
 # Build and push (no deploy)
 /clasp push
 
-# Just redeploy current version
+# Just update current deployment
 /clasp redeploy
+```
+
+#### TypeScript Deployment Commands
+```bash
+# Production deployment: quality checks + build + push + update active deployment
+npm run deploy
+
+# Development deployment: build + push + update active deployment (skip quality checks)
+npm run deploy:dev
+
+# Create NEW deployment (new URL - use sparingly)
+npm run deploy-new
+
+# Just push code without deploying (for testing)
+npm run deploy-push-only
 ```
 
 #### Manual Deployment Commands

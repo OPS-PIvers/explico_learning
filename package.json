@@ -21,9 +21,11 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "quality": "npm run type-check && npm run lint && npm run format:check && npm run test",
-    "deploy": "npm run quality && npm run build && clasp push --force",
-    "deploy:dev": "npm run build:dev && clasp push --force",
-    "deploy-new": "npm run quality && npm run build && clasp push --force && clasp deploy"
+    "gas-postprocess": "node scripts/gas-postprocess.cjs dist/Code.js dist/Code.gs",
+    "deploy": "npm run quality && ./build.sh && clasp push --force && clasp deploy --deploymentId \"AKfycbxCGDHOw8f5W__3NGcx0KoamGyh5mQpgWC2WoKMJAU\" --description \"Updated from TypeScript\"",
+    "deploy:dev": "./build.sh && clasp push --force && clasp deploy --deploymentId \"AKfycbxCGDHOw8f5W__3NGcx0KoamGyh5mQpgWC2WoKMJAU\" --description \"Dev update from TypeScript\"",
+    "deploy-new": "npm run quality && ./build.sh && clasp push --force && clasp deploy --description \"New deployment from TypeScript\"",
+    "deploy-push-only": "./build.sh && clasp push --force"
   },
   "keywords": [],
   "author": "",
@@ -33,6 +35,7 @@
     "@babel/preset-env": "^7.28.3",
     "@babel/preset-react": "^7.27.1",
     "@babel/preset-typescript": "^7.27.1",
+    "@babel/plugin-transform-runtime": "^7.24.7",
     "@testing-library/jest-dom": "^6.8.0",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
@@ -57,7 +60,8 @@
     "ts-jest": "^29.4.1",
     "typescript": "^5.9.2",
     "webpack": "^5.101.3",
-    "webpack-cli": "^6.0.1"
+    "webpack-cli": "^6.0.1",
+    "core-js": "^3.37.1"
   },
   "dependencies": {
     "@types/react": "^19.1.13",

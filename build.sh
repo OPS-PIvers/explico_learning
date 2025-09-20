@@ -26,10 +26,18 @@ echo "Server-side TypeScript will be compiled by webpack..."
 echo "Copying configuration files..."
 cp appsscript.json dist/
 
-# Rename webpack-generated Code.js to Code.gs for Google Apps Script compatibility
+# Post-process webpack-generated Code.js into clean GAS-compatible Code.gs
 if [ -f "dist/Code.js" ]; then
-    echo "Renaming Code.js to Code.gs..."
-    mv dist/Code.js dist/Code.gs
+    echo "Post-processing Code.js into clean GAS-compatible Code.gs..."
+    node scripts/gas-postprocess.cjs dist/Code.js dist/Code.gs
+    if [ $? -eq 0 ]; then
+        echo "✅ Generated clean Code.gs successfully"
+        # Remove the webpack bundle since we now have clean GAS code
+        rm dist/Code.js
+    else
+        echo "❌ Post-processing failed! Falling back to direct rename..."
+        mv dist/Code.js dist/Code.gs
+    fi
 else
     echo "Warning: Code.js not found! TypeScript compilation may have failed."
 fi
