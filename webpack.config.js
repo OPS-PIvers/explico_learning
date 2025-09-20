@@ -11,8 +11,11 @@ const __dirname = path.dirname(__filename);
 export default {
   mode: 'production',
   entry: {
+    // Client-side entries for React apps
     'main-app': './src/client/main-app.tsx',
-    'editor-template': './src/client/editor-template.tsx'
+    'editor-template': './src/client/editor-template.tsx',
+    // Server-side entry for Google Apps Script
+    'Code': './src/server/Code.ts'
   },
   output: {
     path: path.resolve(__dirname, 'dist'),
@@ -24,24 +27,14 @@ export default {
   optimization: {
     minimize: false, // Disable minification for clean GAS code
     splitChunks: {
-      chunks: 'all',
-      cacheGroups: {
-        // Keep server-side code separate and unminified
-        server: {
-          test: /[\\/]src[\\/]server[\\/]/,
-          name: false,
-          chunks: 'all',
-          enforce: true
-        },
-        // Client-side code can be bundled normally
-        client: {
-          test: /[\\/]src[\\/]client[\\/]/,
-          chunks: 'all',
-          enforce: false
-        }
+      chunks: (chunk) => {
+        // Never split the Code chunk for Google Apps Script
+        return chunk.name !== 'Code';
       }
     }
   },
+  // Disable problematic features for Google Apps Script
+  devtool: false,
   module: {
     rules: [
       {
@@ -56,6 +49,15 @@ export default {
     ]
   },
   plugins: [
+    // GAS Plugin for server-side TypeScript compilation
+    new GasPlugin({
+      // Only apply to server-side code
+      include: ['Code'],
+      // Autodetect global functions and make them available
+      autoGlobalExportsFiles: ['src/server/Code.ts'],
+      // Remove webpack runtime for cleaner output
+      comment: false
+    }),
     new HtmlWebpackPlugin({
       template: './src/templates/main-app.html',
       filename: 'main-app.html',

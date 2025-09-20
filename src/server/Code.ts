@@ -1,18 +1,38 @@
 // Main entry point for Google Apps Script
 // Migrated from Code.gs to TypeScript
 
-import { PROJECT_DEFAULTS } from '../shared/constants';
-import { Project } from '../shared/types';
+// Inline constants for GAS compatibility
+const PROJECT_DEFAULTS = {
+  settings: {
+    autoSave: true,
+    version: '1.0.0',
+    theme: 'light',
+    analytics: true
+  }
+};
 
-// Google Apps Script global declarations
-declare const HtmlService: GoogleAppsScript.HTML.HtmlService;
-declare const DriveApp: GoogleAppsScript.Drive.DriveApp;
-declare const SpreadsheetApp: GoogleAppsScript.Spreadsheet.SpreadsheetApp;
+// Google Apps Script globals are available via @types/google-apps-script
+
+// Project interface for GAS compatibility
+interface Project {
+  id: string;
+  title: string;
+  description: string;
+  createdAt: Date;
+  updatedAt: Date;
+  spreadsheetId: string;
+  settings: {
+    autoSave: boolean;
+    version: string;
+    theme: string;
+    analytics: boolean;
+  };
+}
 
 /**
  * Main entry point for web app requests
  */
-function doGet(e: GoogleAppsScript.Events.DoGet): GoogleAppsScript.HTML.HtmlOutput {
+export function doGet(e: GoogleAppsScript.Events.DoGet): GoogleAppsScript.HTML.HtmlOutput {
   const page = e.parameter.page || 'dashboard';
   const projectId = e.parameter.project;
 
@@ -55,14 +75,14 @@ function doGet(e: GoogleAppsScript.Events.DoGet): GoogleAppsScript.HTML.HtmlOutp
 /**
  * Include HTML files for templates
  */
-function include(filename: string): string {
+export function include(filename: string): string {
   return HtmlService.createHtmlOutputFromFile(filename).getContent();
 }
 
 /**
  * Get all projects for the current user
  */
-function getProjects(): Project[] {
+export function getProjects(): Project[] {
   try {
     // TODO: Implement actual project loading from Google Sheets
     // For now, return sample data
@@ -87,7 +107,7 @@ function getProjects(): Project[] {
 /**
  * Create a new project
  */
-function createProject(title: string, description: string): Project {
+export function createProject(title: string, description: string): Project {
   try {
     // TODO: Implement actual project creation with Google Sheets
     const projectId = `proj_${Utilities.getUuid()}`;
@@ -114,7 +134,7 @@ function createProject(title: string, description: string): Project {
 /**
  * Delete a project and its associated data
  */
-function deleteProject(projectId: string): void {
+export function deleteProject(projectId: string): void {
   try {
     // TODO: Implement actual project deletion
     Logger.log(`Deleted project: ${projectId}`);
@@ -128,7 +148,7 @@ function deleteProject(projectId: string): void {
 /**
  * Get project data including slides and hotspots
  */
-function getProjectData(projectId: string): any {
+export function getProjectData(projectId: string): any {
   try {
     // TODO: Implement actual data loading from Google Sheets
     return {
@@ -164,7 +184,7 @@ function getProjectData(projectId: string): any {
 /**
  * Save hotspots for a project
  */
-function saveHotspots(projectId: string, hotspots: any[]): void {
+export function saveHotspots(projectId: string, hotspots: any[]): void {
   try {
     // TODO: Implement actual saving to Google Sheets
     Logger.log(`Saved ${hotspots.length} hotspots for project: ${projectId}`);
@@ -178,7 +198,7 @@ function saveHotspots(projectId: string, hotspots: any[]): void {
 /**
  * Save slides for a project
  */
-function saveSlides(projectId: string, slides: any[]): void {
+export function saveSlides(projectId: string, slides: any[]): void {
   try {
     // TODO: Implement actual saving to Google Sheets
     Logger.log(`Saved ${slides.length} slides for project: ${projectId}`);
@@ -247,20 +267,5 @@ function setupSpreadsheetStructure(spreadsheet: GoogleAppsScript.Spreadsheet.Spr
   }
 }
 
-// Export functions for global access in Google Apps Script
-// @ts-ignore
-globalThis.doGet = doGet;
-// @ts-ignore
-globalThis.include = include;
-// @ts-ignore
-globalThis.getProjects = getProjects;
-// @ts-ignore
-globalThis.createProject = createProject;
-// @ts-ignore
-globalThis.deleteProject = deleteProject;
-// @ts-ignore
-globalThis.getProjectData = getProjectData;
-// @ts-ignore
-globalThis.saveHotspots = saveHotspots;
-// @ts-ignore
-globalThis.saveSlides = saveSlides;
+// Functions are automatically exported by gas-webpack-plugin
+// No manual global exports needed
