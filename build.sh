@@ -32,11 +32,17 @@ if [ -f "dist/Code.js" ]; then
     node scripts/gas-postprocess.cjs dist/Code.js dist/Code.gs
     if [ $? -eq 0 ]; then
         echo "✅ Generated clean Code.gs successfully"
+        # Copy the generated Code.gs to root to keep it synchronized
+        cp dist/Code.gs Code.gs
+        echo "✅ Synchronized root Code.gs with generated version"
         # Remove the webpack bundle since we now have clean GAS code
         rm dist/Code.js
     else
         echo "❌ Post-processing failed! Falling back to direct rename..."
         mv dist/Code.js dist/Code.gs
+        # Still copy to root even with fallback
+        cp dist/Code.gs Code.gs
+        echo "⚠️  Synchronized root Code.gs with fallback version"
     fi
 else
     echo "Warning: Code.js not found! TypeScript compilation may have failed."
