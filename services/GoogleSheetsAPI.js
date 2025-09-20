@@ -339,10 +339,23 @@ class GoogleSheetsAPI {
    * @returns {Promise<Array<Object>>} Array of projects
    */
   async getAllProjects() {
-    this.ensureRegistryInitialized();
-    
-    const rows = await this.getRegistryRows();
-    return rows.map(row => this.registryRowToProject(row));
+    try {
+      this.ensureRegistryInitialized();
+
+      const rows = await this.getRegistryRows();
+
+      // Ensure rows is an array
+      if (!Array.isArray(rows)) {
+        console.warn('getRegistryRows returned non-array:', rows);
+        return [];
+      }
+
+      return rows.map(row => this.registryRowToProject(row));
+    } catch (error) {
+      console.error('Error in getAllProjects:', error);
+      // Return empty array instead of throwing, for better error handling
+      return [];
+    }
   }
 
   /**

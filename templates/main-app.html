@@ -344,11 +344,17 @@
             try {
                 document.getElementById('loading-state').classList.remove('hidden');
                 document.getElementById('empty-state').classList.add('hidden');
-                
-                const projects = await getUserProjects();
+
+                const projectsResult = await getUserProjects();
+
+                // Ensure we have a valid array, handle null/undefined responses
+                const projects = Array.isArray(projectsResult) ? projectsResult : [];
+
+                console.log('Loaded projects:', projects.length);
+
                 window.ExplicoApp.projects = projects;
                 window.ExplicoApp.filteredProjects = projects;
-                
+
                 if (projects.length === 0) {
                     document.getElementById('empty-state').classList.remove('hidden');
                     document.getElementById('projects-container').classList.add('hidden');
@@ -357,13 +363,25 @@
                     document.getElementById('projects-container').classList.remove('hidden');
                     window.ExplicoApp.dashboard.renderProjects(projects);
                 }
-                
-                // Update stats
+
+                // Update stats (now safe with null checks in updateDashboardStats)
                 updateDashboardStats(projects);
-                
+
             } catch (error) {
                 console.error('Error loading projects:', error);
-                showError('Failed to load projects: ' + error.message);
+
+                // Ensure we have fallback empty arrays
+                window.ExplicoApp.projects = [];
+                window.ExplicoApp.filteredProjects = [];
+
+                // Update stats with empty array
+                updateDashboardStats([]);
+
+                // Show empty state instead of error for user experience
+                document.getElementById('empty-state').classList.remove('hidden');
+                document.getElementById('projects-container').classList.add('hidden');
+
+                showError('Failed to load projects: ' + (error.message || 'Unknown error'));
             } finally {
                 document.getElementById('loading-state').classList.add('hidden');
             }
@@ -466,8 +484,9 @@
         function filterProjects() {
             const query = document.getElementById('search-projects').value.toLowerCase();
             const status = document.getElementById('filter-status').value;
-            
-            let filtered = window.ExplicoApp.projects;
+
+            // Ensure projects is an array (handle null/undefined)
+            let filtered = Array.isArray(window.ExplicoApp.projects) ? window.ExplicoApp.projects : [];
             
             if (query) {
                 filtered = filtered.filter(project => 
@@ -494,11 +513,14 @@
         
         // Update dashboard statistics
         function updateDashboardStats(projects) {
-            const totalProjects = projects.length;
-            const totalSlides = projects.reduce((sum, project) => sum + (project.slideCount || 0), 0);
-            const totalHotspots = projects.reduce((sum, project) => sum + (project.hotspotCount || 0), 0);
-            const lastUpdated = projects.length > 0 
-                ? new Date(Math.max(...projects.map(p => new Date(p.updatedAt || p.createdAt)))).toLocaleDateString()
+            // Ensure projects is an array (handle null/undefined)
+            const safeProjects = Array.isArray(projects) ? projects : [];
+
+            const totalProjects = safeProjects.length;
+            const totalSlides = safeProjects.reduce((sum, project) => sum + (project.slideCount || 0), 0);
+            const totalHotspots = safeProjects.reduce((sum, project) => sum + (project.hotspotCount || 0), 0);
+            const lastUpdated = safeProjects.length > 0
+                ? new Date(Math.max(...safeProjects.map(p => new Date(p.updatedAt || p.createdAt)))).toLocaleDateString()
                 : 'N/A';
             
             document.getElementById('total-projects').textContent = totalProjects;

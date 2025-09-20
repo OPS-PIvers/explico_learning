@@ -138,6 +138,11 @@ export const ProjectDashboard: React.FC = () => {
 
   // Filter and sort projects
   const filteredAndSortedProjects = React.useMemo(() => {
+    // Add null safety check
+    if (!state.projects || !Array.isArray(state.projects)) {
+      return [];
+    }
+
     let filtered = state.projects;
 
     // Filter by search query
@@ -226,7 +231,7 @@ export const ProjectDashboard: React.FC = () => {
 
         {!state.loading && !state.error && (
           <>
-            {filteredAndSortedProjects.length === 0 ? (
+            {(filteredAndSortedProjects || []).length === 0 ? (
               <div className="empty-state">
                 <div className="empty-state-content">
                   <h3>No projects found</h3>
@@ -245,7 +250,7 @@ export const ProjectDashboard: React.FC = () => {
               </div>
             ) : (
               <div className="projects-grid">
-                {filteredAndSortedProjects.map(project => (
+                {(filteredAndSortedProjects || []).map(project => (
                   <ProjectCard
                     key={project.id}
                     project={project}

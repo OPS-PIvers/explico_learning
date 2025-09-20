@@ -125,25 +125,79 @@
                                         return {
                                             getProjects: function() {
                                                 // Fallback for development
-                                                callback([]);
+                                                callback([{
+                                                    id: 'sample-project-1',
+                                                    title: 'Sample Project',
+                                                    description: 'This is a sample project for development',
+                                                    createdAt: new Date(),
+                                                    updatedAt: new Date(),
+                                                    spreadsheetId: 'sample-spreadsheet-id',
+                                                    settings: {
+                                                        autoSave: true,
+                                                        version: '1.0.0',
+                                                        theme: 'light',
+                                                        analytics: true
+                                                    }
+                                                }]);
                                             },
                                             createProject: function(title, description) {
                                                 // Fallback for development
                                                 callback({
-                                                    id: 'dev-' + Date.now(),
+                                                    id: 'proj_' + Date.now(),
                                                     title: title,
                                                     description: description,
-                                                    createdAt: new Date().toISOString(),
-                                                    updatedAt: new Date().toISOString(),
-                                                    spreadsheetId: 'dev-spreadsheet',
+                                                    createdAt: new Date(),
+                                                    updatedAt: new Date(),
+                                                    spreadsheetId: 'dev-spreadsheet-' + Date.now(),
                                                     settings: {
                                                         autoSave: true,
+                                                        version: '1.0.0',
                                                         theme: 'light',
                                                         analytics: true
                                                     }
                                                 });
                                             },
                                             deleteProject: function(id) {
+                                                // Fallback for development
+                                                callback();
+                                            },
+                                            getProjectData: function(projectId) {
+                                                // Fallback for development
+                                                callback({
+                                                    project: {
+                                                        id: projectId,
+                                                        title: 'Sample Project',
+                                                        description: 'Sample project for testing',
+                                                        createdAt: new Date(),
+                                                        updatedAt: new Date(),
+                                                        spreadsheetId: 'sample-spreadsheet',
+                                                        settings: {
+                                                            autoSave: true,
+                                                            version: '1.0.0',
+                                                            theme: 'light',
+                                                            analytics: true
+                                                        }
+                                                    },
+                                                    slides: [{
+                                                        id: 'slide-1',
+                                                        projectId: projectId,
+                                                        title: 'Sample Slide',
+                                                        mediaType: 'image',
+                                                        mediaUrl: 'https://via.placeholder.com/800x600/007bff/ffffff?text=Sample+Image',
+                                                        order: 0,
+                                                        transition: 'fade'
+                                                    }],
+                                                    hotspots: []
+                                                });
+                                            },
+                                            saveHotspots: function(projectId, hotspots) {
+                                                // Fallback for development
+                                                console.log('Saving hotspots for project:', projectId, hotspots);
+                                                callback();
+                                            },
+                                            saveSlides: function(projectId, slides) {
+                                                // Fallback for development
+                                                console.log('Saving slides for project:', projectId, slides);
                                                 callback();
                                             }
                                         };
