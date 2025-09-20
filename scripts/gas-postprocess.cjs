@@ -27,28 +27,8 @@ class GASPostProcessor {
       'setupSpreadsheetStructure'
     ];
 
-    // Find the main execution area where our functions are
-    const mainExecRegex = /\/\* harmony import \*\/[\s\S]*?(\/\/ Main entry point for Google Apps Script[\s\S]*)/;
-    const mainExecMatch = content.match(mainExecRegex);
-
-    if (mainExecMatch) {
-      const mainCode = mainExecMatch[1];
-
-      for (const funcName of targetFunctions) {
-        const implementation = this.extractSingleFunction(mainCode, funcName);
-        if (implementation) {
-          this.functions.set(funcName, {
-            name: funcName,
-            fullImplementation: implementation
-          });
-        }
-      }
-    }
-
-    // If main exec area not found, try line-by-line extraction from end of file
-    if (this.functions.size === 0) {
-      this.extractFromEndOfFile(content, targetFunctions);
-    }
+    // Extract functions from the end of the webpack bundle where our code is
+    this.extractFromEndOfFile(content, targetFunctions);
 
     console.log(`Extracted ${this.functions.size} functions: ${Array.from(this.functions.keys()).join(', ')}`);
   }
@@ -73,66 +53,90 @@ class GASPostProcessor {
   }
 
   /**
-   * Extract functions from the end of the file (fallback method)
+   * Extract functions from the end of the file using manual parsing
    */
   extractFromEndOfFile(content, targetFunctions) {
-    // Split into lines and work backwards
-    const lines = content.split('\n');
-    let currentFunction = '';
-    let functionName = '';
-    let braceCount = 0;
-    let capturing = false;
+    // Find the actual function definitions in the main code section
+    const functionsStart = content.lastIndexOf('/**\n * Main entry point for web app requests');
+    if (functionsStart === -1) {
+      console.warn('Could not find functions section in webpack bundle');
+      return;
+    }
 
-    for (let i = lines.length - 1; i >= 0; i--) {
-      const line = lines[i];
+    const functionsSection = content.slice(functionsStart);
+    const lines = functionsSection.split('\n');
 
-      // Check if this line starts a function we care about
-      for (const funcName of targetFunctions) {
-        if (line.includes(`function ${funcName}(`)) {
-          functionName = funcName;
-          capturing = true;
-          braceCount = 0;
-          currentFunction = line + '\n';
-          break;
-        }
-      }
-
-      if (capturing) {
-        if (i < lines.length - 1) {
-          currentFunction = line + '\n' + currentFunction;
-        }
-
-        // Count braces to find function start
-        const openBraces = (line.match(/\{/g) || []).length;
-        const closeBraces = (line.match(/\}/g) || []).length;
-        braceCount += closeBraces - openBraces;
-
-        // When braces balance, we found the complete function
-        if (braceCount === 0 && openBraces > 0) {
-          // Look for JSDoc comment above
-          let j = i - 1;
-          while (j >= 0 && (lines[j].trim() === '' || lines[j].includes('*'))) {
-            if (lines[j].includes('/**')) {
-              // Found JSDoc start, include it
-              for (let k = j; k < i; k++) {
-                currentFunction = lines[k] + '\n' + currentFunction;
-              }
-              break;
-            }
-            j--;
-          }
-
-          this.functions.set(functionName, {
-            name: functionName,
-            fullImplementation: this.cleanupFunction(currentFunction, functionName)
-          });
-
-          capturing = false;
-          currentFunction = '';
-          functionName = '';
-        }
+    for (const funcName of targetFunctions) {
+      const functionCode = this.extractFunctionManually(lines, funcName);
+      if (functionCode) {
+        const cleanFunction = this.cleanupFunction(functionCode, funcName);
+        this.functions.set(funcName, {
+          name: funcName,
+          fullImplementation: cleanFunction
+        });
+        console.log(`✓ Extracted ${funcName}`);
+      } else {
+        console.warn(`✗ Could not extract ${funcName}`);
       }
     }
+  }
+
+  /**
+   * Manually extract a function by finding its declaration and parsing its body
+   */
+  extractFunctionManually(lines, funcName) {
+    const functionStart = new RegExp(`^function\\s+${funcName}\\s*\\(`);
+    let startIndex = -1;
+    let jsdocStart = -1;
+
+    // Find the function declaration
+    for (let i = 0; i < lines.length; i++) {
+      if (functionStart.test(lines[i])) {
+        startIndex = i;
+        // Look backwards for JSDoc comment
+        for (let j = i - 1; j >= 0; j--) {
+          if (lines[j].trim() === '' || lines[j].includes('*')) {
+            if (lines[j].includes('/**')) {
+              jsdocStart = j;
+              break;
+            }
+          } else {
+            break;
+          }
+        }
+        break;
+      }
+    }
+
+    if (startIndex === -1) return null;
+
+    // Parse the function body by counting braces
+    let braceCount = 0;
+    let endIndex = -1;
+    let foundFirstBrace = false;
+
+    for (let i = startIndex; i < lines.length; i++) {
+      const line = lines[i];
+      for (let char of line) {
+        if (char === '{') {
+          braceCount++;
+          foundFirstBrace = true;
+        } else if (char === '}') {
+          braceCount--;
+          if (foundFirstBrace && braceCount === 0) {
+            endIndex = i;
+            break;
+          }
+        }
+      }
+      if (endIndex !== -1) break;
+    }
+
+    if (endIndex === -1) return null;
+
+    // Extract the complete function
+    const actualStart = jsdocStart !== -1 ? jsdocStart : startIndex;
+    return lines.slice(actualStart, endIndex + 1).join('\n');
   }
 
 
@@ -424,31 +428,25 @@ function ${functionName}() {
 
 `;
 
-    // Deduplicate functions and prioritize extracted implementations over stubs
-    const deduplicatedFunctions = new Map();
+    // Only use extracted functions, in the order they were extracted
     const targetFunctions = [
       'doGet', 'include', 'getProjects', 'createProject', 'deleteProject',
       'getProjectData', 'saveHotspots', 'saveSlides', 'createProjectSpreadsheet',
       'setupSpreadsheetStructure'
     ];
 
-    // First pass: add extracted functions
-    for (const func of this.functions.values()) {
-      if (targetFunctions.includes(func.name) && !deduplicatedFunctions.has(func.name)) {
-        deduplicatedFunctions.set(func.name, func.fullImplementation);
-      }
-    }
+    const functionsCode = [];
 
-    // Second pass: add stubs for missing functions
+    // Add functions in the specified order
     for (const funcName of targetFunctions) {
-      if (!deduplicatedFunctions.has(funcName)) {
-        deduplicatedFunctions.set(funcName, this.generateFunctionStub(funcName));
+      if (this.functions.has(funcName)) {
+        functionsCode.push(this.functions.get(funcName).fullImplementation);
+      } else {
+        console.warn(`Function ${funcName} not found, skipping`);
       }
     }
 
-    const functionsCode = Array.from(deduplicatedFunctions.values()).join('\n\n');
-
-    return header + functionsCode;
+    return header + functionsCode.join('\n\n');
   }
 
   /**
