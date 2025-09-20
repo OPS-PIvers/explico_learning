@@ -40,22 +40,20 @@ export const MainCanvas: React.FC<MainCanvasProps> = ({
     }
   }, [isEditMode, slide, isCreating, onHotspotCreate, onHotspotSelect]);
 
+  // Current mouse position for preview
+  const [currentMouse, setCurrentMouse] = useState<{ x: number; y: number } | null>(null);
+
   // Handle mouse move for hotspot creation
   const handleCanvasMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!isCreating || !dragStart || !canvasRef.current) return;
+    if (!canvasRef.current) return;
 
     const rect = canvasRef.current.getBoundingClientRect();
     const currentX = e.clientX - rect.left;
     const currentY = e.clientY - rect.top;
 
-    // Update preview rectangle (this would be implemented with CSS)
-    // For now, just log the dimensions
-    console.log('Creating hotspot:', {
-      x: Math.min(dragStart.x, currentX),
-      y: Math.min(dragStart.y, currentY),
-      width: Math.abs(currentX - dragStart.x),
-      height: Math.abs(currentY - dragStart.y)
-    });
+    if (isCreating && dragStart) {
+      setCurrentMouse({ x: currentX, y: currentY });
+    }
   }, [isCreating, dragStart]);
 
   // Handle mouse up for hotspot creation
@@ -73,23 +71,26 @@ export const MainCanvas: React.FC<MainCanvasProps> = ({
     const width = Math.max(Math.abs(currentX - dragStart.x), HOTSPOT_DEFAULTS.width);
     const height = Math.max(Math.abs(currentY - dragStart.y), HOTSPOT_DEFAULTS.height);
 
-    // Create hotspot request
-    const request: CreateHotspotRequest = {
-      slideId: slide.id,
-      x,
-      y,
-      width,
-      height,
-      eventType: HOTSPOT_DEFAULTS.eventType,
-      triggerType: HOTSPOT_DEFAULTS.triggerType,
-      config: { ...HOTSPOT_DEFAULTS.config }
-    };
+    // Only create if the user actually dragged (minimum size)
+    if (width >= 20 && height >= 20) {
+      const request: CreateHotspotRequest = {
+        slideId: slide.id,
+        x,
+        y,
+        width,
+        height,
+        eventType: HOTSPOT_DEFAULTS.eventType,
+        triggerType: HOTSPOT_DEFAULTS.triggerType,
+        config: { ...HOTSPOT_DEFAULTS.config }
+      };
 
-    onHotspotCreate(request);
+      onHotspotCreate(request);
+    }
 
     // Reset creation state
     setIsCreating(false);
     setDragStart(null);
+    setCurrentMouse(null);
   }, [isCreating, dragStart, slide, onHotspotCreate]);
 
   // Handle hotspot click
@@ -197,20 +198,25 @@ export const MainCanvas: React.FC<MainCanvasProps> = ({
         ))}
 
         {/* Creation preview */}
-        {isCreating && dragStart && (
+        {isCreating && dragStart && currentMouse && (
           <div
             className="hotspot-preview"
             style={{
               position: 'absolute',
-              left: Math.min(dragStart.x, 0), // This would use current mouse position
-              top: Math.min(dragStart.y, 0),
-              width: Math.abs(0 - dragStart.x), // This would use current mouse position
-              height: Math.abs(0 - dragStart.y),
+              left: Math.min(dragStart.x, currentMouse.x),
+              top: Math.min(dragStart.y, currentMouse.y),
+              width: Math.abs(currentMouse.x - dragStart.x),
+              height: Math.abs(currentMouse.y - dragStart.y),
               border: '2px dashed #007bff',
               backgroundColor: 'rgba(0, 123, 255, 0.1)',
-              pointerEvents: 'none'
+              pointerEvents: 'none',
+              zIndex: 25
             }}
-          />
+          >
+            <div className="hotspot-preview-label">
+              {Math.abs(currentMouse.x - dragStart.x)}×{Math.abs(currentMouse.y - dragStart.y)}
+            </div>
+          </div>
         )}
       </div>
     </div>

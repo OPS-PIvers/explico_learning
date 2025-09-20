@@ -535,28 +535,40 @@ function deleteProject(projectId) {
 
 function getProjectData(projectId) {
   try {
+    // Get project from registry
+    var projectManager = new ProjectManager();
+    var projects = projectManager.getAllProjects();
+    var project = null;
+
+    for (var i = 0; i < projects.length; i++) {
+      if (projects[i].id === projectId) {
+        project = projects[i];
+        break;
+      }
+    }
+
+    if (!project) {
+      throw new Error('Project not found: ' + projectId);
+    }
+
+    // Initialize API with project's spreadsheet
+    var sheetsAPI = new GoogleSheetsAPI();
+    sheetsAPI.initialize(project.spreadsheetId);
+
+    // Get slides and hotspots
+    var slides = sheetsAPI.getSlidesByProject(projectId);
+    var allHotspots = [];
+
+    // Get hotspots for all slides
+    for (var j = 0; j < slides.length; j++) {
+      var slideHotspots = sheetsAPI.getHotspotsBySlide(slides[j].id);
+      allHotspots = allHotspots.concat(slideHotspots);
+    }
+
     return {
-      project: {
-        id: projectId,
-        title: 'Sample Project',
-        description: 'Sample project for testing',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        spreadsheetId: 'sample-spreadsheet',
-        settings: PROJECT_DEFAULTS.settings
-      },
-      slides: [
-        {
-          id: 'slide-1',
-          projectId: projectId,
-          title: 'Sample Slide',
-          mediaType: 'image',
-          mediaUrl: 'https://via.placeholder.com/800x600/007bff/ffffff?text=Sample+Image',
-          order: 0,
-          transition: 'fade'
-        }
-      ],
-      hotspots: []
+      project: project,
+      slides: slides,
+      hotspots: allHotspots
     };
   } catch (error) {
     var errorMessage = error instanceof Error ? error.message : String(error);
@@ -567,7 +579,33 @@ function getProjectData(projectId) {
 
 function saveHotspots(projectId, hotspots) {
   try {
+    // Get project to get spreadsheet ID
+    var projectManager = new ProjectManager();
+    var projects = projectManager.getAllProjects();
+    var project = null;
+
+    for (var i = 0; i < projects.length; i++) {
+      if (projects[i].id === projectId) {
+        project = projects[i];
+        break;
+      }
+    }
+
+    if (!project) {
+      throw new Error('Project not found: ' + projectId);
+    }
+
+    // Initialize API with project's spreadsheet
+    var sheetsAPI = new GoogleSheetsAPI();
+    sheetsAPI.initialize(project.spreadsheetId);
+
+    // Use batch update for better performance
+    if (hotspots.length > 0) {
+      sheetsAPI.batchUpdateHotspots(hotspots);
+    }
+
     Logger.log('Saved ' + hotspots.length + ' hotspots for project: ' + projectId);
+    return { success: true, count: hotspots.length };
   } catch (error) {
     var errorMessage = error instanceof Error ? error.message : String(error);
     Logger.log('saveHotspots error: ' + errorMessage);
@@ -577,7 +615,43 @@ function saveHotspots(projectId, hotspots) {
 
 function saveSlides(projectId, slides) {
   try {
+    // Get project to get spreadsheet ID
+    var projectManager = new ProjectManager();
+    var projects = projectManager.getAllProjects();
+    var project = null;
+
+    for (var i = 0; i < projects.length; i++) {
+      if (projects[i].id === projectId) {
+        project = projects[i];
+        break;
+      }
+    }
+
+    if (!project) {
+      throw new Error('Project not found: ' + projectId);
+    }
+
+    // Initialize API with project's spreadsheet
+    var sheetsAPI = new GoogleSheetsAPI();
+    sheetsAPI.initialize(project.spreadsheetId);
+
+    // Update each slide
+    var updatedSlides = [];
+    for (var j = 0; j < slides.length; j++) {
+      var slide = slides[j];
+      if (slide.id) {
+        // Update existing slide
+        var updatedSlide = sheetsAPI.updateSlide(slide);
+        updatedSlides.push(updatedSlide);
+      } else {
+        // Create new slide
+        var newSlide = sheetsAPI.createSlide(slide);
+        updatedSlides.push(newSlide);
+      }
+    }
+
     Logger.log('Saved ' + slides.length + ' slides for project: ' + projectId);
+    return { success: true, slides: updatedSlides };
   } catch (error) {
     var errorMessage = error instanceof Error ? error.message : String(error);
     Logger.log('saveSlides error: ' + errorMessage);

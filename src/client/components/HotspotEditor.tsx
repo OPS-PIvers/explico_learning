@@ -1,11 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Project, Slide, Hotspot, HotspotEditorProps } from '../../shared/types';
+import { Project, Slide, Hotspot, HotspotEditorProps, CreateHotspotRequest } from '../../shared/types';
 import { MainCanvas } from './MainCanvas';
 import { Sidebar } from './Sidebar';
 import { ConfigPanel } from './ConfigPanel';
 import { AppHeader } from './AppHeader';
 import { LoadingSpinner } from './common/LoadingSpinner';
 import { ErrorMessage } from './common/ErrorMessage';
+import { ErrorBoundary } from './common/ErrorBoundary';
+import { ToastContainer } from './common/Toast';
+import { SkipLink, LiveRegion } from './common/A11y';
+import { useAutoSave } from '../hooks/useAutoSave';
+import { useToast } from '../hooks/useToast';
+import { useKeyboardShortcuts, createEditorShortcuts, createSlideNavigationShortcuts } from '../hooks/useKeyboardShortcuts';
+import { useHelpPanel } from './common/HelpPanel';
 
 // Import Google Apps Script types
 import '../types/google-apps-script';
@@ -17,9 +24,9 @@ interface EditorState {
   activeSlide: Slide | null;
   selectedHotspot: Hotspot | null;
   loading: boolean;
-  saving: boolean;
   error: string | null;
   isEditMode: boolean;
+  hasUnsavedChanges: boolean;
   sidebarWidth: number;
   configPanelWidth: number;
 }
@@ -37,11 +44,44 @@ export const HotspotEditor: React.FC<HotspotEditorProps> = ({
     activeSlide: null,
     selectedHotspot: null,
     loading: true,
-    saving: false,
     error: null,
     isEditMode: true,
+    hasUnsavedChanges: false,
     sidebarWidth: 300,
     configPanelWidth: 320
+  });
+
+  // Auto-save implementation
+  const saveProjectData = useCallback(async (data: { slides: Slide[], hotspots: Hotspot[] }) => {
+    await Promise.all([
+      new Promise<void>((resolve, reject) => {
+        window.google.script.run
+          .withSuccessHandler(() => resolve())
+          .withFailureHandler((error: any) => reject(new Error(error.message || 'Failed to save slides')))
+          .saveSlides(projectId, data.slides);
+      }),
+      new Promise<void>((resolve, reject) => {
+        window.google.script.run
+          .withSuccessHandler(() => resolve())
+          .withFailureHandler((error: any) => reject(new Error(error.message || 'Failed to save hotspots')))
+          .saveHotspots(projectId, data.hotspots);
+      })
+    ]);
+  }, [projectId]);
+
+  // Auto-save hook
+  const autoSave = useAutoSave({
+    data: { slides: state.slides, hotspots: state.hotspots },
+    onSave: saveProjectData,
+    delay: 2000,
+    enabled: state.hasUnsavedChanges && !state.loading,
+    onSuccess: () => {
+      setState(prev => ({ ...prev, hasUnsavedChanges: false }));
+    },
+    onError: (error) => {
+      console.error('Auto-save failed:', error);
+      setState(prev => ({ ...prev, error: error.message }));
+    }
   });
 
   // Load project data
@@ -92,48 +132,115 @@ export const HotspotEditor: React.FC<HotspotEditorProps> = ({
     }
   }, [projectId]);
 
-  // Save hotspots to server
-  const saveHotspots = useCallback(async (hotspots?: Hotspot[]) => {
-    const hotspotsToSave = hotspots || state.hotspots;
+  // Toast notifications
+  const toast = useToast();
+
+  // Manual save
+  const handleSaveNow = useCallback(async () => {
     try {
-      setState(prev => ({ ...prev, saving: true, error: null }));
-
-      await new Promise<void>((resolve, reject) => {
-        window.google.script.run
-          .withSuccessHandler(() => resolve())
-          .withFailureHandler((error: any) => {
-            reject(new Error(error.message || 'Failed to save hotspots'));
-          })
-          .saveHotspots(projectId, hotspotsToSave);
-      });
-
-      setState(prev => ({ ...prev, saving: false }));
-
-      if (onSave) {
-        onSave(hotspotsToSave);
-      }
+      await autoSave.saveNow();
+      toast.showSuccess('Project saved successfully');
     } catch (error) {
-      setState(prev => ({
-        ...prev,
-        saving: false,
-        error: error instanceof Error ? error.message : 'Failed to save hotspots'
-      }));
+      console.error('Manual save failed:', error);
+      toast.showError('Failed to save project');
     }
-  }, [projectId, state.hotspots, onSave]);
+  }, [autoSave, toast]);
 
-  // Auto-save debounced
-  const debouncedSave = useCallback(
-    (() => {
-      let timeout: NodeJS.Timeout;
-      return (hotspots: Hotspot[]) => {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => {
-          saveHotspots(hotspots);
-        }, 1000);
-      };
-    })(),
-    [saveHotspots]
-  );
+  // Navigate to next slide
+  const goToNextSlide = useCallback(() => {
+    if (!state.activeSlide) return;
+    const currentIndex = state.slides.findIndex(s => s.id === state.activeSlide!.id);
+    if (currentIndex < state.slides.length - 1) {
+      handleSlideSelect(state.slides[currentIndex + 1]);
+    }
+  }, [state.activeSlide, state.slides]);
+
+  // Navigate to previous slide
+  const goToPrevSlide = useCallback(() => {
+    if (!state.activeSlide) return;
+    const currentIndex = state.slides.findIndex(s => s.id === state.activeSlide!.id);
+    if (currentIndex > 0) {
+      handleSlideSelect(state.slides[currentIndex - 1]);
+    }
+  }, [state.activeSlide, state.slides]);
+
+  // Navigate to first slide
+  const goToFirstSlide = useCallback(() => {
+    if (state.slides.length > 0) {
+      handleSlideSelect(state.slides[0]);
+    }
+  }, [state.slides]);
+
+  // Navigate to last slide
+  const goToLastSlide = useCallback(() => {
+    if (state.slides.length > 0) {
+      handleSlideSelect(state.slides[state.slides.length - 1]);
+    }
+  }, [state.slides]);
+
+  // Clear selection
+  const clearSelection = useCallback(() => {
+    setState(prev => ({ ...prev, selectedHotspot: null }));
+  }, []);
+
+  // Keyboard shortcuts
+  const editorShortcuts = createEditorShortcuts({
+    save: handleSaveNow,
+    undo: () => toast.showInfo('Undo feature coming soon'),
+    redo: () => toast.showInfo('Redo feature coming soon'),
+    delete: () => {
+      if (state.selectedHotspot) {
+        handleHotspotDelete(state.selectedHotspot.id);
+      }
+    },
+    escape: clearSelection,
+    copy: () => toast.showInfo('Copy feature coming soon'),
+    paste: () => toast.showInfo('Paste feature coming soon'),
+    selectAll: () => toast.showInfo('Select all feature coming soon'),
+    toggleMode: () => setState(prev => ({ ...prev, isEditMode: !prev.isEditMode })),
+    zoomIn: () => toast.showInfo('Zoom in feature coming soon'),
+    zoomOut: () => toast.showInfo('Zoom out feature coming soon'),
+    resetZoom: () => toast.showInfo('Reset zoom feature coming soon')
+  });
+
+  const navigationShortcuts = createSlideNavigationShortcuts({
+    nextSlide: goToNextSlide,
+    prevSlide: goToPrevSlide,
+    firstSlide: goToFirstSlide,
+    lastSlide: goToLastSlide
+  });
+
+  const allShortcuts = [...editorShortcuts, ...navigationShortcuts];
+
+  useKeyboardShortcuts({
+    shortcuts: allShortcuts,
+    enabled: !state.loading
+  });
+
+  // Add missing slide handlers
+  const handleSlideReorder = useCallback((slides: Slide[]) => {
+    setState(prev => ({
+      ...prev,
+      slides,
+      hasUnsavedChanges: true
+    }));
+  }, []);
+
+  const handleSlideCreate = useCallback((slideData: any) => {
+    toast.showInfo('Create slide functionality coming soon');
+  }, [toast]);
+
+  const handleSlideDelete = useCallback((slideId: string) => {
+    if (confirm('Are you sure you want to delete this slide?')) {
+      toast.showInfo('Delete slide functionality coming soon');
+    }
+  }, [toast]);
+
+  // Help panel
+  const helpPanel = useHelpPanel(allShortcuts.map(shortcut => ({
+    ...shortcut,
+    displayKey: shortcut.key // Add the missing displayKey property
+  })));
 
   // Handle slide selection
   const handleSlideSelect = useCallback((slide: Slide) => {
@@ -150,7 +257,7 @@ export const HotspotEditor: React.FC<HotspotEditorProps> = ({
   }, []);
 
   // Handle hotspot creation
-  const handleHotspotCreate = useCallback((request: any) => {
+  const handleHotspotCreate = useCallback((request: CreateHotspotRequest) => {
     const newHotspot: Hotspot = {
       id: `hotspot_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       slideId: request.slideId,
@@ -165,42 +272,39 @@ export const HotspotEditor: React.FC<HotspotEditorProps> = ({
       isVisible: true
     };
 
-    const updatedHotspots = [...state.hotspots, newHotspot];
     setState(prev => ({
       ...prev,
-      hotspots: updatedHotspots,
-      selectedHotspot: newHotspot
+      hotspots: [...prev.hotspots, newHotspot],
+      selectedHotspot: newHotspot,
+      hasUnsavedChanges: true
     }));
-
-    debouncedSave(updatedHotspots);
-  }, [state.hotspots, debouncedSave]);
+  }, [state.hotspots]);
 
   // Handle hotspot update
   const handleHotspotUpdate = useCallback((updatedHotspot: Hotspot) => {
-    const updatedHotspots = state.hotspots.map(h =>
-      h.id === updatedHotspot.id ? updatedHotspot : h
-    );
-
     setState(prev => ({
       ...prev,
-      hotspots: updatedHotspots,
-      selectedHotspot: updatedHotspot
+      hotspots: prev.hotspots.map(h =>
+        h.id === updatedHotspot.id ? updatedHotspot : h
+      ),
+      selectedHotspot: updatedHotspot,
+      hasUnsavedChanges: true
     }));
-
-    debouncedSave(updatedHotspots);
-  }, [state.hotspots, debouncedSave]);
+  }, []);
 
   // Handle hotspot delete
   const handleHotspotDelete = useCallback((hotspotId: string) => {
-    const updatedHotspots = state.hotspots.filter(h => h.id !== hotspotId);
+    if (!confirm('Are you sure you want to delete this hotspot?')) {
+      return;
+    }
+
     setState(prev => ({
       ...prev,
-      hotspots: updatedHotspots,
-      selectedHotspot: prev.selectedHotspot?.id === hotspotId ? null : prev.selectedHotspot
+      hotspots: prev.hotspots.filter(h => h.id !== hotspotId),
+      selectedHotspot: prev.selectedHotspot?.id === hotspotId ? null : prev.selectedHotspot,
+      hasUnsavedChanges: true
     }));
-
-    debouncedSave(updatedHotspots);
-  }, [state.hotspots, debouncedSave]);
+  }, []);
 
   // Get hotspots for active slide
   const activeSlideHotspots = React.useMemo(() => {
@@ -221,7 +325,7 @@ export const HotspotEditor: React.FC<HotspotEditorProps> = ({
         switch (event.key) {
           case 's':
             event.preventDefault();
-            saveHotspots();
+            handleSaveNow();
             break;
           case 'z':
             event.preventDefault();
@@ -232,11 +336,14 @@ export const HotspotEditor: React.FC<HotspotEditorProps> = ({
       if (event.key === 'Delete' && state.selectedHotspot) {
         handleHotspotDelete(state.selectedHotspot.id);
       }
+      if (event.key === 'Escape') {
+        setState(prev => ({ ...prev, selectedHotspot: null }));
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [saveHotspots, state.selectedHotspot, handleHotspotDelete]);
+  }, [handleSaveNow, state.selectedHotspot, handleHotspotDelete]);
 
   if (state.loading) {
     return <LoadingSpinner message="Loading project..." />;
@@ -255,46 +362,109 @@ export const HotspotEditor: React.FC<HotspotEditorProps> = ({
     return <ErrorMessage message="Project not found" />;
   }
 
-  return (
-    <div className="hotspot-editor">
-      <AppHeader
-        project={state.project}
-        isSaving={state.saving}
-        onSave={() => saveHotspots()}
-        onToggleEditMode={() =>
-          setState(prev => ({ ...prev, isEditMode: !prev.isEditMode }))
-        }
-        isEditMode={state.isEditMode}
-      />
+  // Live region announcements
+  const [liveMessage, setLiveMessage] = useState('');
 
-      <div className="editor-content">
-        <Sidebar
-          slides={state.slides}
-          activeSlide={state.activeSlide || undefined}
-          onSlideSelect={handleSlideSelect}
-          width={state.sidebarWidth}
+  // Update live message for screen readers
+  useEffect(() => {
+    if (state.activeSlide) {
+      setLiveMessage(`Active slide: ${state.activeSlide.title}`);
+    }
+  }, [state.activeSlide]);
+
+  useEffect(() => {
+    if (state.selectedHotspot) {
+      setLiveMessage(`Selected hotspot: ${state.selectedHotspot.config.text || 'Hotspot'}`);
+    } else if (liveMessage.includes('Selected hotspot')) {
+      setLiveMessage('Selection cleared');
+    }
+  }, [state.selectedHotspot]);
+
+  return (
+    <ErrorBoundary>
+      <div className="hotspot-editor">
+        <SkipLink targetId="main-content">Skip to main content</SkipLink>
+
+        <LiveRegion>{liveMessage}</LiveRegion>
+
+        <AppHeader
+          project={state.project}
+          hasUnsavedChanges={state.hasUnsavedChanges}
+          isSaving={autoSave.isSaving}
+          lastSaved={autoSave.lastSaved}
+          onSaveNow={handleSaveNow}
+          onToggleEditMode={() =>
+            setState(prev => ({ ...prev, isEditMode: !prev.isEditMode }))
+          }
+          isEditMode={state.isEditMode}
         />
 
-        <div className="main-content">
-          <MainCanvas
-            slide={state.activeSlide || undefined}
-            hotspots={activeSlideHotspots}
-            selectedHotspot={state.selectedHotspot || undefined}
-            isEditMode={state.isEditMode}
-            onHotspotSelect={handleHotspotSelect}
-            onHotspotCreate={handleHotspotCreate}
-            onHotspotUpdate={handleHotspotUpdate}
-            onHotspotDelete={handleHotspotDelete}
+        <div className="editor-content" role="main">
+          <Sidebar
+            slides={state.slides}
+            activeSlide={state.activeSlide || undefined}
+            onSlideSelect={handleSlideSelect}
+            onSlideReorder={handleSlideReorder}
+            onSlideCreate={handleSlideCreate}
+            onSlideDelete={handleSlideDelete}
+            width={state.sidebarWidth}
+          />
+
+          <div id="main-content" className="main-content">
+            <MainCanvas
+              slide={state.activeSlide || undefined}
+              hotspots={activeSlideHotspots}
+              selectedHotspot={state.selectedHotspot || undefined}
+              isEditMode={state.isEditMode}
+              onHotspotSelect={handleHotspotSelect}
+              onHotspotCreate={handleHotspotCreate}
+              onHotspotUpdate={handleHotspotUpdate}
+              onHotspotDelete={handleHotspotDelete}
+            />
+          </div>
+
+          <ConfigPanel
+            hotspot={state.selectedHotspot || undefined}
+            onUpdate={handleHotspotUpdate}
+            onDelete={handleHotspotDelete}
+            width={state.configPanelWidth}
           />
         </div>
 
-        <ConfigPanel
-          hotspot={state.selectedHotspot || undefined}
-          onUpdate={handleHotspotUpdate}
-          onDelete={handleHotspotDelete}
-          width={state.configPanelWidth}
-        />
+        {/* Status indicators */}
+        <div className="editor-status" role="status" aria-live="polite">
+          {autoSave.isSaving && (
+            <div className="status-item saving">
+              <span className="spinner-small" aria-hidden="true" />
+              Saving...
+            </div>
+          )}
+          {autoSave.isError && (
+            <div className="status-item error">
+              <span aria-hidden="true">⚠️</span> Save failed
+            </div>
+          )}
+          {autoSave.lastSaved && !autoSave.isSaving && !state.hasUnsavedChanges && (
+            <div className="status-item saved">
+              <span aria-hidden="true">✓</span> Saved {autoSave.lastSaved.toLocaleTimeString()}
+            </div>
+          )}
+          {state.hasUnsavedChanges && !autoSave.isSaving && (
+            <div className="status-item unsaved">
+              <span aria-hidden="true">•</span> Unsaved changes
+            </div>
+          )}
+          <div className="status-item hotspots-count">
+            {activeSlideHotspots.length} hotspot{activeSlideHotspots.length !== 1 ? 's' : ''}
+          </div>
+        </div>
+
+        {/* Toast notifications */}
+        <ToastContainer toasts={toast.toasts} onRemoveToast={toast.removeToast} />
+
+        {/* Help panel */}
+        {helpPanel.helpPanel}
       </div>
-    </div>
+    </ErrorBoundary>
   );
 };

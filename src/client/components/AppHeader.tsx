@@ -2,17 +2,21 @@ import React from 'react';
 import { Project } from '../../shared/types';
 
 interface AppHeaderProps {
-  project: Project;
-  isSaving: boolean;
-  onSave: () => void;
+  project: Project | null;
+  hasUnsavedChanges?: boolean;
+  isSaving?: boolean;
+  lastSaved?: Date | null;
+  onSaveNow?: () => void;
   onToggleEditMode: () => void;
   isEditMode: boolean;
 }
 
 export const AppHeader: React.FC<AppHeaderProps> = ({
   project,
-  isSaving,
-  onSave,
+  hasUnsavedChanges = false,
+  isSaving = false,
+  lastSaved,
+  onSaveNow,
   onToggleEditMode,
   isEditMode
 }) => {
@@ -20,6 +24,25 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     const dashboardUrl = `${window.location.origin}${window.location.pathname}`;
     window.location.href = dashboardUrl;
   };
+
+  if (!project) {
+    return (
+      <header className="app-header">
+        <div className="header-left">
+          <button
+            className="btn btn-ghost"
+            onClick={handleBackToDashboard}
+            title="Back to Dashboard"
+          >
+            ← Back
+          </button>
+          <div className="project-info">
+            <h1 className="project-title">Loading...</h1>
+          </div>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <header className="app-header">
@@ -47,6 +70,16 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
               Saving...
             </span>
           )}
+          {!isSaving && hasUnsavedChanges && (
+            <span className="unsaved-indicator">
+              • Unsaved changes
+            </span>
+          )}
+          {!isSaving && !hasUnsavedChanges && lastSaved && (
+            <span className="saved-indicator">
+              ✓ Saved {lastSaved.toLocaleTimeString()}
+            </span>
+          )}
         </div>
 
         <div className="header-actions">
@@ -58,14 +91,16 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             {isEditMode ? '✏️ Edit Mode' : '👁️ Preview'}
           </button>
 
-          <button
-            className="btn btn-success"
-            onClick={onSave}
-            disabled={isSaving}
-            title="Save Changes (Ctrl+S)"
-          >
-            {isSaving ? 'Saving...' : '💾 Save'}
-          </button>
+          {onSaveNow && (
+            <button
+              className={`btn ${hasUnsavedChanges ? 'btn-success' : 'btn-secondary'}`}
+              onClick={onSaveNow}
+              disabled={isSaving}
+              title="Save Changes (Ctrl+S)"
+            >
+              {isSaving ? 'Saving...' : '💾 Save Now'}
+            </button>
+          )}
 
           <div className="dropdown">
             <button className="btn btn-secondary dropdown-toggle">

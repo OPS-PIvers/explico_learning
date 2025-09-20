@@ -184,7 +184,2527 @@
                 setTimeout(() => document.body.removeChild(indicator), 300);
             }, 2000);
         };</script><script defer="defer">"use strict";
-(self["webpackChunkexplico_learning_typescript"] = self["webpackChunkexplico_learning_typescript"] || []).push([[510],{
+(self["webpackChunkexplico_learning_typescript"] = self["webpackChunkexplico_learning_typescript"] || []).push([[244],{
+
+/***/ 244:
+/***/ ((__unused_webpack_module, __unused_webpack___webpack_exports__, __webpack_require__) => {
+
+
+// EXTERNAL MODULE: ./node_modules/react/index.js
+var react = __webpack_require__(540);
+// EXTERNAL MODULE: ./node_modules/react-dom/client.js
+var client = __webpack_require__(338);
+// EXTERNAL MODULE: ./src/shared/constants/index.ts
+var constants = __webpack_require__(639);
+;// ./src/client/components/MainCanvas.tsx
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+
+
+var MainCanvas = function MainCanvas(_ref) {
+  var slide = _ref.slide,
+    hotspots = _ref.hotspots,
+    selectedHotspot = _ref.selectedHotspot,
+    isEditMode = _ref.isEditMode,
+    onHotspotSelect = _ref.onHotspotSelect,
+    onHotspotCreate = _ref.onHotspotCreate,
+    onHotspotUpdate = _ref.onHotspotUpdate,
+    onHotspotDelete = _ref.onHotspotDelete;
+  var canvasRef = (0,react.useRef)(null);
+  var _useState = (0,react.useState)({
+      width: 800,
+      height: 600
+    }),
+    _useState2 = _slicedToArray(_useState, 2),
+    canvasSize = _useState2[0],
+    setCanvasSize = _useState2[1];
+  var _useState3 = (0,react.useState)(false),
+    _useState4 = _slicedToArray(_useState3, 2),
+    isCreating = _useState4[0],
+    setIsCreating = _useState4[1];
+  var _useState5 = (0,react.useState)(null),
+    _useState6 = _slicedToArray(_useState5, 2),
+    dragStart = _useState6[0],
+    setDragStart = _useState6[1];
+
+  // Handle canvas click for creating hotspots
+  var handleCanvasClick = (0,react.useCallback)(function (e) {
+    var _canvasRef$current;
+    if (!isEditMode || !slide || !onHotspotCreate) return;
+    var rect = (_canvasRef$current = canvasRef.current) === null || _canvasRef$current === void 0 ? void 0 : _canvasRef$current.getBoundingClientRect();
+    if (!rect) return;
+    var x = e.clientX - rect.left;
+    var y = e.clientY - rect.top;
+
+    // Clear selection when clicking empty area
+    if (e.target === canvasRef.current && onHotspotSelect) {
+      onHotspotSelect(null);
+      return;
+    }
+
+    // Start creating hotspot
+    if (!isCreating) {
+      setIsCreating(true);
+      setDragStart({
+        x: x,
+        y: y
+      });
+    }
+  }, [isEditMode, slide, isCreating, onHotspotCreate, onHotspotSelect]);
+
+  // Current mouse position for preview
+  var _useState7 = (0,react.useState)(null),
+    _useState8 = _slicedToArray(_useState7, 2),
+    currentMouse = _useState8[0],
+    setCurrentMouse = _useState8[1];
+
+  // Handle mouse move for hotspot creation
+  var handleCanvasMouseMove = (0,react.useCallback)(function (e) {
+    if (!canvasRef.current) return;
+    var rect = canvasRef.current.getBoundingClientRect();
+    var currentX = e.clientX - rect.left;
+    var currentY = e.clientY - rect.top;
+    if (isCreating && dragStart) {
+      setCurrentMouse({
+        x: currentX,
+        y: currentY
+      });
+    }
+  }, [isCreating, dragStart]);
+
+  // Handle mouse up for hotspot creation
+  var handleCanvasMouseUp = (0,react.useCallback)(function (e) {
+    var _canvasRef$current2;
+    if (!isCreating || !dragStart || !slide || !onHotspotCreate) return;
+    var rect = (_canvasRef$current2 = canvasRef.current) === null || _canvasRef$current2 === void 0 ? void 0 : _canvasRef$current2.getBoundingClientRect();
+    if (!rect) return;
+    var currentX = e.clientX - rect.left;
+    var currentY = e.clientY - rect.top;
+    var x = Math.min(dragStart.x, currentX);
+    var y = Math.min(dragStart.y, currentY);
+    var width = Math.max(Math.abs(currentX - dragStart.x), constants/* HOTSPOT_DEFAULTS */.r.width);
+    var height = Math.max(Math.abs(currentY - dragStart.y), constants/* HOTSPOT_DEFAULTS */.r.height);
+
+    // Only create if the user actually dragged (minimum size)
+    if (width >= 20 && height >= 20) {
+      var request = {
+        slideId: slide.id,
+        x: x,
+        y: y,
+        width: width,
+        height: height,
+        eventType: constants/* HOTSPOT_DEFAULTS */.r.eventType,
+        triggerType: constants/* HOTSPOT_DEFAULTS */.r.triggerType,
+        config: _objectSpread({}, constants/* HOTSPOT_DEFAULTS */.r.config)
+      };
+      onHotspotCreate(request);
+    }
+
+    // Reset creation state
+    setIsCreating(false);
+    setDragStart(null);
+    setCurrentMouse(null);
+  }, [isCreating, dragStart, slide, onHotspotCreate]);
+
+  // Handle hotspot click
+  var handleHotspotClick = (0,react.useCallback)(function (e, hotspot) {
+    e.stopPropagation();
+    if (onHotspotSelect) {
+      onHotspotSelect(hotspot);
+    }
+  }, [onHotspotSelect]);
+
+  // Update canvas size based on slide dimensions
+  (0,react.useEffect)(function () {
+    if (slide) {
+      // This would normally get actual image dimensions
+      setCanvasSize({
+        width: 800,
+        height: 600
+      });
+    }
+  }, [slide]);
+  if (!slide) {
+    return /*#__PURE__*/react.createElement("div", {
+      className: "main-canvas-empty"
+    }, /*#__PURE__*/react.createElement("p", null, "Select a slide to start editing hotspots"));
+  }
+  return /*#__PURE__*/react.createElement("div", {
+    className: "main-canvas-container"
+  }, /*#__PURE__*/react.createElement("div", {
+    className: "canvas-toolbar"
+  }, /*#__PURE__*/react.createElement("div", {
+    className: "canvas-info"
+  }, /*#__PURE__*/react.createElement("h3", null, slide.title), /*#__PURE__*/react.createElement("span", {
+    className: "hotspot-count"
+  }, hotspots.length, " hotspots")), /*#__PURE__*/react.createElement("div", {
+    className: "canvas-controls"
+  }, /*#__PURE__*/react.createElement("button", {
+    className: "btn ".concat(isEditMode ? 'btn-primary' : 'btn-secondary'),
+    onClick: function onClick() {
+      // This would be handled by parent component
+      console.log('Toggle edit mode');
+    }
+  }, isEditMode ? 'Edit Mode' : 'Preview Mode'))), /*#__PURE__*/react.createElement("div", {
+    ref: canvasRef,
+    className: "main-canvas",
+    style: {
+      width: canvasSize.width,
+      height: canvasSize.height,
+      backgroundImage: slide.mediaType === 'image' ? "url(".concat(slide.mediaUrl, ")") : 'none',
+      backgroundSize: 'contain',
+      backgroundRepeat: 'no-repeat',
+      backgroundPosition: 'center'
+    },
+    onClick: handleCanvasClick,
+    onMouseMove: handleCanvasMouseMove,
+    onMouseUp: handleCanvasMouseUp
+  }, slide.mediaType === 'video' && /*#__PURE__*/react.createElement("video", {
+    src: slide.mediaUrl,
+    style: {
+      width: '100%',
+      height: '100%',
+      objectFit: 'contain'
+    },
+    controls: !isEditMode
+  }), slide.mediaType === 'youtube' && /*#__PURE__*/react.createElement("iframe", {
+    src: slide.mediaUrl,
+    style: {
+      width: '100%',
+      height: '100%',
+      border: 'none'
+    },
+    allowFullScreen: true,
+    title: slide.title
+  }), hotspots.map(function (hotspot) {
+    return /*#__PURE__*/react.createElement("div", {
+      key: hotspot.id,
+      className: "hotspot ".concat((selectedHotspot === null || selectedHotspot === void 0 ? void 0 : selectedHotspot.id) === hotspot.id ? 'selected' : ''),
+      style: {
+        position: 'absolute',
+        left: hotspot.x,
+        top: hotspot.y,
+        width: hotspot.width,
+        height: hotspot.height,
+        border: "2px solid ".concat((selectedHotspot === null || selectedHotspot === void 0 ? void 0 : selectedHotspot.id) === hotspot.id ? '#007bff' : '#28a745'),
+        backgroundColor: 'rgba(0, 123, 255, 0.1)',
+        cursor: isEditMode ? 'pointer' : 'default',
+        zIndex: (selectedHotspot === null || selectedHotspot === void 0 ? void 0 : selectedHotspot.id) === hotspot.id ? 20 : 10
+      },
+      onClick: function onClick(e) {
+        return handleHotspotClick(e, hotspot);
+      },
+      title: hotspot.config.text || "Hotspot ".concat(hotspot.id)
+    }, isEditMode && /*#__PURE__*/react.createElement("div", {
+      className: "hotspot-label"
+    }, hotspot.config.text || 'Hotspot'));
+  }), isCreating && dragStart && currentMouse && /*#__PURE__*/react.createElement("div", {
+    className: "hotspot-preview",
+    style: {
+      position: 'absolute',
+      left: Math.min(dragStart.x, currentMouse.x),
+      top: Math.min(dragStart.y, currentMouse.y),
+      width: Math.abs(currentMouse.x - dragStart.x),
+      height: Math.abs(currentMouse.y - dragStart.y),
+      border: '2px dashed #007bff',
+      backgroundColor: 'rgba(0, 123, 255, 0.1)',
+      pointerEvents: 'none',
+      zIndex: 25
+    }
+  }, /*#__PURE__*/react.createElement("div", {
+    className: "hotspot-preview-label"
+  }, Math.abs(currentMouse.x - dragStart.x), "\xD7", Math.abs(currentMouse.y - dragStart.y)))));
+};
+// EXTERNAL MODULE: ./src/shared/types/index.ts
+var types = __webpack_require__(323);
+;// ./src/client/components/common/CreateSlideModal.tsx
+function CreateSlideModal_typeof(o) { "@babel/helpers - typeof"; return CreateSlideModal_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, CreateSlideModal_typeof(o); }
+function CreateSlideModal_ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function CreateSlideModal_objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? CreateSlideModal_ownKeys(Object(t), !0).forEach(function (r) { CreateSlideModal_defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : CreateSlideModal_ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function CreateSlideModal_defineProperty(e, r, t) { return (r = CreateSlideModal_toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function CreateSlideModal_toPropertyKey(t) { var i = CreateSlideModal_toPrimitive(t, "string"); return "symbol" == CreateSlideModal_typeof(i) ? i : i + ""; }
+function CreateSlideModal_toPrimitive(t, r) { if ("object" != CreateSlideModal_typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != CreateSlideModal_typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+function CreateSlideModal_slicedToArray(r, e) { return CreateSlideModal_arrayWithHoles(r) || CreateSlideModal_iterableToArrayLimit(r, e) || CreateSlideModal_unsupportedIterableToArray(r, e) || CreateSlideModal_nonIterableRest(); }
+function CreateSlideModal_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function CreateSlideModal_unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return CreateSlideModal_arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? CreateSlideModal_arrayLikeToArray(r, a) : void 0; } }
+function CreateSlideModal_arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function CreateSlideModal_iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function CreateSlideModal_arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+
+
+var CreateSlideModal = function CreateSlideModal(_ref) {
+  var onClose = _ref.onClose,
+    onCreate = _ref.onCreate;
+  var _useState = (0,react.useState)({
+      projectId: '',
+      // Will be set by parent
+      title: '',
+      mediaType: types/* MediaType */.zu.IMAGE,
+      mediaUrl: '',
+      order: 0
+    }),
+    _useState2 = CreateSlideModal_slicedToArray(_useState, 2),
+    formData = _useState2[0],
+    setFormData = _useState2[1];
+  var _useState3 = (0,react.useState)({}),
+    _useState4 = CreateSlideModal_slicedToArray(_useState3, 2),
+    errors = _useState4[0],
+    setErrors = _useState4[1];
+  var handleInputChange = function handleInputChange(field, value) {
+    setFormData(function (prev) {
+      return CreateSlideModal_objectSpread(CreateSlideModal_objectSpread({}, prev), {}, CreateSlideModal_defineProperty({}, field, value));
+    });
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors(function (prev) {
+        return CreateSlideModal_objectSpread(CreateSlideModal_objectSpread({}, prev), {}, CreateSlideModal_defineProperty({}, field, undefined));
+      });
+    }
+  };
+  var validateForm = function validateForm() {
+    var newErrors = {};
+    if (!formData.title.trim()) {
+      newErrors.title = 'Title is required';
+    }
+    if (!formData.mediaUrl.trim()) {
+      newErrors.mediaUrl = 'Media URL is required';
+    } else {
+      // Basic URL validation
+      try {
+        new URL(formData.mediaUrl);
+      } catch (_unused) {
+        newErrors.mediaUrl = 'Please enter a valid URL';
+      }
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+  var handleSubmit = function handleSubmit(e) {
+    e.preventDefault();
+    if (validateForm()) {
+      onCreate(formData);
+    }
+  };
+  var handleBackdropClick = function handleBackdropClick(e) {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+  var isYouTubeUrl = function isYouTubeUrl(url) {
+    return url.includes('youtube.com') || url.includes('youtu.be');
+  };
+  var getVideoId = function getVideoId(url) {
+    var match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
+    return match ? match[1] : '';
+  };
+  var getYouTubeEmbedUrl = function getYouTubeEmbedUrl(url) {
+    var videoId = getVideoId(url);
+    return videoId ? "https://www.youtube.com/embed/".concat(videoId) : url;
+  };
+  var handleMediaTypeChange = function handleMediaTypeChange(mediaType) {
+    setFormData(function (prev) {
+      return CreateSlideModal_objectSpread(CreateSlideModal_objectSpread({}, prev), {}, {
+        mediaType: mediaType
+      });
+    });
+
+    // Auto-detect YouTube URLs
+    if (mediaType === types/* MediaType */.zu.YOUTUBE && formData.mediaUrl && isYouTubeUrl(formData.mediaUrl)) {
+      setFormData(function (prev) {
+        return CreateSlideModal_objectSpread(CreateSlideModal_objectSpread({}, prev), {}, {
+          mediaUrl: getYouTubeEmbedUrl(prev.mediaUrl)
+        });
+      });
+    }
+  };
+  return /*#__PURE__*/react.createElement("div", {
+    className: "modal-backdrop",
+    onClick: handleBackdropClick
+  }, /*#__PURE__*/react.createElement("div", {
+    className: "modal-content"
+  }, /*#__PURE__*/react.createElement("div", {
+    className: "modal-header"
+  }, /*#__PURE__*/react.createElement("h2", null, "Create New Slide"), /*#__PURE__*/react.createElement("button", {
+    className: "modal-close",
+    onClick: onClose,
+    "aria-label": "Close modal"
+  }, "\xD7")), /*#__PURE__*/react.createElement("form", {
+    onSubmit: handleSubmit
+  }, /*#__PURE__*/react.createElement("div", {
+    className: "modal-body"
+  }, /*#__PURE__*/react.createElement("div", {
+    className: "form-group"
+  }, /*#__PURE__*/react.createElement("label", {
+    htmlFor: "slide-title"
+  }, "Slide Title *"), /*#__PURE__*/react.createElement("input", {
+    id: "slide-title",
+    type: "text",
+    value: formData.title,
+    onChange: function onChange(e) {
+      return handleInputChange('title', e.target.value);
+    },
+    className: "form-input ".concat(errors.title ? 'error' : ''),
+    placeholder: "Enter slide title...",
+    autoFocus: true
+  }), errors.title && /*#__PURE__*/react.createElement("span", {
+    className: "error-message"
+  }, errors.title)), /*#__PURE__*/react.createElement("div", {
+    className: "form-group"
+  }, /*#__PURE__*/react.createElement("label", null, "Media Type *"), /*#__PURE__*/react.createElement("div", {
+    className: "media-type-selector"
+  }, /*#__PURE__*/react.createElement("label", {
+    className: "radio-option"
+  }, /*#__PURE__*/react.createElement("input", {
+    type: "radio",
+    name: "mediaType",
+    value: types/* MediaType */.zu.IMAGE,
+    checked: formData.mediaType === types/* MediaType */.zu.IMAGE,
+    onChange: function onChange() {
+      return handleMediaTypeChange(types/* MediaType */.zu.IMAGE);
+    }
+  }), /*#__PURE__*/react.createElement("span", null, "\uD83D\uDDBC\uFE0F Image")), /*#__PURE__*/react.createElement("label", {
+    className: "radio-option"
+  }, /*#__PURE__*/react.createElement("input", {
+    type: "radio",
+    name: "mediaType",
+    value: types/* MediaType */.zu.VIDEO,
+    checked: formData.mediaType === types/* MediaType */.zu.VIDEO,
+    onChange: function onChange() {
+      return handleMediaTypeChange(types/* MediaType */.zu.VIDEO);
+    }
+  }), /*#__PURE__*/react.createElement("span", null, "\uD83C\uDFA5 Video")), /*#__PURE__*/react.createElement("label", {
+    className: "radio-option"
+  }, /*#__PURE__*/react.createElement("input", {
+    type: "radio",
+    name: "mediaType",
+    value: types/* MediaType */.zu.YOUTUBE,
+    checked: formData.mediaType === types/* MediaType */.zu.YOUTUBE,
+    onChange: function onChange() {
+      return handleMediaTypeChange(types/* MediaType */.zu.YOUTUBE);
+    }
+  }), /*#__PURE__*/react.createElement("span", null, "\uD83D\uDCF9 YouTube")))), /*#__PURE__*/react.createElement("div", {
+    className: "form-group"
+  }, /*#__PURE__*/react.createElement("label", {
+    htmlFor: "media-url"
+  }, formData.mediaType === types/* MediaType */.zu.YOUTUBE ? 'YouTube URL' : 'Media URL', " *"), /*#__PURE__*/react.createElement("input", {
+    id: "media-url",
+    type: "url",
+    value: formData.mediaUrl,
+    onChange: function onChange(e) {
+      var url = e.target.value;
+      handleInputChange('mediaUrl', url);
+
+      // Auto-detect and convert YouTube URLs
+      if (formData.mediaType === types/* MediaType */.zu.YOUTUBE && isYouTubeUrl(url)) {
+        handleInputChange('mediaUrl', getYouTubeEmbedUrl(url));
+      }
+    },
+    className: "form-input ".concat(errors.mediaUrl ? 'error' : ''),
+    placeholder: formData.mediaType === types/* MediaType */.zu.YOUTUBE ? 'https://www.youtube.com/watch?v=...' : 'https://example.com/image.jpg'
+  }), errors.mediaUrl && /*#__PURE__*/react.createElement("span", {
+    className: "error-message"
+  }, errors.mediaUrl), formData.mediaType === types/* MediaType */.zu.YOUTUBE && /*#__PURE__*/react.createElement("small", {
+    className: "form-help"
+  }, "Paste any YouTube URL - it will be automatically converted to an embed URL")), formData.mediaUrl && !errors.mediaUrl && /*#__PURE__*/react.createElement("div", {
+    className: "form-group"
+  }, /*#__PURE__*/react.createElement("label", null, "Preview"), /*#__PURE__*/react.createElement("div", {
+    className: "media-preview"
+  }, formData.mediaType === types/* MediaType */.zu.IMAGE && /*#__PURE__*/react.createElement("img", {
+    src: formData.mediaUrl,
+    alt: "Preview",
+    style: {
+      maxWidth: '200px',
+      maxHeight: '150px'
+    },
+    onError: function onError(e) {
+      e.target.style.display = 'none';
+    }
+  }), formData.mediaType === types/* MediaType */.zu.YOUTUBE && getVideoId(formData.mediaUrl) && /*#__PURE__*/react.createElement("iframe", {
+    src: getYouTubeEmbedUrl(formData.mediaUrl),
+    width: "200",
+    height: "113",
+    frameBorder: "0",
+    allowFullScreen: true,
+    title: "YouTube preview"
+  }), formData.mediaType === types/* MediaType */.zu.VIDEO && /*#__PURE__*/react.createElement("video", {
+    src: formData.mediaUrl,
+    width: "200",
+    height: "113",
+    controls: true,
+    onError: function onError(e) {
+      e.target.style.display = 'none';
+    }
+  })))), /*#__PURE__*/react.createElement("div", {
+    className: "modal-footer"
+  }, /*#__PURE__*/react.createElement("button", {
+    type: "button",
+    className: "btn btn-secondary",
+    onClick: onClose
+  }, "Cancel"), /*#__PURE__*/react.createElement("button", {
+    type: "submit",
+    className: "btn btn-primary"
+  }, "Create Slide")))));
+};
+;// ./src/client/components/Sidebar.tsx
+function Sidebar_typeof(o) { "@babel/helpers - typeof"; return Sidebar_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, Sidebar_typeof(o); }
+function Sidebar_ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function Sidebar_objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? Sidebar_ownKeys(Object(t), !0).forEach(function (r) { Sidebar_defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : Sidebar_ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function Sidebar_defineProperty(e, r, t) { return (r = Sidebar_toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function Sidebar_toPropertyKey(t) { var i = Sidebar_toPrimitive(t, "string"); return "symbol" == Sidebar_typeof(i) ? i : i + ""; }
+function Sidebar_toPrimitive(t, r) { if ("object" != Sidebar_typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != Sidebar_typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || Sidebar_unsupportedIterableToArray(r) || _nonIterableSpread(); }
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
+function _arrayWithoutHoles(r) { if (Array.isArray(r)) return Sidebar_arrayLikeToArray(r); }
+function Sidebar_slicedToArray(r, e) { return Sidebar_arrayWithHoles(r) || Sidebar_iterableToArrayLimit(r, e) || Sidebar_unsupportedIterableToArray(r, e) || Sidebar_nonIterableRest(); }
+function Sidebar_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function Sidebar_unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return Sidebar_arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? Sidebar_arrayLikeToArray(r, a) : void 0; } }
+function Sidebar_arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function Sidebar_iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function Sidebar_arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+
+
+var Sidebar = function Sidebar(_ref) {
+  var slides = _ref.slides,
+    activeSlide = _ref.activeSlide,
+    onSlideSelect = _ref.onSlideSelect,
+    onSlideReorder = _ref.onSlideReorder,
+    onSlideCreate = _ref.onSlideCreate,
+    onSlideDelete = _ref.onSlideDelete,
+    _ref$width = _ref.width,
+    width = _ref$width === void 0 ? 300 : _ref$width;
+  var _useState = (0,react.useState)(false),
+    _useState2 = Sidebar_slicedToArray(_useState, 2),
+    showCreateModal = _useState2[0],
+    setShowCreateModal = _useState2[1];
+  var _useState3 = (0,react.useState)(null),
+    _useState4 = Sidebar_slicedToArray(_useState3, 2),
+    draggedSlide = _useState4[0],
+    setDraggedSlide = _useState4[1];
+  var _useState5 = (0,react.useState)(null),
+    _useState6 = Sidebar_slicedToArray(_useState5, 2),
+    dragOverIndex = _useState6[0],
+    setDragOverIndex = _useState6[1];
+
+  // Handle drag start
+  var handleDragStart = (0,react.useCallback)(function (e, slide) {
+    setDraggedSlide(slide);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', '');
+  }, []);
+
+  // Handle drag over
+  var handleDragOver = (0,react.useCallback)(function (e, index) {
+    e.preventDefault();
+    setDragOverIndex(index);
+  }, []);
+
+  // Handle drag leave
+  var handleDragLeave = (0,react.useCallback)(function () {
+    setDragOverIndex(null);
+  }, []);
+
+  // Handle drop
+  var handleDrop = (0,react.useCallback)(function (e, targetIndex) {
+    e.preventDefault();
+    setDragOverIndex(null);
+    if (!draggedSlide) return;
+    var currentIndex = slides.findIndex(function (s) {
+      return s.id === draggedSlide.id;
+    });
+    if (currentIndex === targetIndex) return;
+    var newSlides = _toConsumableArray(slides);
+    var _newSlides$splice = newSlides.splice(currentIndex, 1),
+      _newSlides$splice2 = Sidebar_slicedToArray(_newSlides$splice, 1),
+      removed = _newSlides$splice2[0];
+    newSlides.splice(targetIndex, 0, removed);
+
+    // Update order property
+    var reorderedSlides = newSlides.map(function (slide, index) {
+      return Sidebar_objectSpread(Sidebar_objectSpread({}, slide), {}, {
+        order: index
+      });
+    });
+    onSlideReorder === null || onSlideReorder === void 0 || onSlideReorder(reorderedSlides);
+    setDraggedSlide(null);
+  }, [draggedSlide, slides, onSlideReorder]);
+
+  // Handle slide creation
+  var handleSlideCreate = (0,react.useCallback)(function (slideData) {
+    onSlideCreate === null || onSlideCreate === void 0 || onSlideCreate(slideData);
+    setShowCreateModal(false);
+  }, [onSlideCreate]);
+
+  // Handle slide deletion
+  var handleSlideDelete = (0,react.useCallback)(function (e, slide) {
+    e.stopPropagation();
+    onSlideDelete === null || onSlideDelete === void 0 || onSlideDelete(slide.id);
+  }, [onSlideDelete]);
+  return /*#__PURE__*/react.createElement("div", {
+    className: "sidebar",
+    style: {
+      width: width
+    }
+  }, /*#__PURE__*/react.createElement("div", {
+    className: "sidebar-header"
+  }, /*#__PURE__*/react.createElement("h3", null, "Slides"), /*#__PURE__*/react.createElement("button", {
+    className: "btn btn-sm btn-primary",
+    onClick: function onClick() {
+      return setShowCreateModal(true);
+    },
+    title: "Add new slide"
+  }, "+ Add Slide")), /*#__PURE__*/react.createElement("div", {
+    className: "slides-list"
+  }, slides.length === 0 ? /*#__PURE__*/react.createElement("div", {
+    className: "empty-slides"
+  }, /*#__PURE__*/react.createElement("p", null, "No slides yet"), /*#__PURE__*/react.createElement("button", {
+    className: "btn btn-sm btn-primary",
+    onClick: function onClick() {
+      return setShowCreateModal(true);
+    }
+  }, "Create First Slide")) : slides.map(function (slide, index) {
+    return /*#__PURE__*/react.createElement("div", {
+      key: slide.id,
+      className: "slide-item ".concat((activeSlide === null || activeSlide === void 0 ? void 0 : activeSlide.id) === slide.id ? 'active' : '', " ").concat(dragOverIndex === index ? 'drag-over' : ''),
+      draggable: true,
+      onClick: function onClick() {
+        return onSlideSelect === null || onSlideSelect === void 0 ? void 0 : onSlideSelect(slide);
+      },
+      onDragStart: function onDragStart(e) {
+        return handleDragStart(e, slide);
+      },
+      onDragOver: function onDragOver(e) {
+        return handleDragOver(e, index);
+      },
+      onDragLeave: handleDragLeave,
+      onDrop: function onDrop(e) {
+        return handleDrop(e, index);
+      },
+      title: "Slide ".concat(index + 1, ": ").concat(slide.title)
+    }, /*#__PURE__*/react.createElement("div", {
+      className: "slide-drag-handle"
+    }, "\u22EE\u22EE"), /*#__PURE__*/react.createElement("div", {
+      className: "slide-preview"
+    }, /*#__PURE__*/react.createElement("img", {
+      src: slide.mediaUrl,
+      alt: slide.title,
+      className: "slide-thumbnail",
+      onError: function onError(e) {
+        e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9Ijc1IiB2aWV3Qm94PSIwIDAgMTAwIDc1IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9Ijc1IiBmaWxsPSIjZjBmMGYwIi8+CjxwYXRoIGQ9Ik00MCA0MEwzNSAzNUwzMCAzNUwyNSA0MEwyNSA0NUwzMCA1MEwzNSA1MEw0MCA0NVY0MFoiIGZpbGw9IiNjY2MiLz4KPHN2Zz4K';
+      },
+      loading: "lazy"
+    }), /*#__PURE__*/react.createElement("div", {
+      className: "slide-number"
+    }, index + 1)), /*#__PURE__*/react.createElement("div", {
+      className: "slide-info"
+    }, /*#__PURE__*/react.createElement("h4", {
+      className: "slide-title"
+    }, slide.title), /*#__PURE__*/react.createElement("span", {
+      className: "slide-type"
+    }, slide.mediaType)), /*#__PURE__*/react.createElement("div", {
+      className: "slide-actions"
+    }, /*#__PURE__*/react.createElement("button", {
+      className: "btn btn-xs btn-ghost",
+      onClick: function onClick(e) {
+        return handleSlideDelete(e, slide);
+      },
+      title: "Delete slide",
+      "aria-label": "Delete slide ".concat(slide.title)
+    }, "\uD83D\uDDD1\uFE0F")));
+  })), showCreateModal && /*#__PURE__*/react.createElement(CreateSlideModal, {
+    onClose: function onClose() {
+      return setShowCreateModal(false);
+    },
+    onCreate: handleSlideCreate
+  }));
+};
+;// ./src/client/components/ConfigPanel.tsx
+function ConfigPanel_typeof(o) { "@babel/helpers - typeof"; return ConfigPanel_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, ConfigPanel_typeof(o); }
+function ConfigPanel_ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function ConfigPanel_objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ConfigPanel_ownKeys(Object(t), !0).forEach(function (r) { ConfigPanel_defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ConfigPanel_ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function ConfigPanel_defineProperty(e, r, t) { return (r = ConfigPanel_toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function ConfigPanel_toPropertyKey(t) { var i = ConfigPanel_toPrimitive(t, "string"); return "symbol" == ConfigPanel_typeof(i) ? i : i + ""; }
+function ConfigPanel_toPrimitive(t, r) { if ("object" != ConfigPanel_typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != ConfigPanel_typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+function ConfigPanel_slicedToArray(r, e) { return ConfigPanel_arrayWithHoles(r) || ConfigPanel_iterableToArrayLimit(r, e) || ConfigPanel_unsupportedIterableToArray(r, e) || ConfigPanel_nonIterableRest(); }
+function ConfigPanel_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function ConfigPanel_unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return ConfigPanel_arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? ConfigPanel_arrayLikeToArray(r, a) : void 0; } }
+function ConfigPanel_arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function ConfigPanel_iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function ConfigPanel_arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+
+
+
+var ConfigPanel = function ConfigPanel(_ref) {
+  var _formData$config, _formData$config2, _formData$config3, _formData$config4, _formData$config5;
+  var hotspot = _ref.hotspot,
+    onUpdate = _ref.onUpdate,
+    onDelete = _ref.onDelete,
+    _ref$width = _ref.width,
+    width = _ref$width === void 0 ? 320 : _ref$width;
+  var _useState = (0,react.useState)({}),
+    _useState2 = ConfigPanel_slicedToArray(_useState, 2),
+    formData = _useState2[0],
+    setFormData = _useState2[1];
+  (0,react.useEffect)(function () {
+    if (hotspot) {
+      setFormData(hotspot);
+    } else {
+      setFormData({});
+    }
+  }, [hotspot]);
+  var handleUpdate = function handleUpdate(field, value) {
+    var updatedData = ConfigPanel_objectSpread(ConfigPanel_objectSpread({}, formData), {}, ConfigPanel_defineProperty({}, field, value));
+    setFormData(updatedData);
+    if (onUpdate && hotspot) {
+      onUpdate(ConfigPanel_objectSpread(ConfigPanel_objectSpread({}, hotspot), updatedData));
+    }
+  };
+  var handleConfigUpdate = function handleConfigUpdate(configField, value) {
+    var updatedConfig = ConfigPanel_objectSpread(ConfigPanel_objectSpread({}, formData.config), {}, ConfigPanel_defineProperty({}, configField, value));
+    var updatedData = ConfigPanel_objectSpread(ConfigPanel_objectSpread({}, formData), {}, {
+      config: updatedConfig
+    });
+    setFormData(updatedData);
+    if (onUpdate && hotspot) {
+      onUpdate(ConfigPanel_objectSpread(ConfigPanel_objectSpread({}, hotspot), updatedData));
+    }
+  };
+  if (!hotspot) {
+    return /*#__PURE__*/react.createElement("div", {
+      className: "config-panel",
+      style: {
+        width: width
+      }
+    }, /*#__PURE__*/react.createElement("div", {
+      className: "config-panel-empty"
+    }, /*#__PURE__*/react.createElement("p", null, "Select a hotspot to edit its properties")));
+  }
+  return /*#__PURE__*/react.createElement("div", {
+    className: "config-panel",
+    style: {
+      width: width
+    }
+  }, /*#__PURE__*/react.createElement("div", {
+    className: "config-panel-header"
+  }, /*#__PURE__*/react.createElement("h3", null, "Hotspot Properties"), /*#__PURE__*/react.createElement("button", {
+    className: "btn btn-danger btn-sm",
+    onClick: function onClick() {
+      return onDelete === null || onDelete === void 0 ? void 0 : onDelete(hotspot.id);
+    },
+    title: "Delete hotspot"
+  }, "Delete")), /*#__PURE__*/react.createElement("div", {
+    className: "config-panel-content"
+  }, /*#__PURE__*/react.createElement("div", {
+    className: "config-section"
+  }, /*#__PURE__*/react.createElement("h4", null, "Position & Size"), /*#__PURE__*/react.createElement("div", {
+    className: "form-row"
+  }, /*#__PURE__*/react.createElement("div", {
+    className: "form-group"
+  }, /*#__PURE__*/react.createElement("label", null, "X Position"), /*#__PURE__*/react.createElement("input", {
+    type: "number",
+    value: formData.x || 0,
+    onChange: function onChange(e) {
+      return handleUpdate('x', parseInt(e.target.value));
+    },
+    className: "form-input"
+  })), /*#__PURE__*/react.createElement("div", {
+    className: "form-group"
+  }, /*#__PURE__*/react.createElement("label", null, "Y Position"), /*#__PURE__*/react.createElement("input", {
+    type: "number",
+    value: formData.y || 0,
+    onChange: function onChange(e) {
+      return handleUpdate('y', parseInt(e.target.value));
+    },
+    className: "form-input"
+  }))), /*#__PURE__*/react.createElement("div", {
+    className: "form-row"
+  }, /*#__PURE__*/react.createElement("div", {
+    className: "form-group"
+  }, /*#__PURE__*/react.createElement("label", null, "Width"), /*#__PURE__*/react.createElement("input", {
+    type: "number",
+    value: formData.width || 50,
+    onChange: function onChange(e) {
+      return handleUpdate('width', parseInt(e.target.value));
+    },
+    className: "form-input",
+    min: "10"
+  })), /*#__PURE__*/react.createElement("div", {
+    className: "form-group"
+  }, /*#__PURE__*/react.createElement("label", null, "Height"), /*#__PURE__*/react.createElement("input", {
+    type: "number",
+    value: formData.height || 50,
+    onChange: function onChange(e) {
+      return handleUpdate('height', parseInt(e.target.value));
+    },
+    className: "form-input",
+    min: "10"
+  })))), /*#__PURE__*/react.createElement("div", {
+    className: "config-section"
+  }, /*#__PURE__*/react.createElement("h4", null, "Event Type"), /*#__PURE__*/react.createElement("select", {
+    value: formData.eventType || types/* EventType */.Bx.TEXT_POPUP,
+    onChange: function onChange(e) {
+      return handleUpdate('eventType', e.target.value);
+    },
+    className: "form-select"
+  }, Object.entries(constants/* EVENT_TYPES */.Ru).map(function (_ref2) {
+    var _ref3 = ConfigPanel_slicedToArray(_ref2, 2),
+      key = _ref3[0],
+      config = _ref3[1];
+    return /*#__PURE__*/react.createElement("option", {
+      key: key,
+      value: key
+    }, config.icon, " ", config.name);
+  }))), /*#__PURE__*/react.createElement("div", {
+    className: "config-section"
+  }, /*#__PURE__*/react.createElement("h4", null, "Trigger Type"), /*#__PURE__*/react.createElement("select", {
+    value: formData.triggerType || types/* TriggerType */.P8.CLICK,
+    onChange: function onChange(e) {
+      return handleUpdate('triggerType', e.target.value);
+    },
+    className: "form-select"
+  }, Object.entries(constants/* TRIGGER_TYPES */.Zw).map(function (_ref4) {
+    var _ref5 = ConfigPanel_slicedToArray(_ref4, 2),
+      key = _ref5[0],
+      config = _ref5[1];
+    return /*#__PURE__*/react.createElement("option", {
+      key: key,
+      value: key
+    }, config.icon, " ", config.name);
+  }))), formData.eventType === types/* EventType */.Bx.TEXT_POPUP && /*#__PURE__*/react.createElement("div", {
+    className: "config-section"
+  }, /*#__PURE__*/react.createElement("h4", null, "Text Content"), /*#__PURE__*/react.createElement("div", {
+    className: "form-group"
+  }, /*#__PURE__*/react.createElement("label", null, "Title"), /*#__PURE__*/react.createElement("input", {
+    type: "text",
+    value: ((_formData$config = formData.config) === null || _formData$config === void 0 ? void 0 : _formData$config.title) || '',
+    onChange: function onChange(e) {
+      return handleConfigUpdate('title', e.target.value);
+    },
+    className: "form-input",
+    placeholder: "Optional title"
+  })), /*#__PURE__*/react.createElement("div", {
+    className: "form-group"
+  }, /*#__PURE__*/react.createElement("label", null, "Text"), /*#__PURE__*/react.createElement("textarea", {
+    value: ((_formData$config2 = formData.config) === null || _formData$config2 === void 0 ? void 0 : _formData$config2.text) || '',
+    onChange: function onChange(e) {
+      return handleConfigUpdate('text', e.target.value);
+    },
+    className: "form-textarea",
+    placeholder: "Enter hotspot text...",
+    rows: 4
+  }))), /*#__PURE__*/react.createElement("div", {
+    className: "config-section"
+  }, /*#__PURE__*/react.createElement("h4", null, "Style"), /*#__PURE__*/react.createElement("div", {
+    className: "form-group"
+  }, /*#__PURE__*/react.createElement("label", null, "Background Color"), /*#__PURE__*/react.createElement("input", {
+    type: "color",
+    value: ((_formData$config3 = formData.config) === null || _formData$config3 === void 0 ? void 0 : _formData$config3.backgroundColor) || '#ffffff',
+    onChange: function onChange(e) {
+      return handleConfigUpdate('backgroundColor', e.target.value);
+    },
+    className: "form-color-input"
+  })), /*#__PURE__*/react.createElement("div", {
+    className: "form-group"
+  }, /*#__PURE__*/react.createElement("label", null, "Text Color"), /*#__PURE__*/react.createElement("input", {
+    type: "color",
+    value: ((_formData$config4 = formData.config) === null || _formData$config4 === void 0 ? void 0 : _formData$config4.textColor) || '#000000',
+    onChange: function onChange(e) {
+      return handleConfigUpdate('textColor', e.target.value);
+    },
+    className: "form-color-input"
+  })), /*#__PURE__*/react.createElement("div", {
+    className: "form-group"
+  }, /*#__PURE__*/react.createElement("label", null, "Font Size"), /*#__PURE__*/react.createElement("input", {
+    type: "number",
+    value: ((_formData$config5 = formData.config) === null || _formData$config5 === void 0 ? void 0 : _formData$config5.fontSize) || 14,
+    onChange: function onChange(e) {
+      return handleConfigUpdate('fontSize', parseInt(e.target.value));
+    },
+    className: "form-input",
+    min: "8",
+    max: "72"
+  }))), /*#__PURE__*/react.createElement("div", {
+    className: "config-section"
+  }, /*#__PURE__*/react.createElement("h4", null, "Visibility"), /*#__PURE__*/react.createElement("div", {
+    className: "form-group"
+  }, /*#__PURE__*/react.createElement("label", {
+    className: "checkbox-label"
+  }, /*#__PURE__*/react.createElement("input", {
+    type: "checkbox",
+    checked: formData.isVisible !== false,
+    onChange: function onChange(e) {
+      return handleUpdate('isVisible', e.target.checked);
+    }
+  }), "Visible")))));
+};
+;// ./src/client/components/AppHeader.tsx
+
+var AppHeader = function AppHeader(_ref) {
+  var project = _ref.project,
+    _ref$hasUnsavedChange = _ref.hasUnsavedChanges,
+    hasUnsavedChanges = _ref$hasUnsavedChange === void 0 ? false : _ref$hasUnsavedChange,
+    _ref$isSaving = _ref.isSaving,
+    isSaving = _ref$isSaving === void 0 ? false : _ref$isSaving,
+    lastSaved = _ref.lastSaved,
+    onSaveNow = _ref.onSaveNow,
+    onToggleEditMode = _ref.onToggleEditMode,
+    isEditMode = _ref.isEditMode;
+  var handleBackToDashboard = function handleBackToDashboard() {
+    var dashboardUrl = "".concat(window.location.origin).concat(window.location.pathname);
+    window.location.href = dashboardUrl;
+  };
+  if (!project) {
+    return /*#__PURE__*/react.createElement("header", {
+      className: "app-header"
+    }, /*#__PURE__*/react.createElement("div", {
+      className: "header-left"
+    }, /*#__PURE__*/react.createElement("button", {
+      className: "btn btn-ghost",
+      onClick: handleBackToDashboard,
+      title: "Back to Dashboard"
+    }, "\u2190 Back"), /*#__PURE__*/react.createElement("div", {
+      className: "project-info"
+    }, /*#__PURE__*/react.createElement("h1", {
+      className: "project-title"
+    }, "Loading..."))));
+  }
+  return /*#__PURE__*/react.createElement("header", {
+    className: "app-header"
+  }, /*#__PURE__*/react.createElement("div", {
+    className: "header-left"
+  }, /*#__PURE__*/react.createElement("button", {
+    className: "btn btn-ghost",
+    onClick: handleBackToDashboard,
+    title: "Back to Dashboard"
+  }, "\u2190 Back"), /*#__PURE__*/react.createElement("div", {
+    className: "project-info"
+  }, /*#__PURE__*/react.createElement("h1", {
+    className: "project-title"
+  }, project.title), project.description && /*#__PURE__*/react.createElement("p", {
+    className: "project-description"
+  }, project.description))), /*#__PURE__*/react.createElement("div", {
+    className: "header-right"
+  }, /*#__PURE__*/react.createElement("div", {
+    className: "save-status"
+  }, isSaving && /*#__PURE__*/react.createElement("span", {
+    className: "saving-indicator"
+  }, /*#__PURE__*/react.createElement("span", {
+    className: "spinner-sm"
+  }), "Saving..."), !isSaving && hasUnsavedChanges && /*#__PURE__*/react.createElement("span", {
+    className: "unsaved-indicator"
+  }, "\u2022 Unsaved changes"), !isSaving && !hasUnsavedChanges && lastSaved && /*#__PURE__*/react.createElement("span", {
+    className: "saved-indicator"
+  }, "\u2713 Saved ", lastSaved.toLocaleTimeString())), /*#__PURE__*/react.createElement("div", {
+    className: "header-actions"
+  }, /*#__PURE__*/react.createElement("button", {
+    className: "btn mode-toggle ".concat(isEditMode ? 'btn-primary' : 'btn-secondary'),
+    onClick: onToggleEditMode,
+    title: isEditMode ? 'Switch to Preview Mode' : 'Switch to Edit Mode'
+  }, isEditMode ? '✏️ Edit Mode' : '👁️ Preview'), onSaveNow && /*#__PURE__*/react.createElement("button", {
+    className: "btn ".concat(hasUnsavedChanges ? 'btn-success' : 'btn-secondary'),
+    onClick: onSaveNow,
+    disabled: isSaving,
+    title: "Save Changes (Ctrl+S)"
+  }, isSaving ? 'Saving...' : '💾 Save Now'), /*#__PURE__*/react.createElement("div", {
+    className: "dropdown"
+  }, /*#__PURE__*/react.createElement("button", {
+    className: "btn btn-secondary dropdown-toggle"
+  }, "\u2699\uFE0F Options"), /*#__PURE__*/react.createElement("div", {
+    className: "dropdown-menu"
+  }, /*#__PURE__*/react.createElement("button", {
+    className: "dropdown-item"
+  }, "Export Project"), /*#__PURE__*/react.createElement("button", {
+    className: "dropdown-item"
+  }, "Import Slides"), /*#__PURE__*/react.createElement("hr", {
+    className: "dropdown-divider"
+  }), /*#__PURE__*/react.createElement("button", {
+    className: "dropdown-item"
+  }, "Project Settings"))))));
+};
+;// ./src/client/components/common/LoadingSpinner.tsx
+
+var LoadingSpinner = function LoadingSpinner(_ref) {
+  var _ref$message = _ref.message,
+    message = _ref$message === void 0 ? 'Loading...' : _ref$message,
+    _ref$size = _ref.size,
+    size = _ref$size === void 0 ? 'medium' : _ref$size,
+    _ref$className = _ref.className,
+    className = _ref$className === void 0 ? '' : _ref$className;
+  return /*#__PURE__*/react.createElement("div", {
+    className: "loading-spinner ".concat(size, " ").concat(className)
+  }, /*#__PURE__*/react.createElement("div", {
+    className: "spinner"
+  }), message && /*#__PURE__*/react.createElement("p", {
+    className: "loading-message"
+  }, message));
+};
+;// ./src/client/components/common/ErrorMessage.tsx
+
+var ErrorMessage = function ErrorMessage(_ref) {
+  var message = _ref.message,
+    onRetry = _ref.onRetry,
+    _ref$className = _ref.className,
+    className = _ref$className === void 0 ? '' : _ref$className;
+  return /*#__PURE__*/react.createElement("div", {
+    className: "error-message ".concat(className)
+  }, /*#__PURE__*/react.createElement("div", {
+    className: "error-icon"
+  }, "\u26A0\uFE0F"), /*#__PURE__*/react.createElement("div", {
+    className: "error-content"
+  }, /*#__PURE__*/react.createElement("h3", null, "Error"), /*#__PURE__*/react.createElement("p", null, message), onRetry && /*#__PURE__*/react.createElement("button", {
+    className: "btn btn-secondary",
+    onClick: onRetry
+  }, "Try Again")));
+};
+;// ./src/client/components/common/ErrorBoundary.tsx
+function ErrorBoundary_typeof(o) { "@babel/helpers - typeof"; return ErrorBoundary_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, ErrorBoundary_typeof(o); }
+function _classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function"); }
+function _defineProperties(e, r) { for (var t = 0; t < r.length; t++) { var o = r[t]; o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, ErrorBoundary_toPropertyKey(o.key), o); } }
+function _createClass(e, r, t) { return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), Object.defineProperty(e, "prototype", { writable: !1 }), e; }
+function _callSuper(t, o, e) { return o = _getPrototypeOf(o), _possibleConstructorReturn(t, _isNativeReflectConstruct() ? Reflect.construct(o, e || [], _getPrototypeOf(t).constructor) : o.apply(t, e)); }
+function _possibleConstructorReturn(t, e) { if (e && ("object" == ErrorBoundary_typeof(e) || "function" == typeof e)) return e; if (void 0 !== e) throw new TypeError("Derived constructors may only return object or undefined"); return _assertThisInitialized(t); }
+function _assertThisInitialized(e) { if (void 0 === e) throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); return e; }
+function _isNativeReflectConstruct() { try { var t = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); } catch (t) {} return (_isNativeReflectConstruct = function _isNativeReflectConstruct() { return !!t; })(); }
+function _getPrototypeOf(t) { return _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function (t) { return t.__proto__ || Object.getPrototypeOf(t); }, _getPrototypeOf(t); }
+function _inherits(t, e) { if ("function" != typeof e && null !== e) throw new TypeError("Super expression must either be null or a function"); t.prototype = Object.create(e && e.prototype, { constructor: { value: t, writable: !0, configurable: !0 } }), Object.defineProperty(t, "prototype", { writable: !1 }), e && _setPrototypeOf(t, e); }
+function _setPrototypeOf(t, e) { return _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function (t, e) { return t.__proto__ = e, t; }, _setPrototypeOf(t, e); }
+function ErrorBoundary_defineProperty(e, r, t) { return (r = ErrorBoundary_toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function ErrorBoundary_toPropertyKey(t) { var i = ErrorBoundary_toPrimitive(t, "string"); return "symbol" == ErrorBoundary_typeof(i) ? i : i + ""; }
+function ErrorBoundary_toPrimitive(t, r) { if ("object" != ErrorBoundary_typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != ErrorBoundary_typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+
+var ErrorBoundary = /*#__PURE__*/function (_Component) {
+  function ErrorBoundary(props) {
+    var _this;
+    _classCallCheck(this, ErrorBoundary);
+    _this = _callSuper(this, ErrorBoundary, [props]);
+    ErrorBoundary_defineProperty(_this, "handleRetry", function () {
+      _this.setState({
+        hasError: false,
+        error: undefined,
+        errorInfo: undefined
+      });
+    });
+    ErrorBoundary_defineProperty(_this, "handleReload", function () {
+      window.location.reload();
+    });
+    _this.state = {
+      hasError: false
+    };
+    return _this;
+  }
+  _inherits(ErrorBoundary, _Component);
+  return _createClass(ErrorBoundary, [{
+    key: "componentDidCatch",
+    value: function componentDidCatch(error, errorInfo) {
+      console.error('Error caught by boundary:', error, errorInfo);
+      this.setState({
+        error: error,
+        errorInfo: errorInfo
+      });
+    }
+  }, {
+    key: "render",
+    value: function render() {
+      if (this.state.hasError) {
+        if (this.props.fallback) {
+          return this.props.fallback;
+        }
+        return /*#__PURE__*/react.createElement("div", {
+          className: "error-boundary"
+        }, /*#__PURE__*/react.createElement("div", {
+          className: "error-boundary-content"
+        }, /*#__PURE__*/react.createElement("h2", null, "\uD83D\uDEAB Something went wrong"), /*#__PURE__*/react.createElement("p", null, "An unexpected error occurred in the application."),  false && /*#__PURE__*/0, /*#__PURE__*/react.createElement("div", {
+          className: "error-actions"
+        }, /*#__PURE__*/react.createElement("button", {
+          className: "btn btn-primary",
+          onClick: this.handleRetry
+        }, "Try Again"), /*#__PURE__*/react.createElement("button", {
+          className: "btn btn-secondary",
+          onClick: this.handleReload
+        }, "Reload Page"))));
+      }
+      return this.props.children;
+    }
+  }], [{
+    key: "getDerivedStateFromError",
+    value: function getDerivedStateFromError(error) {
+      return {
+        hasError: true,
+        error: error
+      };
+    }
+  }]);
+}(react.Component);
+;// ./src/client/components/common/Toast.tsx
+function Toast_slicedToArray(r, e) { return Toast_arrayWithHoles(r) || Toast_iterableToArrayLimit(r, e) || Toast_unsupportedIterableToArray(r, e) || Toast_nonIterableRest(); }
+function Toast_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function Toast_unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return Toast_arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? Toast_arrayLikeToArray(r, a) : void 0; } }
+function Toast_arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function Toast_iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function Toast_arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+
+var ToastItem = function ToastItem(_ref) {
+  var toast = _ref.toast,
+    onRemove = _ref.onRemove;
+  var _useState = (0,react.useState)(false),
+    _useState2 = Toast_slicedToArray(_useState, 2),
+    isVisible = _useState2[0],
+    setIsVisible = _useState2[1];
+  (0,react.useEffect)(function () {
+    // Trigger fade-in animation
+    var timer = setTimeout(function () {
+      return setIsVisible(true);
+    }, 50);
+    return function () {
+      return clearTimeout(timer);
+    };
+  }, []);
+  (0,react.useEffect)(function () {
+    if (toast.duration !== 0) {
+      var timer = setTimeout(function () {
+        handleClose();
+      }, toast.duration || 5000);
+      return function () {
+        return clearTimeout(timer);
+      };
+    }
+  }, [toast.duration]);
+  var handleClose = function handleClose() {
+    setIsVisible(false);
+    setTimeout(function () {
+      return onRemove(toast.id);
+    }, 300);
+  };
+  var getIcon = function getIcon() {
+    switch (toast.type) {
+      case 'success':
+        return '✅';
+      case 'error':
+        return '❌';
+      case 'warning':
+        return '⚠️';
+      case 'info':
+        return 'ℹ️';
+      default:
+        return 'ℹ️';
+    }
+  };
+  return /*#__PURE__*/react.createElement("div", {
+    className: "toast toast-".concat(toast.type, " ").concat(isVisible ? 'visible' : ''),
+    role: "alert",
+    "aria-live": "polite"
+  }, /*#__PURE__*/react.createElement("div", {
+    className: "toast-icon"
+  }, getIcon()), /*#__PURE__*/react.createElement("div", {
+    className: "toast-content"
+  }, toast.title && /*#__PURE__*/react.createElement("div", {
+    className: "toast-title"
+  }, toast.title), /*#__PURE__*/react.createElement("div", {
+    className: "toast-message"
+  }, toast.message), toast.action && /*#__PURE__*/react.createElement("button", {
+    className: "toast-action",
+    onClick: toast.action.onClick
+  }, toast.action.label)), /*#__PURE__*/react.createElement("button", {
+    className: "toast-close",
+    onClick: handleClose,
+    "aria-label": "Close notification"
+  }, "\xD7"));
+};
+var ToastContainer = function ToastContainer(_ref2) {
+  var toasts = _ref2.toasts,
+    onRemoveToast = _ref2.onRemoveToast;
+  if (toasts.length === 0) {
+    return null;
+  }
+  return /*#__PURE__*/react.createElement("div", {
+    className: "toast-container"
+  }, toasts.map(function (toast) {
+    return /*#__PURE__*/react.createElement(ToastItem, {
+      key: toast.id,
+      toast: toast,
+      onRemove: onRemoveToast
+    });
+  }));
+};
+;// ./src/client/components/common/A11y.tsx
+var _excluded = ["children", "variant", "size", "loading", "loadingText", "disabled", "className"];
+function A11y_slicedToArray(r, e) { return A11y_arrayWithHoles(r) || A11y_iterableToArrayLimit(r, e) || A11y_unsupportedIterableToArray(r, e) || A11y_nonIterableRest(); }
+function A11y_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function A11y_unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return A11y_arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? A11y_arrayLikeToArray(r, a) : void 0; } }
+function A11y_arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function A11y_iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function A11y_arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+function _objectWithoutProperties(e, t) { if (null == e) return {}; var o, r, i = _objectWithoutPropertiesLoose(e, t); if (Object.getOwnPropertySymbols) { var n = Object.getOwnPropertySymbols(e); for (r = 0; r < n.length; r++) o = n[r], -1 === t.indexOf(o) && {}.propertyIsEnumerable.call(e, o) && (i[o] = e[o]); } return i; }
+function _objectWithoutPropertiesLoose(r, e) { if (null == r) return {}; var t = {}; for (var n in r) if ({}.hasOwnProperty.call(r, n)) { if (-1 !== e.indexOf(n)) continue; t[n] = r[n]; } return t; }
+
+
+// Screen reader only text
+
+var ScreenReaderOnly = function ScreenReaderOnly(_ref) {
+  var children = _ref.children;
+  return /*#__PURE__*/react.createElement("span", {
+    className: "sr-only",
+    style: {
+      position: 'absolute',
+      width: '1px',
+      height: '1px',
+      padding: 0,
+      margin: '-1px',
+      overflow: 'hidden',
+      clip: 'rect(0, 0, 0, 0)',
+      whiteSpace: 'nowrap',
+      border: 0
+    }
+  }, children);
+};
+
+// Live region for announcing changes
+
+var LiveRegion = function LiveRegion(_ref2) {
+  var children = _ref2.children,
+    _ref2$level = _ref2.level,
+    level = _ref2$level === void 0 ? 'polite' : _ref2$level,
+    _ref2$atomic = _ref2.atomic,
+    atomic = _ref2$atomic === void 0 ? true : _ref2$atomic;
+  return /*#__PURE__*/react.createElement("div", {
+    "aria-live": level,
+    "aria-atomic": atomic,
+    className: "sr-only",
+    style: {
+      position: 'absolute',
+      left: '-10000px',
+      width: '1px',
+      height: '1px',
+      overflow: 'hidden'
+    }
+  }, children);
+};
+
+// Focus trap for modals
+
+var FocusTrap = function FocusTrap(_ref3) {
+  var children = _ref3.children,
+    _ref3$active = _ref3.active,
+    active = _ref3$active === void 0 ? true : _ref3$active;
+  var containerRef = react.useRef(null);
+  react.useEffect(function () {
+    if (!active || !containerRef.current) return;
+    var container = containerRef.current;
+    var focusableElements = container.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    var firstFocusable = focusableElements[0];
+    var lastFocusable = focusableElements[focusableElements.length - 1];
+    var handleTabKey = function handleTabKey(e) {
+      if (e.key !== 'Tab') return;
+      if (e.shiftKey) {
+        if (document.activeElement === firstFocusable) {
+          e.preventDefault();
+          lastFocusable === null || lastFocusable === void 0 || lastFocusable.focus();
+        }
+      } else {
+        if (document.activeElement === lastFocusable) {
+          e.preventDefault();
+          firstFocusable === null || firstFocusable === void 0 || firstFocusable.focus();
+        }
+      }
+    };
+    container.addEventListener('keydown', handleTabKey);
+    firstFocusable === null || firstFocusable === void 0 || firstFocusable.focus();
+    return function () {
+      container.removeEventListener('keydown', handleTabKey);
+    };
+  }, [active]);
+  return /*#__PURE__*/react.createElement("div", {
+    ref: containerRef
+  }, children);
+};
+
+// Skip to content link
+
+var SkipLink = function SkipLink(_ref4) {
+  var targetId = _ref4.targetId,
+    children = _ref4.children;
+  return /*#__PURE__*/react.createElement("a", {
+    href: "#".concat(targetId),
+    className: "skip-link",
+    style: {
+      position: 'absolute',
+      top: '-40px',
+      left: '6px',
+      background: '#000',
+      color: '#fff',
+      padding: '8px',
+      textDecoration: 'none',
+      zIndex: 9999,
+      transition: 'top 0.2s'
+    },
+    onFocus: function onFocus(e) {
+      e.target.style.top = '6px';
+    },
+    onBlur: function onBlur(e) {
+      e.target.style.top = '-40px';
+    }
+  }, children);
+};
+
+// Accessible button with proper ARIA attributes
+
+var AccessibleButton = function AccessibleButton(_ref5) {
+  var children = _ref5.children,
+    _ref5$variant = _ref5.variant,
+    variant = _ref5$variant === void 0 ? 'primary' : _ref5$variant,
+    _ref5$size = _ref5.size,
+    size = _ref5$size === void 0 ? 'md' : _ref5$size,
+    _ref5$loading = _ref5.loading,
+    loading = _ref5$loading === void 0 ? false : _ref5$loading,
+    _ref5$loadingText = _ref5.loadingText,
+    loadingText = _ref5$loadingText === void 0 ? 'Loading...' : _ref5$loadingText,
+    disabled = _ref5.disabled,
+    _ref5$className = _ref5.className,
+    className = _ref5$className === void 0 ? '' : _ref5$className,
+    props = _objectWithoutProperties(_ref5, _excluded);
+  var baseClasses = "btn btn-".concat(variant, " btn-").concat(size);
+  var classes = "".concat(baseClasses, " ").concat(className).trim();
+  return /*#__PURE__*/react.createElement("button", _extends({
+    className: classes,
+    disabled: disabled || loading,
+    "aria-busy": loading
+  }, props), loading ? /*#__PURE__*/react.createElement(react.Fragment, null, /*#__PURE__*/react.createElement("span", {
+    "aria-hidden": "true"
+  }, "\u27F3"), /*#__PURE__*/react.createElement(ScreenReaderOnly, null, loadingText)) : children);
+};
+
+// Accessible form field with proper labeling
+
+var AccessibleField = function AccessibleField(_ref6) {
+  var id = _ref6.id,
+    label = _ref6.label,
+    error = _ref6.error,
+    hint = _ref6.hint,
+    _ref6$required = _ref6.required,
+    required = _ref6$required === void 0 ? false : _ref6$required,
+    children = _ref6.children;
+  var hintId = hint ? "".concat(id, "-hint") : undefined;
+  var errorId = error ? "".concat(id, "-error") : undefined;
+  var describedBy = [hintId, errorId].filter(Boolean).join(' ');
+  return /*#__PURE__*/React.createElement("div", {
+    className: "form-group"
+  }, /*#__PURE__*/React.createElement("label", {
+    htmlFor: id,
+    className: "form-label"
+  }, label, required && /*#__PURE__*/React.createElement("span", {
+    "aria-label": "required",
+    className: "required-indicator"
+  }, "*")), hint && /*#__PURE__*/React.createElement("div", {
+    id: hintId,
+    className: "form-hint"
+  }, hint), /*#__PURE__*/React.cloneElement(children, {
+    id: id,
+    'aria-describedby': describedBy || undefined,
+    'aria-invalid': !!error,
+    'aria-required': required
+  }), error && /*#__PURE__*/React.createElement("div", {
+    id: errorId,
+    className: "form-error",
+    role: "alert"
+  }, error));
+};
+
+// Keyboard navigation helper
+var useKeyboardNavigation = function useKeyboardNavigation(items, onSelect) {
+  var _React$useState = React.useState(-1),
+    _React$useState2 = A11y_slicedToArray(_React$useState, 2),
+    focusedIndex = _React$useState2[0],
+    setFocusedIndex = _React$useState2[1];
+  var handleKeyDown = React.useCallback(function (e) {
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setFocusedIndex(function (prev) {
+          return Math.min(prev + 1, items.length - 1);
+        });
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setFocusedIndex(function (prev) {
+          return Math.max(prev - 1, 0);
+        });
+        break;
+      case 'Home':
+        e.preventDefault();
+        setFocusedIndex(0);
+        break;
+      case 'End':
+        e.preventDefault();
+        setFocusedIndex(items.length - 1);
+        break;
+      case 'Enter':
+      case ' ':
+        e.preventDefault();
+        if (focusedIndex >= 0 && onSelect) {
+          onSelect(items[focusedIndex].id);
+        }
+        break;
+    }
+  }, [items, focusedIndex, onSelect]);
+  React.useEffect(function () {
+    var _items$focusedIndex;
+    if (focusedIndex >= 0 && (_items$focusedIndex = items[focusedIndex]) !== null && _items$focusedIndex !== void 0 && _items$focusedIndex.element) {
+      var _items$focusedIndex$e;
+      (_items$focusedIndex$e = items[focusedIndex].element) === null || _items$focusedIndex$e === void 0 || _items$focusedIndex$e.focus();
+    }
+  }, [focusedIndex, items]);
+  return {
+    focusedIndex: focusedIndex,
+    setFocusedIndex: setFocusedIndex,
+    handleKeyDown: handleKeyDown
+  };
+};
+;// ./src/client/hooks/useAutoSave.ts
+function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
+function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+function useAutoSave_slicedToArray(r, e) { return useAutoSave_arrayWithHoles(r) || useAutoSave_iterableToArrayLimit(r, e) || useAutoSave_unsupportedIterableToArray(r, e) || useAutoSave_nonIterableRest(); }
+function useAutoSave_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function useAutoSave_unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return useAutoSave_arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? useAutoSave_arrayLikeToArray(r, a) : void 0; } }
+function useAutoSave_arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function useAutoSave_iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function useAutoSave_arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+
+function useAutoSave(_ref) {
+  var data = _ref.data,
+    onSave = _ref.onSave,
+    _ref$delay = _ref.delay,
+    delay = _ref$delay === void 0 ? 2000 : _ref$delay,
+    _ref$enabled = _ref.enabled,
+    enabled = _ref$enabled === void 0 ? true : _ref$enabled,
+    onError = _ref.onError,
+    onSuccess = _ref.onSuccess;
+  var _useState = (0,react.useState)(false),
+    _useState2 = useAutoSave_slicedToArray(_useState, 2),
+    isSaving = _useState2[0],
+    setIsSaving = _useState2[1];
+  var _useState3 = (0,react.useState)(false),
+    _useState4 = useAutoSave_slicedToArray(_useState3, 2),
+    isError = _useState4[0],
+    setIsError = _useState4[1];
+  var _useState5 = (0,react.useState)(null),
+    _useState6 = useAutoSave_slicedToArray(_useState5, 2),
+    lastSaved = _useState6[0],
+    setLastSaved = _useState6[1];
+  var _useState7 = (0,react.useState)(null),
+    _useState8 = useAutoSave_slicedToArray(_useState7, 2),
+    error = _useState8[0],
+    setError = _useState8[1];
+  var timeoutRef = (0,react.useRef)(undefined);
+  var dataRef = (0,react.useRef)(data);
+
+  // Update data ref when data changes
+  (0,react.useEffect)(function () {
+    dataRef.current = data;
+  }, [data]);
+  var saveData = (0,react.useCallback)(/*#__PURE__*/_asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
+    var _error, _t;
+    return _regenerator().w(function (_context) {
+      while (1) switch (_context.p = _context.n) {
+        case 0:
+          if (!(!enabled || isSaving)) {
+            _context.n = 1;
+            break;
+          }
+          return _context.a(2);
+        case 1:
+          setIsSaving(true);
+          setIsError(false);
+          setError(null);
+          _context.p = 2;
+          _context.n = 3;
+          return onSave(dataRef.current);
+        case 3:
+          setLastSaved(new Date());
+          onSuccess === null || onSuccess === void 0 || onSuccess();
+          _context.n = 5;
+          break;
+        case 4:
+          _context.p = 4;
+          _t = _context.v;
+          _error = _t instanceof Error ? _t : new Error('Save failed');
+          setIsError(true);
+          setError(_error);
+          onError === null || onError === void 0 || onError(_error);
+        case 5:
+          _context.p = 5;
+          setIsSaving(false);
+          return _context.f(5);
+        case 6:
+          return _context.a(2);
+      }
+    }, _callee, null, [[2, 4, 5, 6]]);
+  })), [enabled, isSaving, onSave, onError, onSuccess]);
+  var saveNow = (0,react.useCallback)(/*#__PURE__*/_asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2() {
+    return _regenerator().w(function (_context2) {
+      while (1) switch (_context2.n) {
+        case 0:
+          if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+          }
+          return _context2.a(2, saveData());
+      }
+    }, _callee2);
+  })), [saveData]);
+
+  // Auto-save with debouncing
+  (0,react.useEffect)(function () {
+    if (!enabled) return;
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    timeoutRef.current = setTimeout(function () {
+      saveData();
+    }, delay);
+    return function () {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [data, delay, enabled, saveData]);
+
+  // Cleanup on unmount
+  (0,react.useEffect)(function () {
+    return function () {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+  return {
+    isSaving: isSaving,
+    isError: isError,
+    lastSaved: lastSaved,
+    saveNow: saveNow,
+    error: error
+  };
+}
+;// ./src/client/hooks/useToast.ts
+function useToast_toConsumableArray(r) { return useToast_arrayWithoutHoles(r) || useToast_iterableToArray(r) || useToast_unsupportedIterableToArray(r) || useToast_nonIterableSpread(); }
+function useToast_nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function useToast_iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
+function useToast_arrayWithoutHoles(r) { if (Array.isArray(r)) return useToast_arrayLikeToArray(r); }
+function useToast_slicedToArray(r, e) { return useToast_arrayWithHoles(r) || useToast_iterableToArrayLimit(r, e) || useToast_unsupportedIterableToArray(r, e) || useToast_nonIterableRest(); }
+function useToast_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function useToast_unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return useToast_arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? useToast_arrayLikeToArray(r, a) : void 0; } }
+function useToast_arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function useToast_iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function useToast_arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+
+function useToast() {
+  var _useState = (0,react.useState)([]),
+    _useState2 = useToast_slicedToArray(_useState, 2),
+    toasts = _useState2[0],
+    setToasts = _useState2[1];
+  var addToast = (0,react.useCallback)(function (message) {
+    var type = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'info';
+    var options = arguments.length > 2 ? arguments[2] : undefined;
+    var id = "toast-".concat(Date.now(), "-").concat(Math.random().toString(36).substr(2, 9));
+    var newToast = {
+      id: id,
+      type: type,
+      message: message,
+      title: options === null || options === void 0 ? void 0 : options.title,
+      duration: options === null || options === void 0 ? void 0 : options.duration,
+      action: options === null || options === void 0 ? void 0 : options.action
+    };
+    setToasts(function (prev) {
+      return [].concat(useToast_toConsumableArray(prev), [newToast]);
+    });
+    return id;
+  }, []);
+  var removeToast = (0,react.useCallback)(function (id) {
+    setToasts(function (prev) {
+      return prev.filter(function (toast) {
+        return toast.id !== id;
+      });
+    });
+  }, []);
+  var clearToasts = (0,react.useCallback)(function () {
+    setToasts([]);
+  }, []);
+
+  // Convenience methods
+  var showSuccess = (0,react.useCallback)(function (message, options) {
+    return addToast(message, 'success', options);
+  }, [addToast]);
+  var showError = (0,react.useCallback)(function (message, options) {
+    return addToast(message, 'error', options);
+  }, [addToast]);
+  var showWarning = (0,react.useCallback)(function (message, options) {
+    return addToast(message, 'warning', options);
+  }, [addToast]);
+  var showInfo = (0,react.useCallback)(function (message, options) {
+    return addToast(message, 'info', options);
+  }, [addToast]);
+  return {
+    toasts: toasts,
+    addToast: addToast,
+    removeToast: removeToast,
+    clearToasts: clearToasts,
+    showSuccess: showSuccess,
+    showError: showError,
+    showWarning: showWarning,
+    showInfo: showInfo
+  };
+}
+;// ./src/client/hooks/useKeyboardShortcuts.ts
+function useKeyboardShortcuts_typeof(o) { "@babel/helpers - typeof"; return useKeyboardShortcuts_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, useKeyboardShortcuts_typeof(o); }
+function useKeyboardShortcuts_ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function useKeyboardShortcuts_objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? useKeyboardShortcuts_ownKeys(Object(t), !0).forEach(function (r) { useKeyboardShortcuts_defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : useKeyboardShortcuts_ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function useKeyboardShortcuts_defineProperty(e, r, t) { return (r = useKeyboardShortcuts_toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function useKeyboardShortcuts_toPropertyKey(t) { var i = useKeyboardShortcuts_toPrimitive(t, "string"); return "symbol" == useKeyboardShortcuts_typeof(i) ? i : i + ""; }
+function useKeyboardShortcuts_toPrimitive(t, r) { if ("object" != useKeyboardShortcuts_typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != useKeyboardShortcuts_typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+
+function useKeyboardShortcuts(_ref) {
+  var shortcuts = _ref.shortcuts,
+    _ref$enabled = _ref.enabled,
+    enabled = _ref$enabled === void 0 ? true : _ref$enabled;
+  var handleKeyDown = (0,react.useCallback)(function (event) {
+    if (!enabled) return;
+
+    // Don't trigger shortcuts when user is typing in input fields
+    var target = event.target;
+    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.contentEditable === 'true') {
+      return;
+    }
+    var matchingShortcut = shortcuts.find(function (shortcut) {
+      var keyMatches = shortcut.key.toLowerCase() === event.key.toLowerCase();
+      var ctrlMatches = !!shortcut.ctrl === (event.ctrlKey || event.metaKey);
+      var metaMatches = !!shortcut.meta === event.metaKey;
+      var shiftMatches = !!shortcut.shift === event.shiftKey;
+      var altMatches = !!shortcut.alt === event.altKey;
+      return keyMatches && ctrlMatches && shiftMatches && altMatches && (!shortcut.meta || metaMatches);
+    });
+    if (matchingShortcut) {
+      if (matchingShortcut.preventDefault !== false) {
+        event.preventDefault();
+      }
+      matchingShortcut.action();
+    }
+  }, [shortcuts, enabled]);
+  (0,react.useEffect)(function () {
+    if (enabled) {
+      window.addEventListener('keydown', handleKeyDown);
+      return function () {
+        return window.removeEventListener('keydown', handleKeyDown);
+      };
+    }
+  }, [handleKeyDown, enabled]);
+  return {
+    shortcuts: shortcuts.map(function (shortcut) {
+      return useKeyboardShortcuts_objectSpread(useKeyboardShortcuts_objectSpread({}, shortcut), {}, {
+        displayKey: formatShortcutDisplay(shortcut)
+      });
+    })
+  };
+}
+function formatShortcutDisplay(shortcut) {
+  var parts = [];
+  if (shortcut.ctrl) parts.push('Ctrl');
+  if (shortcut.meta) parts.push('Cmd');
+  if (shortcut.shift) parts.push('Shift');
+  if (shortcut.alt) parts.push('Alt');
+  parts.push(shortcut.key.length === 1 ? shortcut.key.toUpperCase() : shortcut.key);
+  return parts.join(' + ');
+}
+
+// Predefined shortcut categories
+var createEditorShortcuts = function createEditorShortcuts(actions) {
+  return [{
+    key: 's',
+    ctrl: true,
+    description: 'Save project',
+    action: actions.save
+  }, {
+    key: 'z',
+    ctrl: true,
+    description: 'Undo',
+    action: actions.undo
+  }, {
+    key: 'z',
+    ctrl: true,
+    shift: true,
+    description: 'Redo',
+    action: actions.redo
+  }, {
+    key: 'y',
+    ctrl: true,
+    description: 'Redo (alternative)',
+    action: actions.redo
+  }, {
+    key: 'Delete',
+    description: 'Delete selected hotspot',
+    action: actions["delete"]
+  }, {
+    key: 'Escape',
+    description: 'Clear selection',
+    action: actions.escape
+  }, {
+    key: 'c',
+    ctrl: true,
+    description: 'Copy hotspot',
+    action: actions.copy
+  }, {
+    key: 'v',
+    ctrl: true,
+    description: 'Paste hotspot',
+    action: actions.paste
+  }, {
+    key: 'a',
+    ctrl: true,
+    description: 'Select all hotspots',
+    action: actions.selectAll
+  }, {
+    key: 'e',
+    ctrl: true,
+    description: 'Toggle edit/preview mode',
+    action: actions.toggleMode
+  }, {
+    key: '=',
+    ctrl: true,
+    description: 'Zoom in',
+    action: actions.zoomIn
+  }, {
+    key: '-',
+    ctrl: true,
+    description: 'Zoom out',
+    action: actions.zoomOut
+  }, {
+    key: '0',
+    ctrl: true,
+    description: 'Reset zoom',
+    action: actions.resetZoom
+  }];
+};
+var createSlideNavigationShortcuts = function createSlideNavigationShortcuts(actions) {
+  return [{
+    key: 'ArrowRight',
+    description: 'Next slide',
+    action: actions.nextSlide
+  }, {
+    key: 'ArrowLeft',
+    description: 'Previous slide',
+    action: actions.prevSlide
+  }, {
+    key: 'Home',
+    description: 'First slide',
+    action: actions.firstSlide
+  }, {
+    key: 'End',
+    description: 'Last slide',
+    action: actions.lastSlide
+  }];
+};
+;// ./src/client/components/common/HelpPanel.tsx
+function HelpPanel_slicedToArray(r, e) { return HelpPanel_arrayWithHoles(r) || HelpPanel_iterableToArrayLimit(r, e) || HelpPanel_unsupportedIterableToArray(r, e) || HelpPanel_nonIterableRest(); }
+function HelpPanel_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function HelpPanel_unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return HelpPanel_arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? HelpPanel_arrayLikeToArray(r, a) : void 0; } }
+function HelpPanel_arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function HelpPanel_iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function HelpPanel_arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+
+
+var HelpPanel = function HelpPanel(_ref) {
+  var shortcuts = _ref.shortcuts,
+    onClose = _ref.onClose;
+  var _useState = (0,react.useState)(''),
+    _useState2 = HelpPanel_slicedToArray(_useState, 2),
+    searchQuery = _useState2[0],
+    setSearchQuery = _useState2[1];
+  var filteredShortcuts = shortcuts.filter(function (shortcut) {
+    return shortcut.description.toLowerCase().includes(searchQuery.toLowerCase()) || shortcut.displayKey.toLowerCase().includes(searchQuery.toLowerCase());
+  });
+  var shortcutCategories = {
+    'File Operations': filteredShortcuts.filter(function (s) {
+      return s.description.includes('Save') || s.description.includes('Export');
+    }),
+    'Edit Operations': filteredShortcuts.filter(function (s) {
+      return s.description.includes('Undo') || s.description.includes('Redo') || s.description.includes('Copy') || s.description.includes('Paste') || s.description.includes('Delete') || s.description.includes('Select');
+    }),
+    'Navigation': filteredShortcuts.filter(function (s) {
+      return s.description.includes('slide') || s.description.includes('Navigate');
+    }),
+    'View Controls': filteredShortcuts.filter(function (s) {
+      return s.description.includes('Zoom') || s.description.includes('mode') || s.description.includes('Toggle');
+    }),
+    'Other': filteredShortcuts.filter(function (s) {
+      return !s.description.includes('Save') && !s.description.includes('Export') && !s.description.includes('Undo') && !s.description.includes('Redo') && !s.description.includes('Copy') && !s.description.includes('Paste') && !s.description.includes('Delete') && !s.description.includes('Select') && !s.description.includes('slide') && !s.description.includes('Navigate') && !s.description.includes('Zoom') && !s.description.includes('mode') && !s.description.includes('Toggle');
+    })
+  };
+  var handleBackdropClick = function handleBackdropClick(e) {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+  return /*#__PURE__*/react.createElement("div", {
+    className: "modal-backdrop",
+    onClick: handleBackdropClick
+  }, /*#__PURE__*/react.createElement(FocusTrap, null, /*#__PURE__*/react.createElement("div", {
+    className: "modal-content help-panel",
+    role: "dialog",
+    "aria-labelledby": "help-title"
+  }, /*#__PURE__*/react.createElement("div", {
+    className: "modal-header"
+  }, /*#__PURE__*/react.createElement("h2", {
+    id: "help-title"
+  }, "Keyboard Shortcuts"), /*#__PURE__*/react.createElement(AccessibleButton, {
+    variant: "ghost",
+    onClick: onClose,
+    "aria-label": "Close help panel"
+  }, "\xD7")), /*#__PURE__*/react.createElement("div", {
+    className: "modal-body"
+  }, /*#__PURE__*/react.createElement("div", {
+    className: "help-search"
+  }, /*#__PURE__*/react.createElement("input", {
+    type: "text",
+    placeholder: "Search shortcuts...",
+    value: searchQuery,
+    onChange: function onChange(e) {
+      return setSearchQuery(e.target.value);
+    },
+    className: "form-input",
+    "aria-label": "Search keyboard shortcuts"
+  })), /*#__PURE__*/react.createElement("div", {
+    className: "shortcuts-container"
+  }, Object.entries(shortcutCategories).map(function (_ref2) {
+    var _ref3 = HelpPanel_slicedToArray(_ref2, 2),
+      category = _ref3[0],
+      categoryShortcuts = _ref3[1];
+    if (categoryShortcuts.length === 0) return null;
+    return /*#__PURE__*/react.createElement("div", {
+      key: category,
+      className: "shortcut-category"
+    }, /*#__PURE__*/react.createElement("h3", {
+      className: "category-title"
+    }, category), /*#__PURE__*/react.createElement("div", {
+      className: "shortcuts-list"
+    }, categoryShortcuts.map(function (shortcut, index) {
+      return /*#__PURE__*/react.createElement("div", {
+        key: "".concat(shortcut.key, "-").concat(index),
+        className: "shortcut-item"
+      }, /*#__PURE__*/react.createElement("div", {
+        className: "shortcut-keys"
+      }, shortcut.displayKey.split(' + ').map(function (key, i) {
+        return /*#__PURE__*/react.createElement(react.Fragment, {
+          key: i
+        }, i > 0 && /*#__PURE__*/react.createElement("span", {
+          className: "key-separator"
+        }, "+"), /*#__PURE__*/react.createElement("kbd", {
+          className: "key"
+        }, key));
+      })), /*#__PURE__*/react.createElement("div", {
+        className: "shortcut-description"
+      }, shortcut.description));
+    })));
+  }), filteredShortcuts.length === 0 && /*#__PURE__*/react.createElement("div", {
+    className: "no-shortcuts"
+  }, /*#__PURE__*/react.createElement("p", null, "No shortcuts found matching \"", searchQuery, "\""))), /*#__PURE__*/react.createElement("div", {
+    className: "help-tips"
+  }, /*#__PURE__*/react.createElement("h3", null, "Tips"), /*#__PURE__*/react.createElement("ul", null, /*#__PURE__*/react.createElement("li", null, "Press ", /*#__PURE__*/react.createElement("kbd", null, "?"), " at any time to open this help panel"), /*#__PURE__*/react.createElement("li", null, "Most shortcuts work when you're not typing in a text field"), /*#__PURE__*/react.createElement("li", null, "Use ", /*#__PURE__*/react.createElement("kbd", null, "Escape"), " to close modals or clear selections"), /*#__PURE__*/react.createElement("li", null, "Arrow keys can be used to navigate between slides")))), /*#__PURE__*/react.createElement("div", {
+    className: "modal-footer"
+  }, /*#__PURE__*/react.createElement(AccessibleButton, {
+    onClick: onClose
+  }, "Close")))));
+};
+
+// Hook to manage help panel state
+function useHelpPanel(shortcuts) {
+  var _useState3 = (0,react.useState)(false),
+    _useState4 = HelpPanel_slicedToArray(_useState3, 2),
+    isOpen = _useState4[0],
+    setIsOpen = _useState4[1];
+  var openHelp = function openHelp() {
+    return setIsOpen(true);
+  };
+  var closeHelp = function closeHelp() {
+    return setIsOpen(false);
+  };
+  var toggleHelp = function toggleHelp() {
+    return setIsOpen(function (prev) {
+      return !prev;
+    });
+  };
+
+  // Register ? key to open help
+  react.useEffect(function () {
+    var handleKeyDown = function handleKeyDown(e) {
+      if (e.key === '?' && !isOpen) {
+        e.preventDefault();
+        openHelp();
+      }
+      if (e.key === 'Escape' && isOpen) {
+        e.preventDefault();
+        closeHelp();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return function () {
+      return window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen]);
+  var helpPanel = isOpen ? /*#__PURE__*/react.createElement(HelpPanel, {
+    shortcuts: shortcuts,
+    onClose: closeHelp
+  }) : null;
+  return {
+    isOpen: isOpen,
+    openHelp: openHelp,
+    closeHelp: closeHelp,
+    toggleHelp: toggleHelp,
+    helpPanel: helpPanel
+  };
+}
+;// ./src/client/components/HotspotEditor.tsx
+function HotspotEditor_typeof(o) { "@babel/helpers - typeof"; return HotspotEditor_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, HotspotEditor_typeof(o); }
+function HotspotEditor_toConsumableArray(r) { return HotspotEditor_arrayWithoutHoles(r) || HotspotEditor_iterableToArray(r) || HotspotEditor_unsupportedIterableToArray(r) || HotspotEditor_nonIterableSpread(); }
+function HotspotEditor_nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function HotspotEditor_iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
+function HotspotEditor_arrayWithoutHoles(r) { if (Array.isArray(r)) return HotspotEditor_arrayLikeToArray(r); }
+function HotspotEditor_ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function HotspotEditor_objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? HotspotEditor_ownKeys(Object(t), !0).forEach(function (r) { HotspotEditor_defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : HotspotEditor_ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function HotspotEditor_defineProperty(e, r, t) { return (r = HotspotEditor_toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function HotspotEditor_toPropertyKey(t) { var i = HotspotEditor_toPrimitive(t, "string"); return "symbol" == HotspotEditor_typeof(i) ? i : i + ""; }
+function HotspotEditor_toPrimitive(t, r) { if ("object" != HotspotEditor_typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != HotspotEditor_typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+function HotspotEditor_regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return HotspotEditor_regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (HotspotEditor_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, HotspotEditor_regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, HotspotEditor_regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), HotspotEditor_regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", HotspotEditor_regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), HotspotEditor_regeneratorDefine2(u), HotspotEditor_regeneratorDefine2(u, o, "Generator"), HotspotEditor_regeneratorDefine2(u, n, function () { return this; }), HotspotEditor_regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (HotspotEditor_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
+function HotspotEditor_regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } HotspotEditor_regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { HotspotEditor_regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, HotspotEditor_regeneratorDefine2(e, r, n, t); }
+function HotspotEditor_asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function HotspotEditor_asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { HotspotEditor_asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { HotspotEditor_asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+function HotspotEditor_slicedToArray(r, e) { return HotspotEditor_arrayWithHoles(r) || HotspotEditor_iterableToArrayLimit(r, e) || HotspotEditor_unsupportedIterableToArray(r, e) || HotspotEditor_nonIterableRest(); }
+function HotspotEditor_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function HotspotEditor_unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return HotspotEditor_arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? HotspotEditor_arrayLikeToArray(r, a) : void 0; } }
+function HotspotEditor_arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function HotspotEditor_iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function HotspotEditor_arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Import Google Apps Script types
+
+var HotspotEditor = function HotspotEditor(_ref) {
+  var projectId = _ref.projectId,
+    _ref$initialSlides = _ref.initialSlides,
+    initialSlides = _ref$initialSlides === void 0 ? [] : _ref$initialSlides,
+    _ref$initialHotspots = _ref.initialHotspots,
+    initialHotspots = _ref$initialHotspots === void 0 ? [] : _ref$initialHotspots,
+    onSave = _ref.onSave;
+  var _useState = (0,react.useState)({
+      project: null,
+      slides: initialSlides,
+      hotspots: initialHotspots,
+      activeSlide: null,
+      selectedHotspot: null,
+      loading: true,
+      error: null,
+      isEditMode: true,
+      hasUnsavedChanges: false,
+      sidebarWidth: 300,
+      configPanelWidth: 320
+    }),
+    _useState2 = HotspotEditor_slicedToArray(_useState, 2),
+    state = _useState2[0],
+    setState = _useState2[1];
+
+  // Auto-save implementation
+  var saveProjectData = (0,react.useCallback)(/*#__PURE__*/function () {
+    var _ref2 = HotspotEditor_asyncToGenerator(/*#__PURE__*/HotspotEditor_regenerator().m(function _callee(data) {
+      return HotspotEditor_regenerator().w(function (_context) {
+        while (1) switch (_context.n) {
+          case 0:
+            _context.n = 1;
+            return Promise.all([new Promise(function (resolve, reject) {
+              window.google.script.run.withSuccessHandler(function () {
+                return resolve();
+              }).withFailureHandler(function (error) {
+                return reject(new Error(error.message || 'Failed to save slides'));
+              }).saveSlides(projectId, data.slides);
+            }), new Promise(function (resolve, reject) {
+              window.google.script.run.withSuccessHandler(function () {
+                return resolve();
+              }).withFailureHandler(function (error) {
+                return reject(new Error(error.message || 'Failed to save hotspots'));
+              }).saveHotspots(projectId, data.hotspots);
+            })]);
+          case 1:
+            return _context.a(2);
+        }
+      }, _callee);
+    }));
+    return function (_x) {
+      return _ref2.apply(this, arguments);
+    };
+  }(), [projectId]);
+
+  // Auto-save hook
+  var autoSave = useAutoSave({
+    data: {
+      slides: state.slides,
+      hotspots: state.hotspots
+    },
+    onSave: saveProjectData,
+    delay: 2000,
+    enabled: state.hasUnsavedChanges && !state.loading,
+    onSuccess: function onSuccess() {
+      setState(function (prev) {
+        return HotspotEditor_objectSpread(HotspotEditor_objectSpread({}, prev), {}, {
+          hasUnsavedChanges: false
+        });
+      });
+    },
+    onError: function onError(error) {
+      console.error('Auto-save failed:', error);
+      setState(function (prev) {
+        return HotspotEditor_objectSpread(HotspotEditor_objectSpread({}, prev), {}, {
+          error: error.message
+        });
+      });
+    }
+  });
+
+  // Load project data
+  var loadProjectData = (0,react.useCallback)(/*#__PURE__*/HotspotEditor_asyncToGenerator(/*#__PURE__*/HotspotEditor_regenerator().m(function _callee2() {
+    var data, _t;
+    return HotspotEditor_regenerator().w(function (_context2) {
+      while (1) switch (_context2.p = _context2.n) {
+        case 0:
+          _context2.p = 0;
+          setState(function (prev) {
+            return HotspotEditor_objectSpread(HotspotEditor_objectSpread({}, prev), {}, {
+              loading: true,
+              error: null
+            });
+          });
+          _context2.n = 1;
+          return new Promise(function (resolve, reject) {
+            window.google.script.run.withSuccessHandler(function (result) {
+              // Process dates
+              var processedData = {
+                project: HotspotEditor_objectSpread(HotspotEditor_objectSpread({}, result.project), {}, {
+                  createdAt: new Date(result.project.createdAt),
+                  updatedAt: new Date(result.project.updatedAt)
+                }),
+                slides: result.slides,
+                hotspots: result.hotspots
+              };
+              resolve(processedData);
+            }).withFailureHandler(function (error) {
+              reject(new Error(error.message || 'Failed to load project data'));
+            }).getProjectData(projectId);
+          });
+        case 1:
+          data = _context2.v;
+          setState(function (prev) {
+            return HotspotEditor_objectSpread(HotspotEditor_objectSpread({}, prev), {}, {
+              project: data.project,
+              slides: data.slides,
+              hotspots: data.hotspots,
+              activeSlide: data.slides[0] || null,
+              loading: false,
+              error: null
+            });
+          });
+          _context2.n = 3;
+          break;
+        case 2:
+          _context2.p = 2;
+          _t = _context2.v;
+          setState(function (prev) {
+            return HotspotEditor_objectSpread(HotspotEditor_objectSpread({}, prev), {}, {
+              loading: false,
+              error: _t instanceof Error ? _t.message : 'Failed to load project data'
+            });
+          });
+        case 3:
+          return _context2.a(2);
+      }
+    }, _callee2, null, [[0, 2]]);
+  })), [projectId]);
+
+  // Toast notifications
+  var toast = useToast();
+
+  // Manual save
+  var handleSaveNow = (0,react.useCallback)(/*#__PURE__*/HotspotEditor_asyncToGenerator(/*#__PURE__*/HotspotEditor_regenerator().m(function _callee3() {
+    var _t2;
+    return HotspotEditor_regenerator().w(function (_context3) {
+      while (1) switch (_context3.p = _context3.n) {
+        case 0:
+          _context3.p = 0;
+          _context3.n = 1;
+          return autoSave.saveNow();
+        case 1:
+          toast.showSuccess('Project saved successfully');
+          _context3.n = 3;
+          break;
+        case 2:
+          _context3.p = 2;
+          _t2 = _context3.v;
+          console.error('Manual save failed:', _t2);
+          toast.showError('Failed to save project');
+        case 3:
+          return _context3.a(2);
+      }
+    }, _callee3, null, [[0, 2]]);
+  })), [autoSave, toast]);
+
+  // Navigate to next slide
+  var goToNextSlide = (0,react.useCallback)(function () {
+    if (!state.activeSlide) return;
+    var currentIndex = state.slides.findIndex(function (s) {
+      return s.id === state.activeSlide.id;
+    });
+    if (currentIndex < state.slides.length - 1) {
+      handleSlideSelect(state.slides[currentIndex + 1]);
+    }
+  }, [state.activeSlide, state.slides]);
+
+  // Navigate to previous slide
+  var goToPrevSlide = (0,react.useCallback)(function () {
+    if (!state.activeSlide) return;
+    var currentIndex = state.slides.findIndex(function (s) {
+      return s.id === state.activeSlide.id;
+    });
+    if (currentIndex > 0) {
+      handleSlideSelect(state.slides[currentIndex - 1]);
+    }
+  }, [state.activeSlide, state.slides]);
+
+  // Navigate to first slide
+  var goToFirstSlide = (0,react.useCallback)(function () {
+    if (state.slides.length > 0) {
+      handleSlideSelect(state.slides[0]);
+    }
+  }, [state.slides]);
+
+  // Navigate to last slide
+  var goToLastSlide = (0,react.useCallback)(function () {
+    if (state.slides.length > 0) {
+      handleSlideSelect(state.slides[state.slides.length - 1]);
+    }
+  }, [state.slides]);
+
+  // Clear selection
+  var clearSelection = (0,react.useCallback)(function () {
+    setState(function (prev) {
+      return HotspotEditor_objectSpread(HotspotEditor_objectSpread({}, prev), {}, {
+        selectedHotspot: null
+      });
+    });
+  }, []);
+
+  // Keyboard shortcuts
+  var editorShortcuts = createEditorShortcuts({
+    save: handleSaveNow,
+    undo: function undo() {
+      return toast.showInfo('Undo feature coming soon');
+    },
+    redo: function redo() {
+      return toast.showInfo('Redo feature coming soon');
+    },
+    "delete": function _delete() {
+      if (state.selectedHotspot) {
+        handleHotspotDelete(state.selectedHotspot.id);
+      }
+    },
+    escape: clearSelection,
+    copy: function copy() {
+      return toast.showInfo('Copy feature coming soon');
+    },
+    paste: function paste() {
+      return toast.showInfo('Paste feature coming soon');
+    },
+    selectAll: function selectAll() {
+      return toast.showInfo('Select all feature coming soon');
+    },
+    toggleMode: function toggleMode() {
+      return setState(function (prev) {
+        return HotspotEditor_objectSpread(HotspotEditor_objectSpread({}, prev), {}, {
+          isEditMode: !prev.isEditMode
+        });
+      });
+    },
+    zoomIn: function zoomIn() {
+      return toast.showInfo('Zoom in feature coming soon');
+    },
+    zoomOut: function zoomOut() {
+      return toast.showInfo('Zoom out feature coming soon');
+    },
+    resetZoom: function resetZoom() {
+      return toast.showInfo('Reset zoom feature coming soon');
+    }
+  });
+  var navigationShortcuts = createSlideNavigationShortcuts({
+    nextSlide: goToNextSlide,
+    prevSlide: goToPrevSlide,
+    firstSlide: goToFirstSlide,
+    lastSlide: goToLastSlide
+  });
+  var allShortcuts = [].concat(HotspotEditor_toConsumableArray(editorShortcuts), HotspotEditor_toConsumableArray(navigationShortcuts));
+  useKeyboardShortcuts({
+    shortcuts: allShortcuts,
+    enabled: !state.loading
+  });
+
+  // Add missing slide handlers
+  var handleSlideReorder = (0,react.useCallback)(function (slides) {
+    setState(function (prev) {
+      return HotspotEditor_objectSpread(HotspotEditor_objectSpread({}, prev), {}, {
+        slides: slides,
+        hasUnsavedChanges: true
+      });
+    });
+  }, []);
+  var handleSlideCreate = (0,react.useCallback)(function (slideData) {
+    toast.showInfo('Create slide functionality coming soon');
+  }, [toast]);
+  var handleSlideDelete = (0,react.useCallback)(function (slideId) {
+    if (confirm('Are you sure you want to delete this slide?')) {
+      toast.showInfo('Delete slide functionality coming soon');
+    }
+  }, [toast]);
+
+  // Help panel
+  var helpPanel = useHelpPanel(allShortcuts.map(function (shortcut) {
+    return HotspotEditor_objectSpread(HotspotEditor_objectSpread({}, shortcut), {}, {
+      displayKey: shortcut.key // Add the missing displayKey property
+    });
+  }));
+
+  // Handle slide selection
+  var handleSlideSelect = (0,react.useCallback)(function (slide) {
+    setState(function (prev) {
+      return HotspotEditor_objectSpread(HotspotEditor_objectSpread({}, prev), {}, {
+        activeSlide: slide,
+        selectedHotspot: null
+      });
+    });
+  }, []);
+
+  // Handle hotspot selection
+  var handleHotspotSelect = (0,react.useCallback)(function (hotspot) {
+    setState(function (prev) {
+      return HotspotEditor_objectSpread(HotspotEditor_objectSpread({}, prev), {}, {
+        selectedHotspot: hotspot
+      });
+    });
+  }, []);
+
+  // Handle hotspot creation
+  var handleHotspotCreate = (0,react.useCallback)(function (request) {
+    var newHotspot = {
+      id: "hotspot_".concat(Date.now(), "_").concat(Math.random().toString(36).substr(2, 9)),
+      slideId: request.slideId,
+      x: request.x,
+      y: request.y,
+      width: request.width,
+      height: request.height,
+      eventType: request.eventType,
+      triggerType: request.triggerType,
+      config: request.config,
+      order: state.hotspots.filter(function (h) {
+        return h.slideId === request.slideId;
+      }).length,
+      isVisible: true
+    };
+    setState(function (prev) {
+      return HotspotEditor_objectSpread(HotspotEditor_objectSpread({}, prev), {}, {
+        hotspots: [].concat(HotspotEditor_toConsumableArray(prev.hotspots), [newHotspot]),
+        selectedHotspot: newHotspot,
+        hasUnsavedChanges: true
+      });
+    });
+  }, [state.hotspots]);
+
+  // Handle hotspot update
+  var handleHotspotUpdate = (0,react.useCallback)(function (updatedHotspot) {
+    setState(function (prev) {
+      return HotspotEditor_objectSpread(HotspotEditor_objectSpread({}, prev), {}, {
+        hotspots: prev.hotspots.map(function (h) {
+          return h.id === updatedHotspot.id ? updatedHotspot : h;
+        }),
+        selectedHotspot: updatedHotspot,
+        hasUnsavedChanges: true
+      });
+    });
+  }, []);
+
+  // Handle hotspot delete
+  var handleHotspotDelete = (0,react.useCallback)(function (hotspotId) {
+    if (!confirm('Are you sure you want to delete this hotspot?')) {
+      return;
+    }
+    setState(function (prev) {
+      var _prev$selectedHotspot;
+      return HotspotEditor_objectSpread(HotspotEditor_objectSpread({}, prev), {}, {
+        hotspots: prev.hotspots.filter(function (h) {
+          return h.id !== hotspotId;
+        }),
+        selectedHotspot: ((_prev$selectedHotspot = prev.selectedHotspot) === null || _prev$selectedHotspot === void 0 ? void 0 : _prev$selectedHotspot.id) === hotspotId ? null : prev.selectedHotspot,
+        hasUnsavedChanges: true
+      });
+    });
+  }, []);
+
+  // Get hotspots for active slide
+  var activeSlideHotspots = react.useMemo(function () {
+    return state.activeSlide ? state.hotspots.filter(function (h) {
+      return h.slideId === state.activeSlide.id;
+    }) : [];
+  }, [state.hotspots, state.activeSlide]);
+
+  // Load project data on mount
+  (0,react.useEffect)(function () {
+    loadProjectData();
+  }, [loadProjectData]);
+
+  // Handle keyboard shortcuts
+  (0,react.useEffect)(function () {
+    var handleKeyDown = function handleKeyDown(event) {
+      if (event.ctrlKey || event.metaKey) {
+        switch (event.key) {
+          case 's':
+            event.preventDefault();
+            handleSaveNow();
+            break;
+          case 'z':
+            event.preventDefault();
+            // TODO: Implement undo
+            break;
+        }
+      }
+      if (event.key === 'Delete' && state.selectedHotspot) {
+        handleHotspotDelete(state.selectedHotspot.id);
+      }
+      if (event.key === 'Escape') {
+        setState(function (prev) {
+          return HotspotEditor_objectSpread(HotspotEditor_objectSpread({}, prev), {}, {
+            selectedHotspot: null
+          });
+        });
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return function () {
+      return window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleSaveNow, state.selectedHotspot, handleHotspotDelete]);
+  if (state.loading) {
+    return /*#__PURE__*/react.createElement(LoadingSpinner, {
+      message: "Loading project..."
+    });
+  }
+  if (state.error) {
+    return /*#__PURE__*/react.createElement(ErrorMessage, {
+      message: state.error,
+      onRetry: loadProjectData
+    });
+  }
+  if (!state.project) {
+    return /*#__PURE__*/react.createElement(ErrorMessage, {
+      message: "Project not found"
+    });
+  }
+
+  // Live region announcements
+  var _useState3 = (0,react.useState)(''),
+    _useState4 = HotspotEditor_slicedToArray(_useState3, 2),
+    liveMessage = _useState4[0],
+    setLiveMessage = _useState4[1];
+
+  // Update live message for screen readers
+  (0,react.useEffect)(function () {
+    if (state.activeSlide) {
+      setLiveMessage("Active slide: ".concat(state.activeSlide.title));
+    }
+  }, [state.activeSlide]);
+  (0,react.useEffect)(function () {
+    if (state.selectedHotspot) {
+      setLiveMessage("Selected hotspot: ".concat(state.selectedHotspot.config.text || 'Hotspot'));
+    } else if (liveMessage.includes('Selected hotspot')) {
+      setLiveMessage('Selection cleared');
+    }
+  }, [state.selectedHotspot]);
+  return /*#__PURE__*/react.createElement(ErrorBoundary, null, /*#__PURE__*/react.createElement("div", {
+    className: "hotspot-editor"
+  }, /*#__PURE__*/react.createElement(SkipLink, {
+    targetId: "main-content"
+  }, "Skip to main content"), /*#__PURE__*/react.createElement(LiveRegion, null, liveMessage), /*#__PURE__*/react.createElement(AppHeader, {
+    project: state.project,
+    hasUnsavedChanges: state.hasUnsavedChanges,
+    isSaving: autoSave.isSaving,
+    lastSaved: autoSave.lastSaved,
+    onSaveNow: handleSaveNow,
+    onToggleEditMode: function onToggleEditMode() {
+      return setState(function (prev) {
+        return HotspotEditor_objectSpread(HotspotEditor_objectSpread({}, prev), {}, {
+          isEditMode: !prev.isEditMode
+        });
+      });
+    },
+    isEditMode: state.isEditMode
+  }), /*#__PURE__*/react.createElement("div", {
+    className: "editor-content",
+    role: "main"
+  }, /*#__PURE__*/react.createElement(Sidebar, {
+    slides: state.slides,
+    activeSlide: state.activeSlide || undefined,
+    onSlideSelect: handleSlideSelect,
+    onSlideReorder: handleSlideReorder,
+    onSlideCreate: handleSlideCreate,
+    onSlideDelete: handleSlideDelete,
+    width: state.sidebarWidth
+  }), /*#__PURE__*/react.createElement("div", {
+    id: "main-content",
+    className: "main-content"
+  }, /*#__PURE__*/react.createElement(MainCanvas, {
+    slide: state.activeSlide || undefined,
+    hotspots: activeSlideHotspots,
+    selectedHotspot: state.selectedHotspot || undefined,
+    isEditMode: state.isEditMode,
+    onHotspotSelect: handleHotspotSelect,
+    onHotspotCreate: handleHotspotCreate,
+    onHotspotUpdate: handleHotspotUpdate,
+    onHotspotDelete: handleHotspotDelete
+  })), /*#__PURE__*/react.createElement(ConfigPanel, {
+    hotspot: state.selectedHotspot || undefined,
+    onUpdate: handleHotspotUpdate,
+    onDelete: handleHotspotDelete,
+    width: state.configPanelWidth
+  })), /*#__PURE__*/react.createElement("div", {
+    className: "editor-status",
+    role: "status",
+    "aria-live": "polite"
+  }, autoSave.isSaving && /*#__PURE__*/react.createElement("div", {
+    className: "status-item saving"
+  }, /*#__PURE__*/react.createElement("span", {
+    className: "spinner-small",
+    "aria-hidden": "true"
+  }), "Saving..."), autoSave.isError && /*#__PURE__*/react.createElement("div", {
+    className: "status-item error"
+  }, /*#__PURE__*/react.createElement("span", {
+    "aria-hidden": "true"
+  }, "\u26A0\uFE0F"), " Save failed"), autoSave.lastSaved && !autoSave.isSaving && !state.hasUnsavedChanges && /*#__PURE__*/react.createElement("div", {
+    className: "status-item saved"
+  }, /*#__PURE__*/react.createElement("span", {
+    "aria-hidden": "true"
+  }, "\u2713"), " Saved ", autoSave.lastSaved.toLocaleTimeString()), state.hasUnsavedChanges && !autoSave.isSaving && /*#__PURE__*/react.createElement("div", {
+    className: "status-item unsaved"
+  }, /*#__PURE__*/react.createElement("span", {
+    "aria-hidden": "true"
+  }, "\u2022"), " Unsaved changes"), /*#__PURE__*/react.createElement("div", {
+    className: "status-item hotspots-count"
+  }, activeSlideHotspots.length, " hotspot", activeSlideHotspots.length !== 1 ? 's' : '')), /*#__PURE__*/react.createElement(ToastContainer, {
+    toasts: toast.toasts,
+    onRemoveToast: toast.removeToast
+  }), helpPanel.helpPanel));
+};
+// EXTERNAL MODULE: ./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js
+var injectStylesIntoStyleTag = __webpack_require__(72);
+var injectStylesIntoStyleTag_default = /*#__PURE__*/__webpack_require__.n(injectStylesIntoStyleTag);
+// EXTERNAL MODULE: ./node_modules/style-loader/dist/runtime/styleDomAPI.js
+var styleDomAPI = __webpack_require__(825);
+var styleDomAPI_default = /*#__PURE__*/__webpack_require__.n(styleDomAPI);
+// EXTERNAL MODULE: ./node_modules/style-loader/dist/runtime/insertBySelector.js
+var insertBySelector = __webpack_require__(659);
+var insertBySelector_default = /*#__PURE__*/__webpack_require__.n(insertBySelector);
+// EXTERNAL MODULE: ./node_modules/style-loader/dist/runtime/setAttributesWithoutAttributes.js
+var setAttributesWithoutAttributes = __webpack_require__(56);
+var setAttributesWithoutAttributes_default = /*#__PURE__*/__webpack_require__.n(setAttributesWithoutAttributes);
+// EXTERNAL MODULE: ./node_modules/style-loader/dist/runtime/insertStyleElement.js
+var insertStyleElement = __webpack_require__(159);
+var insertStyleElement_default = /*#__PURE__*/__webpack_require__.n(insertStyleElement);
+// EXTERNAL MODULE: ./node_modules/style-loader/dist/runtime/styleTagTransform.js
+var styleTagTransform = __webpack_require__(113);
+var styleTagTransform_default = /*#__PURE__*/__webpack_require__.n(styleTagTransform);
+// EXTERNAL MODULE: ./node_modules/css-loader/dist/cjs.js!./src/client/styles/editor-template.css
+var editor_template = __webpack_require__(394);
+;// ./src/client/styles/editor-template.css
+
+      
+      
+      
+      
+      
+      
+      
+      
+      
+
+var options = {};
+
+options.styleTagTransform = (styleTagTransform_default());
+options.setAttributes = (setAttributesWithoutAttributes_default());
+options.insert = insertBySelector_default().bind(null, "head");
+options.domAPI = (styleDomAPI_default());
+options.insertStyleElement = (insertStyleElement_default());
+
+var update = injectStylesIntoStyleTag_default()(editor_template/* default */.A, options);
+
+
+
+
+       /* harmony default export */ const styles_editor_template = (editor_template/* default */.A && editor_template/* default */.A.locals ? editor_template/* default */.A.locals : undefined);
+
+;// ./src/client/editor-template.tsx
+// Main entry point for Hotspot Editor
+// This file is loaded by editor-template.html template
+
+
+
+
+
+
+// Get project ID from global variable set by server
+
+// Wait for DOM to be ready
+document.addEventListener('DOMContentLoaded', function () {
+  var container = document.getElementById('app-root');
+  if (!container) {
+    throw new Error('App root element not found');
+  }
+
+  // Get project ID from global variable or URL parameter
+  var urlParams = new URLSearchParams(window.location.search);
+  var projectId = window.projectId || urlParams.get('project') || '';
+  if (!projectId) {
+    throw new Error('Project ID not found');
+  }
+  var root = (0,client.createRoot)(container);
+  root.render(/*#__PURE__*/react.createElement(HotspotEditor, {
+    projectId: projectId
+  }));
+});
+
+/***/ }),
 
 /***/ 394:
 /***/ ((module, __webpack_exports__, __webpack_require__) => {
@@ -709,1032 +3229,6 @@ ___CSS_LOADER_EXPORT___.push([module.id, `/* Editor Template Styles - Hotspot Ed
 
 /***/ }),
 
-/***/ 510:
-/***/ ((__unused_webpack_module, __unused_webpack___webpack_exports__, __webpack_require__) => {
-
-
-// EXTERNAL MODULE: ./node_modules/react/index.js
-var react = __webpack_require__(540);
-// EXTERNAL MODULE: ./node_modules/react-dom/client.js
-var client = __webpack_require__(338);
-// EXTERNAL MODULE: ./src/shared/constants/index.ts
-var constants = __webpack_require__(639);
-;// ./src/client/components/MainCanvas.tsx
-function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
-function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
-function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
-function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
-function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
-function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
-function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
-function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
-function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
-function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
-function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
-
-
-var MainCanvas = function MainCanvas(_ref) {
-  var slide = _ref.slide,
-    hotspots = _ref.hotspots,
-    selectedHotspot = _ref.selectedHotspot,
-    isEditMode = _ref.isEditMode,
-    onHotspotSelect = _ref.onHotspotSelect,
-    onHotspotCreate = _ref.onHotspotCreate,
-    onHotspotUpdate = _ref.onHotspotUpdate,
-    onHotspotDelete = _ref.onHotspotDelete;
-  var canvasRef = (0,react.useRef)(null);
-  var _useState = (0,react.useState)({
-      width: 800,
-      height: 600
-    }),
-    _useState2 = _slicedToArray(_useState, 2),
-    canvasSize = _useState2[0],
-    setCanvasSize = _useState2[1];
-  var _useState3 = (0,react.useState)(false),
-    _useState4 = _slicedToArray(_useState3, 2),
-    isCreating = _useState4[0],
-    setIsCreating = _useState4[1];
-  var _useState5 = (0,react.useState)(null),
-    _useState6 = _slicedToArray(_useState5, 2),
-    dragStart = _useState6[0],
-    setDragStart = _useState6[1];
-
-  // Handle canvas click for creating hotspots
-  var handleCanvasClick = (0,react.useCallback)(function (e) {
-    var _canvasRef$current;
-    if (!isEditMode || !slide || !onHotspotCreate) return;
-    var rect = (_canvasRef$current = canvasRef.current) === null || _canvasRef$current === void 0 ? void 0 : _canvasRef$current.getBoundingClientRect();
-    if (!rect) return;
-    var x = e.clientX - rect.left;
-    var y = e.clientY - rect.top;
-
-    // Clear selection when clicking empty area
-    if (e.target === canvasRef.current && onHotspotSelect) {
-      onHotspotSelect(null);
-      return;
-    }
-
-    // Start creating hotspot
-    if (!isCreating) {
-      setIsCreating(true);
-      setDragStart({
-        x: x,
-        y: y
-      });
-    }
-  }, [isEditMode, slide, isCreating, onHotspotCreate, onHotspotSelect]);
-
-  // Handle mouse move for hotspot creation
-  var handleCanvasMouseMove = (0,react.useCallback)(function (e) {
-    if (!isCreating || !dragStart || !canvasRef.current) return;
-    var rect = canvasRef.current.getBoundingClientRect();
-    var currentX = e.clientX - rect.left;
-    var currentY = e.clientY - rect.top;
-
-    // Update preview rectangle (this would be implemented with CSS)
-    // For now, just log the dimensions
-    console.log('Creating hotspot:', {
-      x: Math.min(dragStart.x, currentX),
-      y: Math.min(dragStart.y, currentY),
-      width: Math.abs(currentX - dragStart.x),
-      height: Math.abs(currentY - dragStart.y)
-    });
-  }, [isCreating, dragStart]);
-
-  // Handle mouse up for hotspot creation
-  var handleCanvasMouseUp = (0,react.useCallback)(function (e) {
-    var _canvasRef$current2;
-    if (!isCreating || !dragStart || !slide || !onHotspotCreate) return;
-    var rect = (_canvasRef$current2 = canvasRef.current) === null || _canvasRef$current2 === void 0 ? void 0 : _canvasRef$current2.getBoundingClientRect();
-    if (!rect) return;
-    var currentX = e.clientX - rect.left;
-    var currentY = e.clientY - rect.top;
-    var x = Math.min(dragStart.x, currentX);
-    var y = Math.min(dragStart.y, currentY);
-    var width = Math.max(Math.abs(currentX - dragStart.x), constants/* HOTSPOT_DEFAULTS */.r.width);
-    var height = Math.max(Math.abs(currentY - dragStart.y), constants/* HOTSPOT_DEFAULTS */.r.height);
-
-    // Create hotspot request
-    var request = {
-      slideId: slide.id,
-      x: x,
-      y: y,
-      width: width,
-      height: height,
-      eventType: constants/* HOTSPOT_DEFAULTS */.r.eventType,
-      triggerType: constants/* HOTSPOT_DEFAULTS */.r.triggerType,
-      config: _objectSpread({}, constants/* HOTSPOT_DEFAULTS */.r.config)
-    };
-    onHotspotCreate(request);
-
-    // Reset creation state
-    setIsCreating(false);
-    setDragStart(null);
-  }, [isCreating, dragStart, slide, onHotspotCreate]);
-
-  // Handle hotspot click
-  var handleHotspotClick = (0,react.useCallback)(function (e, hotspot) {
-    e.stopPropagation();
-    if (onHotspotSelect) {
-      onHotspotSelect(hotspot);
-    }
-  }, [onHotspotSelect]);
-
-  // Update canvas size based on slide dimensions
-  (0,react.useEffect)(function () {
-    if (slide) {
-      // This would normally get actual image dimensions
-      setCanvasSize({
-        width: 800,
-        height: 600
-      });
-    }
-  }, [slide]);
-  if (!slide) {
-    return /*#__PURE__*/react.createElement("div", {
-      className: "main-canvas-empty"
-    }, /*#__PURE__*/react.createElement("p", null, "Select a slide to start editing hotspots"));
-  }
-  return /*#__PURE__*/react.createElement("div", {
-    className: "main-canvas-container"
-  }, /*#__PURE__*/react.createElement("div", {
-    className: "canvas-toolbar"
-  }, /*#__PURE__*/react.createElement("div", {
-    className: "canvas-info"
-  }, /*#__PURE__*/react.createElement("h3", null, slide.title), /*#__PURE__*/react.createElement("span", {
-    className: "hotspot-count"
-  }, hotspots.length, " hotspots")), /*#__PURE__*/react.createElement("div", {
-    className: "canvas-controls"
-  }, /*#__PURE__*/react.createElement("button", {
-    className: "btn ".concat(isEditMode ? 'btn-primary' : 'btn-secondary'),
-    onClick: function onClick() {
-      // This would be handled by parent component
-      console.log('Toggle edit mode');
-    }
-  }, isEditMode ? 'Edit Mode' : 'Preview Mode'))), /*#__PURE__*/react.createElement("div", {
-    ref: canvasRef,
-    className: "main-canvas",
-    style: {
-      width: canvasSize.width,
-      height: canvasSize.height,
-      backgroundImage: slide.mediaType === 'image' ? "url(".concat(slide.mediaUrl, ")") : 'none',
-      backgroundSize: 'contain',
-      backgroundRepeat: 'no-repeat',
-      backgroundPosition: 'center'
-    },
-    onClick: handleCanvasClick,
-    onMouseMove: handleCanvasMouseMove,
-    onMouseUp: handleCanvasMouseUp
-  }, slide.mediaType === 'video' && /*#__PURE__*/react.createElement("video", {
-    src: slide.mediaUrl,
-    style: {
-      width: '100%',
-      height: '100%',
-      objectFit: 'contain'
-    },
-    controls: !isEditMode
-  }), slide.mediaType === 'youtube' && /*#__PURE__*/react.createElement("iframe", {
-    src: slide.mediaUrl,
-    style: {
-      width: '100%',
-      height: '100%',
-      border: 'none'
-    },
-    allowFullScreen: true,
-    title: slide.title
-  }), hotspots.map(function (hotspot) {
-    return /*#__PURE__*/react.createElement("div", {
-      key: hotspot.id,
-      className: "hotspot ".concat((selectedHotspot === null || selectedHotspot === void 0 ? void 0 : selectedHotspot.id) === hotspot.id ? 'selected' : ''),
-      style: {
-        position: 'absolute',
-        left: hotspot.x,
-        top: hotspot.y,
-        width: hotspot.width,
-        height: hotspot.height,
-        border: "2px solid ".concat((selectedHotspot === null || selectedHotspot === void 0 ? void 0 : selectedHotspot.id) === hotspot.id ? '#007bff' : '#28a745'),
-        backgroundColor: 'rgba(0, 123, 255, 0.1)',
-        cursor: isEditMode ? 'pointer' : 'default',
-        zIndex: (selectedHotspot === null || selectedHotspot === void 0 ? void 0 : selectedHotspot.id) === hotspot.id ? 20 : 10
-      },
-      onClick: function onClick(e) {
-        return handleHotspotClick(e, hotspot);
-      },
-      title: hotspot.config.text || "Hotspot ".concat(hotspot.id)
-    }, isEditMode && /*#__PURE__*/react.createElement("div", {
-      className: "hotspot-label"
-    }, hotspot.config.text || 'Hotspot'));
-  }), isCreating && dragStart && /*#__PURE__*/react.createElement("div", {
-    className: "hotspot-preview",
-    style: {
-      position: 'absolute',
-      left: Math.min(dragStart.x, 0),
-      // This would use current mouse position
-      top: Math.min(dragStart.y, 0),
-      width: Math.abs(0 - dragStart.x),
-      // This would use current mouse position
-      height: Math.abs(0 - dragStart.y),
-      border: '2px dashed #007bff',
-      backgroundColor: 'rgba(0, 123, 255, 0.1)',
-      pointerEvents: 'none'
-    }
-  })));
-};
-;// ./src/client/components/Sidebar.tsx
-
-var Sidebar = function Sidebar(_ref) {
-  var slides = _ref.slides,
-    activeSlide = _ref.activeSlide,
-    onSlideSelect = _ref.onSlideSelect,
-    onSlideReorder = _ref.onSlideReorder,
-    onSlideCreate = _ref.onSlideCreate,
-    onSlideDelete = _ref.onSlideDelete,
-    _ref$width = _ref.width,
-    width = _ref$width === void 0 ? 300 : _ref$width;
-  return /*#__PURE__*/react.createElement("div", {
-    className: "sidebar",
-    style: {
-      width: width
-    }
-  }, /*#__PURE__*/react.createElement("div", {
-    className: "sidebar-header"
-  }, /*#__PURE__*/react.createElement("h3", null, "Slides"), /*#__PURE__*/react.createElement("button", {
-    className: "btn btn-sm btn-primary",
-    onClick: function onClick() {
-      return console.log('Add slide');
-    }
-  }, "+ Add Slide")), /*#__PURE__*/react.createElement("div", {
-    className: "slides-list"
-  }, slides.map(function (slide, index) {
-    return /*#__PURE__*/react.createElement("div", {
-      key: slide.id,
-      className: "slide-item ".concat((activeSlide === null || activeSlide === void 0 ? void 0 : activeSlide.id) === slide.id ? 'active' : ''),
-      onClick: function onClick() {
-        return onSlideSelect === null || onSlideSelect === void 0 ? void 0 : onSlideSelect(slide);
-      }
-    }, /*#__PURE__*/react.createElement("div", {
-      className: "slide-preview"
-    }, /*#__PURE__*/react.createElement("img", {
-      src: slide.mediaUrl,
-      alt: slide.title,
-      className: "slide-thumbnail",
-      onError: function onError(e) {
-        e.target.src = '/api/placeholder/100/75';
-      }
-    }), /*#__PURE__*/react.createElement("div", {
-      className: "slide-number"
-    }, index + 1)), /*#__PURE__*/react.createElement("div", {
-      className: "slide-info"
-    }, /*#__PURE__*/react.createElement("h4", {
-      className: "slide-title"
-    }, slide.title), /*#__PURE__*/react.createElement("span", {
-      className: "slide-type"
-    }, slide.mediaType)));
-  })));
-};
-// EXTERNAL MODULE: ./src/shared/types/index.ts
-var types = __webpack_require__(323);
-;// ./src/client/components/ConfigPanel.tsx
-function ConfigPanel_typeof(o) { "@babel/helpers - typeof"; return ConfigPanel_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, ConfigPanel_typeof(o); }
-function ConfigPanel_ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
-function ConfigPanel_objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ConfigPanel_ownKeys(Object(t), !0).forEach(function (r) { ConfigPanel_defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ConfigPanel_ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
-function ConfigPanel_defineProperty(e, r, t) { return (r = ConfigPanel_toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
-function ConfigPanel_toPropertyKey(t) { var i = ConfigPanel_toPrimitive(t, "string"); return "symbol" == ConfigPanel_typeof(i) ? i : i + ""; }
-function ConfigPanel_toPrimitive(t, r) { if ("object" != ConfigPanel_typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != ConfigPanel_typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
-function ConfigPanel_slicedToArray(r, e) { return ConfigPanel_arrayWithHoles(r) || ConfigPanel_iterableToArrayLimit(r, e) || ConfigPanel_unsupportedIterableToArray(r, e) || ConfigPanel_nonIterableRest(); }
-function ConfigPanel_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function ConfigPanel_unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return ConfigPanel_arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? ConfigPanel_arrayLikeToArray(r, a) : void 0; } }
-function ConfigPanel_arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
-function ConfigPanel_iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
-function ConfigPanel_arrayWithHoles(r) { if (Array.isArray(r)) return r; }
-
-
-
-var ConfigPanel = function ConfigPanel(_ref) {
-  var _formData$config, _formData$config2, _formData$config3, _formData$config4, _formData$config5;
-  var hotspot = _ref.hotspot,
-    onUpdate = _ref.onUpdate,
-    onDelete = _ref.onDelete,
-    _ref$width = _ref.width,
-    width = _ref$width === void 0 ? 320 : _ref$width;
-  var _useState = (0,react.useState)({}),
-    _useState2 = ConfigPanel_slicedToArray(_useState, 2),
-    formData = _useState2[0],
-    setFormData = _useState2[1];
-  (0,react.useEffect)(function () {
-    if (hotspot) {
-      setFormData(hotspot);
-    } else {
-      setFormData({});
-    }
-  }, [hotspot]);
-  var handleUpdate = function handleUpdate(field, value) {
-    var updatedData = ConfigPanel_objectSpread(ConfigPanel_objectSpread({}, formData), {}, ConfigPanel_defineProperty({}, field, value));
-    setFormData(updatedData);
-    if (onUpdate && hotspot) {
-      onUpdate(ConfigPanel_objectSpread(ConfigPanel_objectSpread({}, hotspot), updatedData));
-    }
-  };
-  var handleConfigUpdate = function handleConfigUpdate(configField, value) {
-    var updatedConfig = ConfigPanel_objectSpread(ConfigPanel_objectSpread({}, formData.config), {}, ConfigPanel_defineProperty({}, configField, value));
-    var updatedData = ConfigPanel_objectSpread(ConfigPanel_objectSpread({}, formData), {}, {
-      config: updatedConfig
-    });
-    setFormData(updatedData);
-    if (onUpdate && hotspot) {
-      onUpdate(ConfigPanel_objectSpread(ConfigPanel_objectSpread({}, hotspot), updatedData));
-    }
-  };
-  if (!hotspot) {
-    return /*#__PURE__*/react.createElement("div", {
-      className: "config-panel",
-      style: {
-        width: width
-      }
-    }, /*#__PURE__*/react.createElement("div", {
-      className: "config-panel-empty"
-    }, /*#__PURE__*/react.createElement("p", null, "Select a hotspot to edit its properties")));
-  }
-  return /*#__PURE__*/react.createElement("div", {
-    className: "config-panel",
-    style: {
-      width: width
-    }
-  }, /*#__PURE__*/react.createElement("div", {
-    className: "config-panel-header"
-  }, /*#__PURE__*/react.createElement("h3", null, "Hotspot Properties"), /*#__PURE__*/react.createElement("button", {
-    className: "btn btn-danger btn-sm",
-    onClick: function onClick() {
-      return onDelete === null || onDelete === void 0 ? void 0 : onDelete(hotspot.id);
-    },
-    title: "Delete hotspot"
-  }, "Delete")), /*#__PURE__*/react.createElement("div", {
-    className: "config-panel-content"
-  }, /*#__PURE__*/react.createElement("div", {
-    className: "config-section"
-  }, /*#__PURE__*/react.createElement("h4", null, "Position & Size"), /*#__PURE__*/react.createElement("div", {
-    className: "form-row"
-  }, /*#__PURE__*/react.createElement("div", {
-    className: "form-group"
-  }, /*#__PURE__*/react.createElement("label", null, "X Position"), /*#__PURE__*/react.createElement("input", {
-    type: "number",
-    value: formData.x || 0,
-    onChange: function onChange(e) {
-      return handleUpdate('x', parseInt(e.target.value));
-    },
-    className: "form-input"
-  })), /*#__PURE__*/react.createElement("div", {
-    className: "form-group"
-  }, /*#__PURE__*/react.createElement("label", null, "Y Position"), /*#__PURE__*/react.createElement("input", {
-    type: "number",
-    value: formData.y || 0,
-    onChange: function onChange(e) {
-      return handleUpdate('y', parseInt(e.target.value));
-    },
-    className: "form-input"
-  }))), /*#__PURE__*/react.createElement("div", {
-    className: "form-row"
-  }, /*#__PURE__*/react.createElement("div", {
-    className: "form-group"
-  }, /*#__PURE__*/react.createElement("label", null, "Width"), /*#__PURE__*/react.createElement("input", {
-    type: "number",
-    value: formData.width || 50,
-    onChange: function onChange(e) {
-      return handleUpdate('width', parseInt(e.target.value));
-    },
-    className: "form-input",
-    min: "10"
-  })), /*#__PURE__*/react.createElement("div", {
-    className: "form-group"
-  }, /*#__PURE__*/react.createElement("label", null, "Height"), /*#__PURE__*/react.createElement("input", {
-    type: "number",
-    value: formData.height || 50,
-    onChange: function onChange(e) {
-      return handleUpdate('height', parseInt(e.target.value));
-    },
-    className: "form-input",
-    min: "10"
-  })))), /*#__PURE__*/react.createElement("div", {
-    className: "config-section"
-  }, /*#__PURE__*/react.createElement("h4", null, "Event Type"), /*#__PURE__*/react.createElement("select", {
-    value: formData.eventType || types/* EventType */.Bx.TEXT_POPUP,
-    onChange: function onChange(e) {
-      return handleUpdate('eventType', e.target.value);
-    },
-    className: "form-select"
-  }, Object.entries(constants/* EVENT_TYPES */.Ru).map(function (_ref2) {
-    var _ref3 = ConfigPanel_slicedToArray(_ref2, 2),
-      key = _ref3[0],
-      config = _ref3[1];
-    return /*#__PURE__*/react.createElement("option", {
-      key: key,
-      value: key
-    }, config.icon, " ", config.name);
-  }))), /*#__PURE__*/react.createElement("div", {
-    className: "config-section"
-  }, /*#__PURE__*/react.createElement("h4", null, "Trigger Type"), /*#__PURE__*/react.createElement("select", {
-    value: formData.triggerType || types/* TriggerType */.P8.CLICK,
-    onChange: function onChange(e) {
-      return handleUpdate('triggerType', e.target.value);
-    },
-    className: "form-select"
-  }, Object.entries(constants/* TRIGGER_TYPES */.Zw).map(function (_ref4) {
-    var _ref5 = ConfigPanel_slicedToArray(_ref4, 2),
-      key = _ref5[0],
-      config = _ref5[1];
-    return /*#__PURE__*/react.createElement("option", {
-      key: key,
-      value: key
-    }, config.icon, " ", config.name);
-  }))), formData.eventType === types/* EventType */.Bx.TEXT_POPUP && /*#__PURE__*/react.createElement("div", {
-    className: "config-section"
-  }, /*#__PURE__*/react.createElement("h4", null, "Text Content"), /*#__PURE__*/react.createElement("div", {
-    className: "form-group"
-  }, /*#__PURE__*/react.createElement("label", null, "Title"), /*#__PURE__*/react.createElement("input", {
-    type: "text",
-    value: ((_formData$config = formData.config) === null || _formData$config === void 0 ? void 0 : _formData$config.title) || '',
-    onChange: function onChange(e) {
-      return handleConfigUpdate('title', e.target.value);
-    },
-    className: "form-input",
-    placeholder: "Optional title"
-  })), /*#__PURE__*/react.createElement("div", {
-    className: "form-group"
-  }, /*#__PURE__*/react.createElement("label", null, "Text"), /*#__PURE__*/react.createElement("textarea", {
-    value: ((_formData$config2 = formData.config) === null || _formData$config2 === void 0 ? void 0 : _formData$config2.text) || '',
-    onChange: function onChange(e) {
-      return handleConfigUpdate('text', e.target.value);
-    },
-    className: "form-textarea",
-    placeholder: "Enter hotspot text...",
-    rows: 4
-  }))), /*#__PURE__*/react.createElement("div", {
-    className: "config-section"
-  }, /*#__PURE__*/react.createElement("h4", null, "Style"), /*#__PURE__*/react.createElement("div", {
-    className: "form-group"
-  }, /*#__PURE__*/react.createElement("label", null, "Background Color"), /*#__PURE__*/react.createElement("input", {
-    type: "color",
-    value: ((_formData$config3 = formData.config) === null || _formData$config3 === void 0 ? void 0 : _formData$config3.backgroundColor) || '#ffffff',
-    onChange: function onChange(e) {
-      return handleConfigUpdate('backgroundColor', e.target.value);
-    },
-    className: "form-color-input"
-  })), /*#__PURE__*/react.createElement("div", {
-    className: "form-group"
-  }, /*#__PURE__*/react.createElement("label", null, "Text Color"), /*#__PURE__*/react.createElement("input", {
-    type: "color",
-    value: ((_formData$config4 = formData.config) === null || _formData$config4 === void 0 ? void 0 : _formData$config4.textColor) || '#000000',
-    onChange: function onChange(e) {
-      return handleConfigUpdate('textColor', e.target.value);
-    },
-    className: "form-color-input"
-  })), /*#__PURE__*/react.createElement("div", {
-    className: "form-group"
-  }, /*#__PURE__*/react.createElement("label", null, "Font Size"), /*#__PURE__*/react.createElement("input", {
-    type: "number",
-    value: ((_formData$config5 = formData.config) === null || _formData$config5 === void 0 ? void 0 : _formData$config5.fontSize) || 14,
-    onChange: function onChange(e) {
-      return handleConfigUpdate('fontSize', parseInt(e.target.value));
-    },
-    className: "form-input",
-    min: "8",
-    max: "72"
-  }))), /*#__PURE__*/react.createElement("div", {
-    className: "config-section"
-  }, /*#__PURE__*/react.createElement("h4", null, "Visibility"), /*#__PURE__*/react.createElement("div", {
-    className: "form-group"
-  }, /*#__PURE__*/react.createElement("label", {
-    className: "checkbox-label"
-  }, /*#__PURE__*/react.createElement("input", {
-    type: "checkbox",
-    checked: formData.isVisible !== false,
-    onChange: function onChange(e) {
-      return handleUpdate('isVisible', e.target.checked);
-    }
-  }), "Visible")))));
-};
-;// ./src/client/components/AppHeader.tsx
-
-var AppHeader = function AppHeader(_ref) {
-  var project = _ref.project,
-    isSaving = _ref.isSaving,
-    onSave = _ref.onSave,
-    onToggleEditMode = _ref.onToggleEditMode,
-    isEditMode = _ref.isEditMode;
-  var handleBackToDashboard = function handleBackToDashboard() {
-    var dashboardUrl = "".concat(window.location.origin).concat(window.location.pathname);
-    window.location.href = dashboardUrl;
-  };
-  return /*#__PURE__*/react.createElement("header", {
-    className: "app-header"
-  }, /*#__PURE__*/react.createElement("div", {
-    className: "header-left"
-  }, /*#__PURE__*/react.createElement("button", {
-    className: "btn btn-ghost",
-    onClick: handleBackToDashboard,
-    title: "Back to Dashboard"
-  }, "\u2190 Back"), /*#__PURE__*/react.createElement("div", {
-    className: "project-info"
-  }, /*#__PURE__*/react.createElement("h1", {
-    className: "project-title"
-  }, project.title), project.description && /*#__PURE__*/react.createElement("p", {
-    className: "project-description"
-  }, project.description))), /*#__PURE__*/react.createElement("div", {
-    className: "header-right"
-  }, /*#__PURE__*/react.createElement("div", {
-    className: "save-status"
-  }, isSaving && /*#__PURE__*/react.createElement("span", {
-    className: "saving-indicator"
-  }, /*#__PURE__*/react.createElement("span", {
-    className: "spinner-sm"
-  }), "Saving...")), /*#__PURE__*/react.createElement("div", {
-    className: "header-actions"
-  }, /*#__PURE__*/react.createElement("button", {
-    className: "btn mode-toggle ".concat(isEditMode ? 'btn-primary' : 'btn-secondary'),
-    onClick: onToggleEditMode,
-    title: isEditMode ? 'Switch to Preview Mode' : 'Switch to Edit Mode'
-  }, isEditMode ? '✏️ Edit Mode' : '👁️ Preview'), /*#__PURE__*/react.createElement("button", {
-    className: "btn btn-success",
-    onClick: onSave,
-    disabled: isSaving,
-    title: "Save Changes (Ctrl+S)"
-  }, isSaving ? 'Saving...' : '💾 Save'), /*#__PURE__*/react.createElement("div", {
-    className: "dropdown"
-  }, /*#__PURE__*/react.createElement("button", {
-    className: "btn btn-secondary dropdown-toggle"
-  }, "\u2699\uFE0F Options"), /*#__PURE__*/react.createElement("div", {
-    className: "dropdown-menu"
-  }, /*#__PURE__*/react.createElement("button", {
-    className: "dropdown-item"
-  }, "Export Project"), /*#__PURE__*/react.createElement("button", {
-    className: "dropdown-item"
-  }, "Import Slides"), /*#__PURE__*/react.createElement("hr", {
-    className: "dropdown-divider"
-  }), /*#__PURE__*/react.createElement("button", {
-    className: "dropdown-item"
-  }, "Project Settings"))))));
-};
-;// ./src/client/components/common/LoadingSpinner.tsx
-
-var LoadingSpinner = function LoadingSpinner(_ref) {
-  var _ref$message = _ref.message,
-    message = _ref$message === void 0 ? 'Loading...' : _ref$message,
-    _ref$size = _ref.size,
-    size = _ref$size === void 0 ? 'medium' : _ref$size,
-    _ref$className = _ref.className,
-    className = _ref$className === void 0 ? '' : _ref$className;
-  return /*#__PURE__*/react.createElement("div", {
-    className: "loading-spinner ".concat(size, " ").concat(className)
-  }, /*#__PURE__*/react.createElement("div", {
-    className: "spinner"
-  }), message && /*#__PURE__*/react.createElement("p", {
-    className: "loading-message"
-  }, message));
-};
-;// ./src/client/components/common/ErrorMessage.tsx
-
-var ErrorMessage = function ErrorMessage(_ref) {
-  var message = _ref.message,
-    onRetry = _ref.onRetry,
-    _ref$className = _ref.className,
-    className = _ref$className === void 0 ? '' : _ref$className;
-  return /*#__PURE__*/react.createElement("div", {
-    className: "error-message ".concat(className)
-  }, /*#__PURE__*/react.createElement("div", {
-    className: "error-icon"
-  }, "\u26A0\uFE0F"), /*#__PURE__*/react.createElement("div", {
-    className: "error-content"
-  }, /*#__PURE__*/react.createElement("h3", null, "Error"), /*#__PURE__*/react.createElement("p", null, message), onRetry && /*#__PURE__*/react.createElement("button", {
-    className: "btn btn-secondary",
-    onClick: onRetry
-  }, "Try Again")));
-};
-;// ./src/client/components/HotspotEditor.tsx
-function HotspotEditor_typeof(o) { "@babel/helpers - typeof"; return HotspotEditor_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, HotspotEditor_typeof(o); }
-function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || HotspotEditor_unsupportedIterableToArray(r) || _nonIterableSpread(); }
-function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
-function _arrayWithoutHoles(r) { if (Array.isArray(r)) return HotspotEditor_arrayLikeToArray(r); }
-function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
-function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
-function HotspotEditor_ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
-function HotspotEditor_objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? HotspotEditor_ownKeys(Object(t), !0).forEach(function (r) { HotspotEditor_defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : HotspotEditor_ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
-function HotspotEditor_defineProperty(e, r, t) { return (r = HotspotEditor_toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
-function HotspotEditor_toPropertyKey(t) { var i = HotspotEditor_toPrimitive(t, "string"); return "symbol" == HotspotEditor_typeof(i) ? i : i + ""; }
-function HotspotEditor_toPrimitive(t, r) { if ("object" != HotspotEditor_typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != HotspotEditor_typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
-function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
-function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
-function HotspotEditor_slicedToArray(r, e) { return HotspotEditor_arrayWithHoles(r) || HotspotEditor_iterableToArrayLimit(r, e) || HotspotEditor_unsupportedIterableToArray(r, e) || HotspotEditor_nonIterableRest(); }
-function HotspotEditor_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function HotspotEditor_unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return HotspotEditor_arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? HotspotEditor_arrayLikeToArray(r, a) : void 0; } }
-function HotspotEditor_arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
-function HotspotEditor_iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
-function HotspotEditor_arrayWithHoles(r) { if (Array.isArray(r)) return r; }
-
-
-
-
-
-
-
-
-// Import Google Apps Script types
-
-var HotspotEditor = function HotspotEditor(_ref) {
-  var projectId = _ref.projectId,
-    _ref$initialSlides = _ref.initialSlides,
-    initialSlides = _ref$initialSlides === void 0 ? [] : _ref$initialSlides,
-    _ref$initialHotspots = _ref.initialHotspots,
-    initialHotspots = _ref$initialHotspots === void 0 ? [] : _ref$initialHotspots,
-    onSave = _ref.onSave;
-  var _useState = (0,react.useState)({
-      project: null,
-      slides: initialSlides,
-      hotspots: initialHotspots,
-      activeSlide: null,
-      selectedHotspot: null,
-      loading: true,
-      saving: false,
-      error: null,
-      isEditMode: true,
-      sidebarWidth: 300,
-      configPanelWidth: 320
-    }),
-    _useState2 = HotspotEditor_slicedToArray(_useState, 2),
-    state = _useState2[0],
-    setState = _useState2[1];
-
-  // Load project data
-  var loadProjectData = (0,react.useCallback)(/*#__PURE__*/_asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
-    var data, _t;
-    return _regenerator().w(function (_context) {
-      while (1) switch (_context.p = _context.n) {
-        case 0:
-          _context.p = 0;
-          setState(function (prev) {
-            return HotspotEditor_objectSpread(HotspotEditor_objectSpread({}, prev), {}, {
-              loading: true,
-              error: null
-            });
-          });
-          _context.n = 1;
-          return new Promise(function (resolve, reject) {
-            window.google.script.run.withSuccessHandler(function (result) {
-              // Process dates
-              var processedData = {
-                project: HotspotEditor_objectSpread(HotspotEditor_objectSpread({}, result.project), {}, {
-                  createdAt: new Date(result.project.createdAt),
-                  updatedAt: new Date(result.project.updatedAt)
-                }),
-                slides: result.slides,
-                hotspots: result.hotspots
-              };
-              resolve(processedData);
-            }).withFailureHandler(function (error) {
-              reject(new Error(error.message || 'Failed to load project data'));
-            }).getProjectData(projectId);
-          });
-        case 1:
-          data = _context.v;
-          setState(function (prev) {
-            return HotspotEditor_objectSpread(HotspotEditor_objectSpread({}, prev), {}, {
-              project: data.project,
-              slides: data.slides,
-              hotspots: data.hotspots,
-              activeSlide: data.slides[0] || null,
-              loading: false,
-              error: null
-            });
-          });
-          _context.n = 3;
-          break;
-        case 2:
-          _context.p = 2;
-          _t = _context.v;
-          setState(function (prev) {
-            return HotspotEditor_objectSpread(HotspotEditor_objectSpread({}, prev), {}, {
-              loading: false,
-              error: _t instanceof Error ? _t.message : 'Failed to load project data'
-            });
-          });
-        case 3:
-          return _context.a(2);
-      }
-    }, _callee, null, [[0, 2]]);
-  })), [projectId]);
-
-  // Save hotspots to server
-  var saveHotspots = (0,react.useCallback)(/*#__PURE__*/function () {
-    var _ref3 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2(hotspots) {
-      var hotspotsToSave, _t2;
-      return _regenerator().w(function (_context2) {
-        while (1) switch (_context2.p = _context2.n) {
-          case 0:
-            hotspotsToSave = hotspots || state.hotspots;
-            _context2.p = 1;
-            setState(function (prev) {
-              return HotspotEditor_objectSpread(HotspotEditor_objectSpread({}, prev), {}, {
-                saving: true,
-                error: null
-              });
-            });
-            _context2.n = 2;
-            return new Promise(function (resolve, reject) {
-              window.google.script.run.withSuccessHandler(function () {
-                return resolve();
-              }).withFailureHandler(function (error) {
-                reject(new Error(error.message || 'Failed to save hotspots'));
-              }).saveHotspots(projectId, hotspotsToSave);
-            });
-          case 2:
-            setState(function (prev) {
-              return HotspotEditor_objectSpread(HotspotEditor_objectSpread({}, prev), {}, {
-                saving: false
-              });
-            });
-            if (onSave) {
-              onSave(hotspotsToSave);
-            }
-            _context2.n = 4;
-            break;
-          case 3:
-            _context2.p = 3;
-            _t2 = _context2.v;
-            setState(function (prev) {
-              return HotspotEditor_objectSpread(HotspotEditor_objectSpread({}, prev), {}, {
-                saving: false,
-                error: _t2 instanceof Error ? _t2.message : 'Failed to save hotspots'
-              });
-            });
-          case 4:
-            return _context2.a(2);
-        }
-      }, _callee2, null, [[1, 3]]);
-    }));
-    return function (_x) {
-      return _ref3.apply(this, arguments);
-    };
-  }(), [projectId, state.hotspots, onSave]);
-
-  // Auto-save debounced
-  var debouncedSave = (0,react.useCallback)(function () {
-    var timeout;
-    return function (hotspots) {
-      clearTimeout(timeout);
-      timeout = setTimeout(function () {
-        saveHotspots(hotspots);
-      }, 1000);
-    };
-  }(), [saveHotspots]);
-
-  // Handle slide selection
-  var handleSlideSelect = (0,react.useCallback)(function (slide) {
-    setState(function (prev) {
-      return HotspotEditor_objectSpread(HotspotEditor_objectSpread({}, prev), {}, {
-        activeSlide: slide,
-        selectedHotspot: null
-      });
-    });
-  }, []);
-
-  // Handle hotspot selection
-  var handleHotspotSelect = (0,react.useCallback)(function (hotspot) {
-    setState(function (prev) {
-      return HotspotEditor_objectSpread(HotspotEditor_objectSpread({}, prev), {}, {
-        selectedHotspot: hotspot
-      });
-    });
-  }, []);
-
-  // Handle hotspot creation
-  var handleHotspotCreate = (0,react.useCallback)(function (request) {
-    var newHotspot = {
-      id: "hotspot_".concat(Date.now(), "_").concat(Math.random().toString(36).substr(2, 9)),
-      slideId: request.slideId,
-      x: request.x,
-      y: request.y,
-      width: request.width,
-      height: request.height,
-      eventType: request.eventType,
-      triggerType: request.triggerType,
-      config: request.config,
-      order: state.hotspots.filter(function (h) {
-        return h.slideId === request.slideId;
-      }).length,
-      isVisible: true
-    };
-    var updatedHotspots = [].concat(_toConsumableArray(state.hotspots), [newHotspot]);
-    setState(function (prev) {
-      return HotspotEditor_objectSpread(HotspotEditor_objectSpread({}, prev), {}, {
-        hotspots: updatedHotspots,
-        selectedHotspot: newHotspot
-      });
-    });
-    debouncedSave(updatedHotspots);
-  }, [state.hotspots, debouncedSave]);
-
-  // Handle hotspot update
-  var handleHotspotUpdate = (0,react.useCallback)(function (updatedHotspot) {
-    var updatedHotspots = state.hotspots.map(function (h) {
-      return h.id === updatedHotspot.id ? updatedHotspot : h;
-    });
-    setState(function (prev) {
-      return HotspotEditor_objectSpread(HotspotEditor_objectSpread({}, prev), {}, {
-        hotspots: updatedHotspots,
-        selectedHotspot: updatedHotspot
-      });
-    });
-    debouncedSave(updatedHotspots);
-  }, [state.hotspots, debouncedSave]);
-
-  // Handle hotspot delete
-  var handleHotspotDelete = (0,react.useCallback)(function (hotspotId) {
-    var updatedHotspots = state.hotspots.filter(function (h) {
-      return h.id !== hotspotId;
-    });
-    setState(function (prev) {
-      var _prev$selectedHotspot;
-      return HotspotEditor_objectSpread(HotspotEditor_objectSpread({}, prev), {}, {
-        hotspots: updatedHotspots,
-        selectedHotspot: ((_prev$selectedHotspot = prev.selectedHotspot) === null || _prev$selectedHotspot === void 0 ? void 0 : _prev$selectedHotspot.id) === hotspotId ? null : prev.selectedHotspot
-      });
-    });
-    debouncedSave(updatedHotspots);
-  }, [state.hotspots, debouncedSave]);
-
-  // Get hotspots for active slide
-  var activeSlideHotspots = react.useMemo(function () {
-    return state.activeSlide ? state.hotspots.filter(function (h) {
-      return h.slideId === state.activeSlide.id;
-    }) : [];
-  }, [state.hotspots, state.activeSlide]);
-
-  // Load project data on mount
-  (0,react.useEffect)(function () {
-    loadProjectData();
-  }, [loadProjectData]);
-
-  // Handle keyboard shortcuts
-  (0,react.useEffect)(function () {
-    var handleKeyDown = function handleKeyDown(event) {
-      if (event.ctrlKey || event.metaKey) {
-        switch (event.key) {
-          case 's':
-            event.preventDefault();
-            saveHotspots();
-            break;
-          case 'z':
-            event.preventDefault();
-            // TODO: Implement undo
-            break;
-        }
-      }
-      if (event.key === 'Delete' && state.selectedHotspot) {
-        handleHotspotDelete(state.selectedHotspot.id);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return function () {
-      return window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [saveHotspots, state.selectedHotspot, handleHotspotDelete]);
-  if (state.loading) {
-    return /*#__PURE__*/react.createElement(LoadingSpinner, {
-      message: "Loading project..."
-    });
-  }
-  if (state.error) {
-    return /*#__PURE__*/react.createElement(ErrorMessage, {
-      message: state.error,
-      onRetry: loadProjectData
-    });
-  }
-  if (!state.project) {
-    return /*#__PURE__*/react.createElement(ErrorMessage, {
-      message: "Project not found"
-    });
-  }
-  return /*#__PURE__*/react.createElement("div", {
-    className: "hotspot-editor"
-  }, /*#__PURE__*/react.createElement(AppHeader, {
-    project: state.project,
-    isSaving: state.saving,
-    onSave: function onSave() {
-      return saveHotspots();
-    },
-    onToggleEditMode: function onToggleEditMode() {
-      return setState(function (prev) {
-        return HotspotEditor_objectSpread(HotspotEditor_objectSpread({}, prev), {}, {
-          isEditMode: !prev.isEditMode
-        });
-      });
-    },
-    isEditMode: state.isEditMode
-  }), /*#__PURE__*/react.createElement("div", {
-    className: "editor-content"
-  }, /*#__PURE__*/react.createElement(Sidebar, {
-    slides: state.slides,
-    activeSlide: state.activeSlide || undefined,
-    onSlideSelect: handleSlideSelect,
-    width: state.sidebarWidth
-  }), /*#__PURE__*/react.createElement("div", {
-    className: "main-content"
-  }, /*#__PURE__*/react.createElement(MainCanvas, {
-    slide: state.activeSlide || undefined,
-    hotspots: activeSlideHotspots,
-    selectedHotspot: state.selectedHotspot || undefined,
-    isEditMode: state.isEditMode,
-    onHotspotSelect: handleHotspotSelect,
-    onHotspotCreate: handleHotspotCreate,
-    onHotspotUpdate: handleHotspotUpdate,
-    onHotspotDelete: handleHotspotDelete
-  })), /*#__PURE__*/react.createElement(ConfigPanel, {
-    hotspot: state.selectedHotspot || undefined,
-    onUpdate: handleHotspotUpdate,
-    onDelete: handleHotspotDelete,
-    width: state.configPanelWidth
-  })));
-};
-// EXTERNAL MODULE: ./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js
-var injectStylesIntoStyleTag = __webpack_require__(72);
-var injectStylesIntoStyleTag_default = /*#__PURE__*/__webpack_require__.n(injectStylesIntoStyleTag);
-// EXTERNAL MODULE: ./node_modules/style-loader/dist/runtime/styleDomAPI.js
-var styleDomAPI = __webpack_require__(825);
-var styleDomAPI_default = /*#__PURE__*/__webpack_require__.n(styleDomAPI);
-// EXTERNAL MODULE: ./node_modules/style-loader/dist/runtime/insertBySelector.js
-var insertBySelector = __webpack_require__(659);
-var insertBySelector_default = /*#__PURE__*/__webpack_require__.n(insertBySelector);
-// EXTERNAL MODULE: ./node_modules/style-loader/dist/runtime/setAttributesWithoutAttributes.js
-var setAttributesWithoutAttributes = __webpack_require__(56);
-var setAttributesWithoutAttributes_default = /*#__PURE__*/__webpack_require__.n(setAttributesWithoutAttributes);
-// EXTERNAL MODULE: ./node_modules/style-loader/dist/runtime/insertStyleElement.js
-var insertStyleElement = __webpack_require__(159);
-var insertStyleElement_default = /*#__PURE__*/__webpack_require__.n(insertStyleElement);
-// EXTERNAL MODULE: ./node_modules/style-loader/dist/runtime/styleTagTransform.js
-var styleTagTransform = __webpack_require__(113);
-var styleTagTransform_default = /*#__PURE__*/__webpack_require__.n(styleTagTransform);
-// EXTERNAL MODULE: ./node_modules/css-loader/dist/cjs.js!./src/client/styles/editor-template.css
-var editor_template = __webpack_require__(394);
-;// ./src/client/styles/editor-template.css
-
-      
-      
-      
-      
-      
-      
-      
-      
-      
-
-var options = {};
-
-options.styleTagTransform = (styleTagTransform_default());
-options.setAttributes = (setAttributesWithoutAttributes_default());
-options.insert = insertBySelector_default().bind(null, "head");
-options.domAPI = (styleDomAPI_default());
-options.insertStyleElement = (insertStyleElement_default());
-
-var update = injectStylesIntoStyleTag_default()(editor_template/* default */.A, options);
-
-
-
-
-       /* harmony default export */ const styles_editor_template = (editor_template/* default */.A && editor_template/* default */.A.locals ? editor_template/* default */.A.locals : undefined);
-
-;// ./src/client/editor-template.tsx
-// Main entry point for Hotspot Editor
-// This file is loaded by editor-template.html template
-
-
-
-
-
-
-// Get project ID from global variable set by server
-
-// Wait for DOM to be ready
-document.addEventListener('DOMContentLoaded', function () {
-  var container = document.getElementById('app-root');
-  if (!container) {
-    throw new Error('App root element not found');
-  }
-
-  // Get project ID from global variable or URL parameter
-  var urlParams = new URLSearchParams(window.location.search);
-  var projectId = window.projectId || urlParams.get('project') || '';
-  if (!projectId) {
-    throw new Error('Project ID not found');
-  }
-  var root = (0,client.createRoot)(container);
-  root.render(/*#__PURE__*/react.createElement(HotspotEditor, {
-    projectId: projectId
-  }));
-});
-
-/***/ }),
-
 /***/ 903:
 /***/ ((module, __webpack_exports__, __webpack_require__) => {
 
@@ -2209,7 +3703,7 @@ body {
 /***/ })
 
 }]);</script><script defer="defer">"use strict";
-(self["webpackChunkexplico_learning_typescript"] = self["webpackChunkexplico_learning_typescript"] || []).push([[814],{
+(self["webpackChunkexplico_learning_typescript"] = self["webpackChunkexplico_learning_typescript"] || []).push([[50],{
 
 /***/ 56:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
@@ -18445,19 +19939,6 @@ exports.unstable_wrapCallback = function (callback) {
 
 /***/ }),
 
-/***/ 540:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-
-
-if (true) {
-  module.exports = __webpack_require__(869);
-} else // removed by dead control flow
-{}
-
-
-/***/ }),
-
 /***/ 601:
 /***/ ((module) => {
 
@@ -19280,6 +20761,19 @@ var ErrorCode = /*#__PURE__*/function (ErrorCode) {
 
 /***/ }),
 
+/***/ 540:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+
+
+if (true) {
+  module.exports = __webpack_require__(869);
+} else // removed by dead control flow
+{}
+
+
+/***/ }),
+
 /***/ 639:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
@@ -19943,7 +21437,7 @@ var LEGACY_SHEETS_CONFIG = {
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module depends on other loaded chunks and execution need to be delayed
-/******/ 	var __webpack_exports__ = __webpack_require__.O(undefined, [510,814], () => (__webpack_require__(510)))
+/******/ 	var __webpack_exports__ = __webpack_require__.O(undefined, [244,50], () => (__webpack_require__(244)))
 /******/ 	__webpack_exports__ = __webpack_require__.O(__webpack_exports__);
 /******/ 	
 /******/ })()
