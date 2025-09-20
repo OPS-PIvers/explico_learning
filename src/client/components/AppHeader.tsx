@@ -18,7 +18,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   lastSaved,
   onSaveNow,
   onToggleEditMode,
-  isEditMode
+  isEditMode,
 }) => {
   const handleBackToDashboard = () => {
     const dashboardUrl = `${window.location.origin}${window.location.pathname}`;
@@ -47,18 +47,12 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   return (
     <header className="app-header">
       <div className="header-left">
-        <button
-          className="btn btn-ghost"
-          onClick={handleBackToDashboard}
-          title="Back to Dashboard"
-        >
+        <button className="btn btn-ghost" onClick={handleBackToDashboard} title="Back to Dashboard">
           ← Back
         </button>
         <div className="project-info">
           <h1 className="project-title">{project.title}</h1>
-          {project.description && (
-            <p className="project-description">{project.description}</p>
-          )}
+          {project.description && <p className="project-description">{project.description}</p>}
         </div>
       </div>
 
@@ -71,14 +65,10 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             </span>
           )}
           {!isSaving && hasUnsavedChanges && (
-            <span className="unsaved-indicator">
-              • Unsaved changes
-            </span>
+            <span className="unsaved-indicator">• Unsaved changes</span>
           )}
           {!isSaving && !hasUnsavedChanges && lastSaved && (
-            <span className="saved-indicator">
-              ✓ Saved {lastSaved.toLocaleTimeString()}
-            </span>
+            <span className="saved-indicator">✓ Saved {lastSaved.toLocaleTimeString()}</span>
           )}
         </div>
 
@@ -103,9 +93,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           )}
 
           <div className="dropdown">
-            <button className="btn btn-secondary dropdown-toggle">
-              ⚙️ Options
-            </button>
+            <button className="btn btn-secondary dropdown-toggle">⚙️ Options</button>
             <div className="dropdown-menu">
               <button className="dropdown-item">Export Project</button>
               <button className="dropdown-item">Import Slides</button>

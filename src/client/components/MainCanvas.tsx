@@ -10,7 +10,7 @@ export const MainCanvas: React.FC<MainCanvasProps> = ({
   onHotspotSelect,
   onHotspotCreate,
   onHotspotUpdate,
-  onHotspotDelete
+  onHotspotDelete,
 }) => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [canvasSize, setCanvasSize] = useState({ width: 800, height: 600 });
@@ -18,88 +18,100 @@ export const MainCanvas: React.FC<MainCanvasProps> = ({
   const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(null);
 
   // Handle canvas click for creating hotspots
-  const handleCanvasClick = useCallback((e: React.MouseEvent) => {
-    if (!isEditMode || !slide || !onHotspotCreate) return;
+  const handleCanvasClick = useCallback(
+    (e: React.MouseEvent) => {
+      if (!isEditMode || !slide || !onHotspotCreate) return;
 
-    const rect = canvasRef.current?.getBoundingClientRect();
-    if (!rect) return;
+      const rect = canvasRef.current?.getBoundingClientRect();
+      if (!rect) return;
 
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
 
-    // Clear selection when clicking empty area
-    if (e.target === canvasRef.current && onHotspotSelect) {
-      onHotspotSelect(null as any);
-      return;
-    }
+      // Clear selection when clicking empty area
+      if (e.target === canvasRef.current && onHotspotSelect) {
+        onHotspotSelect(null as any);
+        return;
+      }
 
-    // Start creating hotspot
-    if (!isCreating) {
-      setIsCreating(true);
-      setDragStart({ x, y });
-    }
-  }, [isEditMode, slide, isCreating, onHotspotCreate, onHotspotSelect]);
+      // Start creating hotspot
+      if (!isCreating) {
+        setIsCreating(true);
+        setDragStart({ x, y });
+      }
+    },
+    [isEditMode, slide, isCreating, onHotspotCreate, onHotspotSelect]
+  );
 
   // Current mouse position for preview
   const [currentMouse, setCurrentMouse] = useState<{ x: number; y: number } | null>(null);
 
   // Handle mouse move for hotspot creation
-  const handleCanvasMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!canvasRef.current) return;
+  const handleCanvasMouseMove = useCallback(
+    (e: React.MouseEvent) => {
+      if (!canvasRef.current) return;
 
-    const rect = canvasRef.current.getBoundingClientRect();
-    const currentX = e.clientX - rect.left;
-    const currentY = e.clientY - rect.top;
+      const rect = canvasRef.current.getBoundingClientRect();
+      const currentX = e.clientX - rect.left;
+      const currentY = e.clientY - rect.top;
 
-    if (isCreating && dragStart) {
-      setCurrentMouse({ x: currentX, y: currentY });
-    }
-  }, [isCreating, dragStart]);
+      if (isCreating && dragStart) {
+        setCurrentMouse({ x: currentX, y: currentY });
+      }
+    },
+    [isCreating, dragStart]
+  );
 
   // Handle mouse up for hotspot creation
-  const handleCanvasMouseUp = useCallback((e: React.MouseEvent) => {
-    if (!isCreating || !dragStart || !slide || !onHotspotCreate) return;
+  const handleCanvasMouseUp = useCallback(
+    (e: React.MouseEvent) => {
+      if (!isCreating || !dragStart || !slide || !onHotspotCreate) return;
 
-    const rect = canvasRef.current?.getBoundingClientRect();
-    if (!rect) return;
+      const rect = canvasRef.current?.getBoundingClientRect();
+      if (!rect) return;
 
-    const currentX = e.clientX - rect.left;
-    const currentY = e.clientY - rect.top;
+      const currentX = e.clientX - rect.left;
+      const currentY = e.clientY - rect.top;
 
-    const x = Math.min(dragStart.x, currentX);
-    const y = Math.min(dragStart.y, currentY);
-    const width = Math.max(Math.abs(currentX - dragStart.x), HOTSPOT_DEFAULTS.width);
-    const height = Math.max(Math.abs(currentY - dragStart.y), HOTSPOT_DEFAULTS.height);
+      const x = Math.min(dragStart.x, currentX);
+      const y = Math.min(dragStart.y, currentY);
+      const width = Math.max(Math.abs(currentX - dragStart.x), HOTSPOT_DEFAULTS.width);
+      const height = Math.max(Math.abs(currentY - dragStart.y), HOTSPOT_DEFAULTS.height);
 
-    // Only create if the user actually dragged (minimum size)
-    if (width >= 20 && height >= 20) {
-      const request: CreateHotspotRequest = {
-        slideId: slide.id,
-        x,
-        y,
-        width,
-        height,
-        eventType: HOTSPOT_DEFAULTS.eventType,
-        triggerType: HOTSPOT_DEFAULTS.triggerType,
-        config: { ...HOTSPOT_DEFAULTS.config }
-      };
+      // Only create if the user actually dragged (minimum size)
+      if (width >= 20 && height >= 20) {
+        const request: CreateHotspotRequest = {
+          slideId: slide.id,
+          x,
+          y,
+          width,
+          height,
+          eventType: HOTSPOT_DEFAULTS.eventType,
+          triggerType: HOTSPOT_DEFAULTS.triggerType,
+          config: { ...HOTSPOT_DEFAULTS.config },
+        };
 
-      onHotspotCreate(request);
-    }
+        onHotspotCreate(request);
+      }
 
-    // Reset creation state
-    setIsCreating(false);
-    setDragStart(null);
-    setCurrentMouse(null);
-  }, [isCreating, dragStart, slide, onHotspotCreate]);
+      // Reset creation state
+      setIsCreating(false);
+      setDragStart(null);
+      setCurrentMouse(null);
+    },
+    [isCreating, dragStart, slide, onHotspotCreate]
+  );
 
   // Handle hotspot click
-  const handleHotspotClick = useCallback((e: React.MouseEvent, hotspot: Hotspot) => {
-    e.stopPropagation();
-    if (onHotspotSelect) {
-      onHotspotSelect(hotspot);
-    }
-  }, [onHotspotSelect]);
+  const handleHotspotClick = useCallback(
+    (e: React.MouseEvent, hotspot: Hotspot) => {
+      e.stopPropagation();
+      if (onHotspotSelect) {
+        onHotspotSelect(hotspot);
+      }
+    },
+    [onHotspotSelect]
+  );
 
   // Update canvas size based on slide dimensions
   useEffect(() => {
@@ -146,7 +158,7 @@ export const MainCanvas: React.FC<MainCanvasProps> = ({
           backgroundImage: slide.mediaType === 'image' ? `url(${slide.mediaUrl})` : 'none',
           backgroundSize: 'contain',
           backgroundRepeat: 'no-repeat',
-          backgroundPosition: 'center'
+          backgroundPosition: 'center',
         }}
         onClick={handleCanvasClick}
         onMouseMove={handleCanvasMouseMove}
@@ -171,7 +183,7 @@ export const MainCanvas: React.FC<MainCanvasProps> = ({
         )}
 
         {/* Render hotspots */}
-        {hotspots.map(hotspot => (
+        {hotspots.map((hotspot) => (
           <div
             key={hotspot.id}
             className={`hotspot ${selectedHotspot?.id === hotspot.id ? 'selected' : ''}`}
@@ -184,16 +196,12 @@ export const MainCanvas: React.FC<MainCanvasProps> = ({
               border: `2px solid ${selectedHotspot?.id === hotspot.id ? '#007bff' : '#28a745'}`,
               backgroundColor: 'rgba(0, 123, 255, 0.1)',
               cursor: isEditMode ? 'pointer' : 'default',
-              zIndex: selectedHotspot?.id === hotspot.id ? 20 : 10
+              zIndex: selectedHotspot?.id === hotspot.id ? 20 : 10,
             }}
             onClick={(e) => handleHotspotClick(e, hotspot)}
             title={hotspot.config.text || `Hotspot ${hotspot.id}`}
           >
-            {isEditMode && (
-              <div className="hotspot-label">
-                {hotspot.config.text || 'Hotspot'}
-              </div>
-            )}
+            {isEditMode && <div className="hotspot-label">{hotspot.config.text || 'Hotspot'}</div>}
           </div>
         ))}
 
@@ -210,7 +218,7 @@ export const MainCanvas: React.FC<MainCanvasProps> = ({
               border: '2px dashed #007bff',
               backgroundColor: 'rgba(0, 123, 255, 0.1)',
               pointerEvents: 'none',
-              zIndex: 25
+              zIndex: 25,
             }}
           >
             <div className="hotspot-preview-label">

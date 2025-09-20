@@ -90,21 +90,21 @@ export interface SpotlightConfig {
 export enum MediaType {
   IMAGE = 'image',
   VIDEO = 'video',
-  YOUTUBE = 'youtube'
+  YOUTUBE = 'youtube',
 }
 
 export enum EventType {
   TEXT_POPUP = 'text_popup',
   PAN_ZOOM = 'pan_zoom',
   SPOTLIGHT = 'spotlight',
-  TEXT_ON_IMAGE = 'text_on_image'
+  TEXT_ON_IMAGE = 'text_on_image',
 }
 
 export enum TriggerType {
   CLICK = 'click',
   HOVER = 'hover',
   TOUCH = 'touch',
-  AUTO = 'auto'
+  AUTO = 'auto',
 }
 
 export enum AnimationType {
@@ -115,7 +115,7 @@ export enum AnimationType {
   SLIDE_RIGHT = 'slideRight',
   BOUNCE = 'bounce',
   ZOOM_IN = 'zoomIn',
-  ZOOM_OUT = 'zoomOut'
+  ZOOM_OUT = 'zoomOut',
 }
 
 // API Response types
@@ -285,5 +285,5 @@ export enum ErrorCode {
   INVALID_MEDIA_URL = 'INVALID_MEDIA_URL',
   SHEETS_API_ERROR = 'SHEETS_API_ERROR',
   VALIDATION_ERROR = 'VALIDATION_ERROR',
-  PERMISSION_DENIED = 'PERMISSION_DENIED'
+  PERMISSION_DENIED = 'PERMISSION_DENIED',
 }

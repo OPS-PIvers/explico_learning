@@ -1,5 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Project, Slide, Hotspot, HotspotEditorProps, CreateHotspotRequest } from '../../shared/types';
+import {
+  Project,
+  Slide,
+  Hotspot,
+  HotspotEditorProps,
+  CreateHotspotRequest,
+} from '../../shared/types';
 import { MainCanvas } from './MainCanvas';
 import { Sidebar } from './Sidebar';
 import { ConfigPanel } from './ConfigPanel';
@@ -11,7 +17,11 @@ import { ToastContainer } from './common/Toast';
 import { SkipLink, LiveRegion } from './common/A11y';
 import { useAutoSave } from '../hooks/useAutoSave';
 import { useToast } from '../hooks/useToast';
-import { useKeyboardShortcuts, createEditorShortcuts, createSlideNavigationShortcuts } from '../hooks/useKeyboardShortcuts';
+import {
+  useKeyboardShortcuts,
+  createEditorShortcuts,
+  createSlideNavigationShortcuts,
+} from '../hooks/useKeyboardShortcuts';
 import { useHelpPanel } from './common/HelpPanel';
 
 // Import Google Apps Script types
@@ -35,7 +45,7 @@ export const HotspotEditor: React.FC<HotspotEditorProps> = ({
   projectId,
   initialSlides = [],
   initialHotspots = [],
-  onSave
+  onSave,
 }) => {
   const [state, setState] = useState<EditorState>({
     project: null,
@@ -48,26 +58,33 @@ export const HotspotEditor: React.FC<HotspotEditorProps> = ({
     isEditMode: true,
     hasUnsavedChanges: false,
     sidebarWidth: 300,
-    configPanelWidth: 320
+    configPanelWidth: 320,
   });
 
   // Auto-save implementation
-  const saveProjectData = useCallback(async (data: { slides: Slide[], hotspots: Hotspot[] }) => {
-    await Promise.all([
-      new Promise<void>((resolve, reject) => {
-        window.google.script.run
-          .withSuccessHandler(() => resolve())
-          .withFailureHandler((error: any) => reject(new Error(error.message || 'Failed to save slides')))
-          .saveSlides(projectId, data.slides);
-      }),
-      new Promise<void>((resolve, reject) => {
-        window.google.script.run
-          .withSuccessHandler(() => resolve())
-          .withFailureHandler((error: any) => reject(new Error(error.message || 'Failed to save hotspots')))
-          .saveHotspots(projectId, data.hotspots);
-      })
-    ]);
-  }, [projectId]);
+  const saveProjectData = useCallback(
+    async (data: { slides: Slide[]; hotspots: Hotspot[] }) => {
+      await Promise.all([
+        new Promise<void>((resolve, reject) => {
+          window.google.script.run
+            .withSuccessHandler(() => resolve())
+            .withFailureHandler((error: any) =>
+              reject(new Error(error.message || 'Failed to save slides'))
+            )
+            .saveSlides(projectId, data.slides);
+        }),
+        new Promise<void>((resolve, reject) => {
+          window.google.script.run
+            .withSuccessHandler(() => resolve())
+            .withFailureHandler((error: any) =>
+              reject(new Error(error.message || 'Failed to save hotspots'))
+            )
+            .saveHotspots(projectId, data.hotspots);
+        }),
+      ]);
+    },
+    [projectId]
+  );
 
   // Auto-save hook
   const autoSave = useAutoSave({
@@ -76,18 +93,18 @@ export const HotspotEditor: React.FC<HotspotEditorProps> = ({
     delay: 2000,
     enabled: state.hasUnsavedChanges && !state.loading,
     onSuccess: () => {
-      setState(prev => ({ ...prev, hasUnsavedChanges: false }));
+      setState((prev) => ({ ...prev, hasUnsavedChanges: false }));
     },
     onError: (error) => {
       console.error('Auto-save failed:', error);
-      setState(prev => ({ ...prev, error: error.message }));
-    }
+      setState((prev) => ({ ...prev, error: error.message }));
+    },
   });
 
   // Load project data
   const loadProjectData = useCallback(async () => {
     try {
-      setState(prev => ({ ...prev, loading: true, error: null }));
+      setState((prev) => ({ ...prev, loading: true, error: null }));
 
       const data = await new Promise<{
         project: Project;
@@ -101,10 +118,10 @@ export const HotspotEditor: React.FC<HotspotEditorProps> = ({
               project: {
                 ...result.project,
                 createdAt: new Date(result.project.createdAt),
-                updatedAt: new Date(result.project.updatedAt)
+                updatedAt: new Date(result.project.updatedAt),
               },
               slides: result.slides,
-              hotspots: result.hotspots
+              hotspots: result.hotspots,
             };
             resolve(processedData);
           })
@@ -114,20 +131,20 @@ export const HotspotEditor: React.FC<HotspotEditorProps> = ({
           .getProjectData(projectId);
       });
 
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         project: data.project,
         slides: data.slides,
         hotspots: data.hotspots,
         activeSlide: data.slides[0] || null,
         loading: false,
-        error: null
+        error: null,
       }));
     } catch (error) {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         loading: false,
-        error: error instanceof Error ? error.message : 'Failed to load project data'
+        error: error instanceof Error ? error.message : 'Failed to load project data',
       }));
     }
   }, [projectId]);
@@ -149,7 +166,7 @@ export const HotspotEditor: React.FC<HotspotEditorProps> = ({
   // Navigate to next slide
   const goToNextSlide = useCallback(() => {
     if (!state.activeSlide) return;
-    const currentIndex = state.slides.findIndex(s => s.id === state.activeSlide!.id);
+    const currentIndex = state.slides.findIndex((s) => s.id === state.activeSlide!.id);
     if (currentIndex < state.slides.length - 1) {
       handleSlideSelect(state.slides[currentIndex + 1]);
     }
@@ -158,7 +175,7 @@ export const HotspotEditor: React.FC<HotspotEditorProps> = ({
   // Navigate to previous slide
   const goToPrevSlide = useCallback(() => {
     if (!state.activeSlide) return;
-    const currentIndex = state.slides.findIndex(s => s.id === state.activeSlide!.id);
+    const currentIndex = state.slides.findIndex((s) => s.id === state.activeSlide!.id);
     if (currentIndex > 0) {
       handleSlideSelect(state.slides[currentIndex - 1]);
     }
@@ -180,7 +197,7 @@ export const HotspotEditor: React.FC<HotspotEditorProps> = ({
 
   // Clear selection
   const clearSelection = useCallback(() => {
-    setState(prev => ({ ...prev, selectedHotspot: null }));
+    setState((prev) => ({ ...prev, selectedHotspot: null }));
   }, []);
 
   // Keyboard shortcuts
@@ -197,98 +214,107 @@ export const HotspotEditor: React.FC<HotspotEditorProps> = ({
     copy: () => toast.showInfo('Copy feature coming soon'),
     paste: () => toast.showInfo('Paste feature coming soon'),
     selectAll: () => toast.showInfo('Select all feature coming soon'),
-    toggleMode: () => setState(prev => ({ ...prev, isEditMode: !prev.isEditMode })),
+    toggleMode: () => setState((prev) => ({ ...prev, isEditMode: !prev.isEditMode })),
     zoomIn: () => toast.showInfo('Zoom in feature coming soon'),
     zoomOut: () => toast.showInfo('Zoom out feature coming soon'),
-    resetZoom: () => toast.showInfo('Reset zoom feature coming soon')
+    resetZoom: () => toast.showInfo('Reset zoom feature coming soon'),
   });
 
   const navigationShortcuts = createSlideNavigationShortcuts({
     nextSlide: goToNextSlide,
     prevSlide: goToPrevSlide,
     firstSlide: goToFirstSlide,
-    lastSlide: goToLastSlide
+    lastSlide: goToLastSlide,
   });
 
   const allShortcuts = [...editorShortcuts, ...navigationShortcuts];
 
   useKeyboardShortcuts({
     shortcuts: allShortcuts,
-    enabled: !state.loading
+    enabled: !state.loading,
   });
 
   // Add missing slide handlers
   const handleSlideReorder = useCallback((slides: Slide[]) => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       slides,
-      hasUnsavedChanges: true
+      hasUnsavedChanges: true,
     }));
   }, []);
 
-  const handleSlideCreate = useCallback((slideData: any) => {
-    toast.showInfo('Create slide functionality coming soon');
-  }, [toast]);
+  const handleSlideCreate = useCallback(
+    (slideData: any) => {
+      toast.showInfo('Create slide functionality coming soon');
+    },
+    [toast]
+  );
 
-  const handleSlideDelete = useCallback((slideId: string) => {
-    if (confirm('Are you sure you want to delete this slide?')) {
-      toast.showInfo('Delete slide functionality coming soon');
-    }
-  }, [toast]);
+  const handleSlideDelete = useCallback(
+    (slideId: string) => {
+      if (confirm('Are you sure you want to delete this slide?')) {
+        toast.showInfo('Delete slide functionality coming soon');
+      }
+    },
+    [toast]
+  );
 
   // Help panel
-  const helpPanel = useHelpPanel(allShortcuts.map(shortcut => ({
-    ...shortcut,
-    displayKey: shortcut.key // Add the missing displayKey property
-  })));
+  const helpPanel = useHelpPanel(
+    allShortcuts.map((shortcut) => ({
+      ...shortcut,
+      displayKey: shortcut.key, // Add the missing displayKey property
+    }))
+  );
 
   // Handle slide selection
   const handleSlideSelect = useCallback((slide: Slide) => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       activeSlide: slide,
-      selectedHotspot: null
+      selectedHotspot: null,
     }));
   }, []);
 
   // Handle hotspot selection
   const handleHotspotSelect = useCallback((hotspot: Hotspot) => {
-    setState(prev => ({ ...prev, selectedHotspot: hotspot }));
+    setState((prev) => ({ ...prev, selectedHotspot: hotspot }));
   }, []);
 
   // Handle hotspot creation
-  const handleHotspotCreate = useCallback((request: CreateHotspotRequest) => {
-    const newHotspot: Hotspot = {
-      id: `hotspot_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      slideId: request.slideId,
-      x: request.x,
-      y: request.y,
-      width: request.width,
-      height: request.height,
-      eventType: request.eventType,
-      triggerType: request.triggerType,
-      config: request.config,
-      order: state.hotspots.filter(h => h.slideId === request.slideId).length,
-      isVisible: true
-    };
+  const handleHotspotCreate = useCallback(
+    (request: CreateHotspotRequest) => {
+      const newHotspot: Hotspot = {
+        id: `hotspot_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        slideId: request.slideId,
+        x: request.x,
+        y: request.y,
+        width: request.width,
+        height: request.height,
+        eventType: request.eventType,
+        triggerType: request.triggerType,
+        config: request.config,
+        order: state.hotspots.filter((h) => h.slideId === request.slideId).length,
+        isVisible: true,
+      };
 
-    setState(prev => ({
-      ...prev,
-      hotspots: [...prev.hotspots, newHotspot],
-      selectedHotspot: newHotspot,
-      hasUnsavedChanges: true
-    }));
-  }, [state.hotspots]);
+      setState((prev) => ({
+        ...prev,
+        hotspots: [...prev.hotspots, newHotspot],
+        selectedHotspot: newHotspot,
+        hasUnsavedChanges: true,
+      }));
+    },
+    [state.hotspots]
+  );
 
   // Handle hotspot update
   const handleHotspotUpdate = useCallback((updatedHotspot: Hotspot) => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
-      hotspots: prev.hotspots.map(h =>
-        h.id === updatedHotspot.id ? updatedHotspot : h
-      ),
+      hotspots: prev.hotspots.map((h) => (h.id === updatedHotspot.id ? updatedHotspot : h)),
       selectedHotspot: updatedHotspot,
-      hasUnsavedChanges: true
+      hasUnsavedChanges: true,
     }));
   }, []);
 
@@ -298,18 +324,18 @@ export const HotspotEditor: React.FC<HotspotEditorProps> = ({
       return;
     }
 
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
-      hotspots: prev.hotspots.filter(h => h.id !== hotspotId),
+      hotspots: prev.hotspots.filter((h) => h.id !== hotspotId),
       selectedHotspot: prev.selectedHotspot?.id === hotspotId ? null : prev.selectedHotspot,
-      hasUnsavedChanges: true
+      hasUnsavedChanges: true,
     }));
   }, []);
 
   // Get hotspots for active slide
   const activeSlideHotspots = React.useMemo(() => {
     return state.activeSlide
-      ? state.hotspots.filter(h => h.slideId === state.activeSlide!.id)
+      ? state.hotspots.filter((h) => h.slideId === state.activeSlide!.id)
       : [];
   }, [state.hotspots, state.activeSlide]);
 
@@ -355,7 +381,7 @@ export const HotspotEditor: React.FC<HotspotEditorProps> = ({
         handleHotspotDelete(state.selectedHotspot.id);
       }
       if (event.key === 'Escape') {
-        setState(prev => ({ ...prev, selectedHotspot: null }));
+        setState((prev) => ({ ...prev, selectedHotspot: null }));
       }
     };
 
@@ -368,12 +394,7 @@ export const HotspotEditor: React.FC<HotspotEditorProps> = ({
   }
 
   if (state.error) {
-    return (
-      <ErrorMessage
-        message={state.error}
-        onRetry={loadProjectData}
-      />
-    );
+    return <ErrorMessage message={state.error} onRetry={loadProjectData} />;
   }
 
   if (!state.project) {
@@ -393,9 +414,7 @@ export const HotspotEditor: React.FC<HotspotEditorProps> = ({
           isSaving={autoSave.isSaving}
           lastSaved={autoSave.lastSaved}
           onSaveNow={handleSaveNow}
-          onToggleEditMode={() =>
-            setState(prev => ({ ...prev, isEditMode: !prev.isEditMode }))
-          }
+          onToggleEditMode={() => setState((prev) => ({ ...prev, isEditMode: !prev.isEditMode }))}
           isEditMode={state.isEditMode}
         />
 

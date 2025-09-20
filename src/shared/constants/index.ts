@@ -10,29 +10,29 @@ export const EVENT_TYPES = {
     description: 'Show text in a popup overlay',
     icon: '💬',
     requiredFields: ['text'],
-    optionalFields: ['title', 'backgroundColor', 'textColor', 'animation']
+    optionalFields: ['title', 'backgroundColor', 'textColor', 'animation'],
   },
   [EventType.PAN_ZOOM]: {
     name: 'Pan & Zoom',
     description: 'Pan and zoom to a specific area',
     icon: '🔍',
     requiredFields: ['panZoomConfig'],
-    optionalFields: ['duration', 'easing']
+    optionalFields: ['duration', 'easing'],
   },
   [EventType.SPOTLIGHT]: {
     name: 'Spotlight',
     description: 'Highlight an area with spotlight effect',
     icon: '💡',
     requiredFields: ['spotlightConfig'],
-    optionalFields: ['duration', 'animation']
+    optionalFields: ['duration', 'animation'],
   },
   [EventType.TEXT_ON_IMAGE]: {
     name: 'Text on Image',
     description: 'Overlay text directly on the image',
     icon: '📝',
     requiredFields: ['text'],
-    optionalFields: ['fontSize', 'fontFamily', 'textColor', 'backgroundColor']
-  }
+    optionalFields: ['fontSize', 'fontFamily', 'textColor', 'backgroundColor'],
+  },
 };
 
 // Trigger Types Configuration
@@ -41,26 +41,26 @@ export const TRIGGER_TYPES = {
     name: 'Click',
     description: 'Trigger on mouse click or tap',
     icon: '👆',
-    supportedDevices: ['desktop', 'mobile', 'tablet']
+    supportedDevices: ['desktop', 'mobile', 'tablet'],
   },
   [TriggerType.HOVER]: {
     name: 'Hover',
     description: 'Trigger on mouse hover (desktop only)',
     icon: '🖱️',
-    supportedDevices: ['desktop']
+    supportedDevices: ['desktop'],
   },
   [TriggerType.TOUCH]: {
     name: 'Touch',
     description: 'Trigger on touch (mobile/tablet only)',
     icon: '👋',
-    supportedDevices: ['mobile', 'tablet']
+    supportedDevices: ['mobile', 'tablet'],
   },
   [TriggerType.AUTO]: {
     name: 'Auto',
     description: 'Trigger automatically after delay',
     icon: '⏰',
-    supportedDevices: ['desktop', 'mobile', 'tablet']
-  }
+    supportedDevices: ['desktop', 'mobile', 'tablet'],
+  },
 };
 
 // Media Types Configuration
@@ -70,22 +70,22 @@ export const MEDIA_TYPES = {
     description: 'Static image file',
     icon: '🖼️',
     supportedFormats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
-    maxSize: '10MB'
+    maxSize: '10MB',
   },
   [MediaType.VIDEO]: {
     name: 'Video',
     description: 'Video file',
     icon: '🎥',
     supportedFormats: ['mp4', 'webm', 'ogg'],
-    maxSize: '100MB'
+    maxSize: '100MB',
   },
   [MediaType.YOUTUBE]: {
     name: 'YouTube',
     description: 'YouTube video',
     icon: '📹',
     supportedFormats: ['youtube.com', 'youtu.be'],
-    maxSize: 'N/A'
-  }
+    maxSize: 'N/A',
+  },
 };
 
 // Animation Types Configuration
@@ -94,50 +94,50 @@ export const ANIMATION_TYPES = {
     name: 'Fade In',
     description: 'Gradually fade in',
     duration: 500,
-    easing: 'ease-out'
+    easing: 'ease-out',
   },
   [AnimationType.SLIDE_UP]: {
     name: 'Slide Up',
     description: 'Slide in from bottom',
     duration: 400,
-    easing: 'ease-out'
+    easing: 'ease-out',
   },
   [AnimationType.SLIDE_DOWN]: {
     name: 'Slide Down',
     description: 'Slide in from top',
     duration: 400,
-    easing: 'ease-out'
+    easing: 'ease-out',
   },
   [AnimationType.SLIDE_LEFT]: {
     name: 'Slide Left',
     description: 'Slide in from right',
     duration: 400,
-    easing: 'ease-out'
+    easing: 'ease-out',
   },
   [AnimationType.SLIDE_RIGHT]: {
     name: 'Slide Right',
     description: 'Slide in from left',
     duration: 400,
-    easing: 'ease-out'
+    easing: 'ease-out',
   },
   [AnimationType.BOUNCE]: {
     name: 'Bounce',
     description: 'Bounce in effect',
     duration: 600,
-    easing: 'cubic-bezier(0.68, -0.55, 0.265, 1.55)'
+    easing: 'cubic-bezier(0.68, -0.55, 0.265, 1.55)',
   },
   [AnimationType.ZOOM_IN]: {
     name: 'Zoom In',
     description: 'Scale up from center',
     duration: 400,
-    easing: 'ease-out'
+    easing: 'ease-out',
   },
   [AnimationType.ZOOM_OUT]: {
     name: 'Zoom Out',
     description: 'Scale down to center',
     duration: 400,
-    easing: 'ease-in'
-  }
+    easing: 'ease-in',
+  },
 };
 
 // Default Configuration Values
@@ -158,8 +158,8 @@ export const HOTSPOT_DEFAULTS = {
     opacity: 1,
     animation: AnimationType.FADE_IN,
     duration: 500,
-    delay: 0
-  }
+    delay: 0,
+  },
 };
 
 export const PROJECT_DEFAULTS = {
@@ -167,13 +167,13 @@ export const PROJECT_DEFAULTS = {
     autoSave: true,
     version: '1.0.0',
     theme: 'light' as const,
-    analytics: true
-  }
+    analytics: true,
+  },
 };
 
 export const SLIDE_DEFAULTS = {
   transition: 'fade',
-  duration: 1000
+  duration: 1000,
 };
 
 // Google Sheets Configuration
@@ -187,8 +187,8 @@ export const SHEETS_CONFIG: SheetsConfig = {
       { name: 'createdAt', index: 3, type: 'date' },
       { name: 'updatedAt', index: 4, type: 'date' },
       { name: 'spreadsheetId', index: 5, type: 'string' },
-      { name: 'settings', index: 6, type: 'json' }
-    ]
+      { name: 'settings', index: 6, type: 'json' },
+    ],
   },
   slides: {
     range: 'Slides!A1:H',
@@ -200,8 +200,8 @@ export const SHEETS_CONFIG: SheetsConfig = {
       { name: 'mediaType', index: 4, type: 'enum' },
       { name: 'mediaUrl', index: 5, type: 'string' },
       { name: 'duration', index: 6, type: 'number' },
-      { name: 'transition', index: 7, type: 'string' }
-    ]
+      { name: 'transition', index: 7, type: 'string' },
+    ],
   },
   hotspots: {
     range: 'Hotspots!A1:L',
@@ -216,8 +216,8 @@ export const SHEETS_CONFIG: SheetsConfig = {
       { name: 'triggerType', index: 7, type: 'enum' },
       { name: 'config', index: 8, type: 'json' },
       { name: 'order', index: 9, type: 'number' },
-      { name: 'isVisible', index: 10, type: 'boolean' }
-    ]
+      { name: 'isVisible', index: 10, type: 'boolean' },
+    ],
   },
   analytics: {
     range: 'Analytics!A1:F',
@@ -227,9 +227,9 @@ export const SHEETS_CONFIG: SheetsConfig = {
       { name: 'slideId', index: 2, type: 'string' },
       { name: 'hotspotId', index: 3, type: 'string' },
       { name: 'timestamp', index: 4, type: 'date' },
-      { name: 'action', index: 5, type: 'string' }
-    ]
-  }
+      { name: 'action', index: 5, type: 'string' },
+    ],
+  },
 };
 
 // Validation Rules
@@ -238,52 +238,52 @@ export const VALIDATION_RULES = {
     title: {
       minLength: 1,
       maxLength: 100,
-      required: true
+      required: true,
     },
     description: {
       minLength: 0,
       maxLength: 500,
-      required: false
-    }
+      required: false,
+    },
   },
   slide: {
     title: {
       minLength: 1,
       maxLength: 100,
-      required: true
+      required: true,
     },
     mediaUrl: {
       required: true,
-      pattern: /^https?:\/\/.+/
-    }
+      pattern: /^https?:\/\/.+/,
+    },
   },
   hotspot: {
     x: {
       min: 0,
       max: 10000,
-      required: true
+      required: true,
     },
     y: {
       min: 0,
       max: 10000,
-      required: true
+      required: true,
     },
     width: {
       min: 10,
       max: 1000,
-      required: true
+      required: true,
     },
     height: {
       min: 10,
       max: 1000,
-      required: true
+      required: true,
     },
     text: {
       minLength: 1,
       maxLength: 1000,
-      required: false
-    }
-  }
+      required: false,
+    },
+  },
 };
 
 // UI Configuration
@@ -295,23 +295,23 @@ export const UI_CONFIG = {
     maxHeight: 1080,
     defaultZoom: 1,
     minZoom: 0.1,
-    maxZoom: 5
+    maxZoom: 5,
   },
   sidebar: {
     width: 300,
     minWidth: 250,
-    maxWidth: 400
+    maxWidth: 400,
   },
   configPanel: {
     width: 320,
     minWidth: 280,
-    maxWidth: 400
+    maxWidth: 400,
   },
   hotspot: {
     minSize: 10,
     maxSize: 200,
     defaultSize: 50,
-    snapGrid: 5
+    snapGrid: 5,
   },
   Z_INDEX: {
     CANVAS: 1,
@@ -319,7 +319,7 @@ export const UI_CONFIG = {
     SELECTED_HOTSPOT: 20,
     POPUP: 100,
     MODAL: 1000,
-    TOOLTIP: 2000
+    TOOLTIP: 2000,
   },
   zIndex: {
     canvas: 1,
@@ -327,12 +327,12 @@ export const UI_CONFIG = {
     selectedHotspot: 20,
     popup: 100,
     modal: 1000,
-    tooltip: 2000
+    tooltip: 2000,
   },
   breakpoints: {
     mobile: 768,
     tablet: 1024,
-    desktop: 1200
+    desktop: 1200,
   },
   // Legacy backward compatibility
   MAX_HOTSPOTS_PER_SLIDE: 50,
@@ -340,7 +340,7 @@ export const UI_CONFIG = {
   ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
   ALLOWED_VIDEO_TYPES: ['video/mp4', 'video/webm', 'video/ogg'],
   MIN_ZOOM_LEVEL: 0.1,
-  MAX_ZOOM_LEVEL: 5
+  MAX_ZOOM_LEVEL: 5,
 };
 
 // Color Palette
@@ -355,7 +355,7 @@ export const COLORS = {
   dark: '#343a40',
   white: '#ffffff',
   black: '#000000',
-  transparent: 'transparent'
+  transparent: 'transparent',
 };
 
 // Error Messages
@@ -368,7 +368,7 @@ export const ERROR_MESSAGES = {
   VALIDATION_ERROR: 'Validation error',
   PERMISSION_DENIED: 'Permission denied',
   NETWORK_ERROR: 'Network error',
-  UNKNOWN_ERROR: 'Unknown error occurred'
+  UNKNOWN_ERROR: 'Unknown error occurred',
 };
 
 // API Endpoints (for reference)
@@ -377,12 +377,12 @@ export const API_ENDPOINTS = {
   slides: '/slides',
   hotspots: '/hotspots',
   media: '/media',
-  analytics: '/analytics'
+  analytics: '/analytics',
 };
 
 // API Configuration
 export const API_CONFIG = {
-  YOUTUBE_EMBED_URL: 'https://www.youtube.com/embed/'
+  YOUTUBE_EMBED_URL: 'https://www.youtube.com/embed/',
 };
 
 // Tooltip Positions
@@ -390,14 +390,14 @@ export const TOOLTIP_POSITIONS = {
   TOP: 'top',
   BOTTOM: 'bottom',
   LEFT: 'left',
-  RIGHT: 'right'
+  RIGHT: 'right',
 };
 
 // Project Status
 export const PROJECT_STATUS = {
   DRAFT: 'draft',
   PUBLISHED: 'published',
-  ARCHIVED: 'archived'
+  ARCHIVED: 'archived',
 };
 
 // Maintain backward compatibility with old property names
@@ -411,7 +411,7 @@ export const LEGACY_CONFIG = {
   PROJECTS_SHEET: 'Projects',
   SLIDES_SHEET: 'Slides',
   HOTSPOTS_SHEET: 'Hotspots',
-  ANALYTICS_SHEET: 'Analytics'
+  ANALYTICS_SHEET: 'Analytics',
 };
 
 // Legacy SHEETS_CONFIG for backward compatibility
@@ -419,5 +419,5 @@ export const LEGACY_SHEETS_CONFIG = {
   PROJECTS_SHEET: 'Projects',
   SLIDES_SHEET: 'Slides',
   HOTSPOTS_SHEET: 'Hotspots',
-  ANALYTICS_SHEET: 'Analytics'
+  ANALYTICS_SHEET: 'Analytics',
 };

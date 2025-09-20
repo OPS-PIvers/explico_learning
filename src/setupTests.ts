@@ -13,15 +13,15 @@ Object.defineProperty(window, 'google', {
         deleteProject: jest.fn(),
         getProjectData: jest.fn(),
         saveHotspots: jest.fn(),
-        saveSlides: jest.fn()
-      }
-    }
+        saveSlides: jest.fn(),
+      },
+    },
   },
-  writable: true
+  writable: true,
 });
 
 // Mock window.projectId for editor tests
 Object.defineProperty(window, 'projectId', {
   value: 'test-project-id',
-  writable: true
+  writable: true,
 });

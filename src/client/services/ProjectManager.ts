@@ -17,7 +17,11 @@ declare const google: {
       createSlide(slideData: any): Promise<Slide>;
       selectSlide(slideId: string): Promise<Slide>;
       deleteSlide(slideId: string): Promise<boolean>;
-      updateSlideBackground(slideId: string, backgroundUrl: string, backgroundType: string): Promise<Slide>;
+      updateSlideBackground(
+        slideId: string,
+        backgroundUrl: string,
+        backgroundType: string
+      ): Promise<Slide>;
       reorderSlides(fromIndex: number, toIndex: number): Promise<boolean>;
     };
   };
@@ -53,7 +57,7 @@ export class ProjectManager {
 
   constructor(options: ProjectManagerOptions = {}) {
     this.options = {
-      ...options
+      ...options,
     };
 
     this.currentProject = null;
@@ -102,7 +106,8 @@ export class ProjectManager {
       this.dashboard.options.onProjectCreate = () => this.createNewProject();
       this.dashboard.options.onProjectEdit = (project: Project) => this.openProject(project.id);
       this.dashboard.options.onProjectDelete = (project: Project) => this.deleteProject(project.id);
-      this.dashboard.options.onProjectDuplicate = (project: Project) => this.duplicateProject(project.id);
+      this.dashboard.options.onProjectDuplicate = (project: Project) =>
+        this.duplicateProject(project.id);
     }
 
     if (this.header && this.header.options) {
@@ -114,7 +119,8 @@ export class ProjectManager {
       this.sidebar.options.onSlideSelect = (slideId: string) => this.selectSlide(slideId);
       this.sidebar.options.onSlideAdd = () => this.createNewSlide();
       this.sidebar.options.onSlideDelete = (slideId: string) => this.deleteSlide(slideId);
-      this.sidebar.options.onSlideReorder = (fromIndex: number, toIndex: number) => this.reorderSlides(fromIndex, toIndex);
+      this.sidebar.options.onSlideReorder = (fromIndex: number, toIndex: number) =>
+        this.reorderSlides(fromIndex, toIndex);
     }
   }
 
@@ -187,7 +193,7 @@ export class ProjectManager {
     const slideData = {
       projectId: this.currentProject.id,
       title: `Slide ${this.currentProject.slides.length + 1}`,
-      order: this.currentProject.slides.length
+      order: this.currentProject.slides.length,
     };
 
     const newSlide = await this.createSlide(slideData);
@@ -217,7 +223,7 @@ export class ProjectManager {
 
     if (result && this.currentProject) {
       // Remove from current project slides
-      const slideIndex = this.currentProject.slides.findIndex(s => s.id === slideId);
+      const slideIndex = this.currentProject.slides.findIndex((s) => s.id === slideId);
       if (slideIndex !== -1) {
         this.currentProject.slides.splice(slideIndex, 1);
         this.syncSlidesToSidebar();
@@ -238,7 +244,11 @@ export class ProjectManager {
   /**
    * Update slide background
    */
-  async updateSlideBackground(slideId: string, backgroundUrl: string, backgroundType: string): Promise<Slide> {
+  async updateSlideBackground(
+    slideId: string,
+    backgroundUrl: string,
+    backgroundType: string
+  ): Promise<Slide> {
     return await google.script.run.updateSlideBackground(slideId, backgroundUrl, backgroundType);
   }
 
@@ -347,7 +357,7 @@ export class ProjectManager {
   private emit(event: string, data: any): void {
     const listeners = this.eventListeners.get(event);
     if (listeners) {
-      listeners.forEach(callback => {
+      listeners.forEach((callback) => {
         try {
           callback(data);
         } catch (error) {

@@ -16,36 +16,49 @@ export const HelpPanel: React.FC<HelpPanelProps> = ({ shortcuts, onClose }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredShortcuts = shortcuts.filter(
-    shortcut =>
+    (shortcut) =>
       shortcut.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
       shortcut.displayKey.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const shortcutCategories = {
-    'File Operations': filteredShortcuts.filter(s =>
-      s.description.includes('Save') || s.description.includes('Export')
+    'File Operations': filteredShortcuts.filter(
+      (s) => s.description.includes('Save') || s.description.includes('Export')
     ),
-    'Edit Operations': filteredShortcuts.filter(s =>
-      s.description.includes('Undo') || s.description.includes('Redo') ||
-      s.description.includes('Copy') || s.description.includes('Paste') ||
-      s.description.includes('Delete') || s.description.includes('Select')
+    'Edit Operations': filteredShortcuts.filter(
+      (s) =>
+        s.description.includes('Undo') ||
+        s.description.includes('Redo') ||
+        s.description.includes('Copy') ||
+        s.description.includes('Paste') ||
+        s.description.includes('Delete') ||
+        s.description.includes('Select')
     ),
-    'Navigation': filteredShortcuts.filter(s =>
-      s.description.includes('slide') || s.description.includes('Navigate')
+    Navigation: filteredShortcuts.filter(
+      (s) => s.description.includes('slide') || s.description.includes('Navigate')
     ),
-    'View Controls': filteredShortcuts.filter(s =>
-      s.description.includes('Zoom') || s.description.includes('mode') ||
-      s.description.includes('Toggle')
+    'View Controls': filteredShortcuts.filter(
+      (s) =>
+        s.description.includes('Zoom') ||
+        s.description.includes('mode') ||
+        s.description.includes('Toggle')
     ),
-    'Other': filteredShortcuts.filter(s =>
-      !s.description.includes('Save') && !s.description.includes('Export') &&
-      !s.description.includes('Undo') && !s.description.includes('Redo') &&
-      !s.description.includes('Copy') && !s.description.includes('Paste') &&
-      !s.description.includes('Delete') && !s.description.includes('Select') &&
-      !s.description.includes('slide') && !s.description.includes('Navigate') &&
-      !s.description.includes('Zoom') && !s.description.includes('mode') &&
-      !s.description.includes('Toggle')
-    )
+    Other: filteredShortcuts.filter(
+      (s) =>
+        !s.description.includes('Save') &&
+        !s.description.includes('Export') &&
+        !s.description.includes('Undo') &&
+        !s.description.includes('Redo') &&
+        !s.description.includes('Copy') &&
+        !s.description.includes('Paste') &&
+        !s.description.includes('Delete') &&
+        !s.description.includes('Select') &&
+        !s.description.includes('slide') &&
+        !s.description.includes('Navigate') &&
+        !s.description.includes('Zoom') &&
+        !s.description.includes('mode') &&
+        !s.description.includes('Toggle')
+    ),
   };
 
   const handleBackdropClick = (e: React.MouseEvent) => {
@@ -60,11 +73,7 @@ export const HelpPanel: React.FC<HelpPanelProps> = ({ shortcuts, onClose }) => {
         <div className="modal-content help-panel" role="dialog" aria-labelledby="help-title">
           <div className="modal-header">
             <h2 id="help-title">Keyboard Shortcuts</h2>
-            <AccessibleButton
-              variant="ghost"
-              onClick={onClose}
-              aria-label="Close help panel"
-            >
+            <AccessibleButton variant="ghost" onClick={onClose} aria-label="Close help panel">
               ×
             </AccessibleButton>
           </div>
@@ -99,9 +108,7 @@ export const HelpPanel: React.FC<HelpPanelProps> = ({ shortcuts, onClose }) => {
                               </React.Fragment>
                             ))}
                           </div>
-                          <div className="shortcut-description">
-                            {shortcut.description}
-                          </div>
+                          <div className="shortcut-description">{shortcut.description}</div>
                         </div>
                       ))}
                     </div>
@@ -119,18 +126,20 @@ export const HelpPanel: React.FC<HelpPanelProps> = ({ shortcuts, onClose }) => {
             <div className="help-tips">
               <h3>Tips</h3>
               <ul>
-                <li>Press <kbd>?</kbd> at any time to open this help panel</li>
+                <li>
+                  Press <kbd>?</kbd> at any time to open this help panel
+                </li>
                 <li>Most shortcuts work when you're not typing in a text field</li>
-                <li>Use <kbd>Escape</kbd> to close modals or clear selections</li>
+                <li>
+                  Use <kbd>Escape</kbd> to close modals or clear selections
+                </li>
                 <li>Arrow keys can be used to navigate between slides</li>
               </ul>
             </div>
           </div>
 
           <div className="modal-footer">
-            <AccessibleButton onClick={onClose}>
-              Close
-            </AccessibleButton>
+            <AccessibleButton onClick={onClose}>Close</AccessibleButton>
           </div>
         </div>
       </FocusTrap>
@@ -144,7 +153,7 @@ export function useHelpPanel(shortcuts: Shortcut[]) {
 
   const openHelp = () => setIsOpen(true);
   const closeHelp = () => setIsOpen(false);
-  const toggleHelp = () => setIsOpen(prev => !prev);
+  const toggleHelp = () => setIsOpen((prev) => !prev);
 
   // Register ? key to open help
   React.useEffect(() => {
@@ -163,15 +172,13 @@ export function useHelpPanel(shortcuts: Shortcut[]) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen]);
 
-  const helpPanel = isOpen ? (
-    <HelpPanel shortcuts={shortcuts} onClose={closeHelp} />
-  ) : null;
+  const helpPanel = isOpen ? <HelpPanel shortcuts={shortcuts} onClose={closeHelp} /> : null;
 
   return {
     isOpen,
     openHelp,
     closeHelp,
     toggleHelp,
-    helpPanel
+    helpPanel,
   };
 }

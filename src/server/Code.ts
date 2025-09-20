@@ -42,7 +42,8 @@ function doGet(e: GoogleAppsScript.Events.DoGet): GoogleAppsScript.HTML.HtmlOutp
         }
         const template = HtmlService.createTemplateFromFile('editor-template');
         template.projectId = projectId;
-        return template.evaluate()
+        return template
+          .evaluate()
           .setTitle('Explico Learning - Editor')
           .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
       }
@@ -90,8 +91,8 @@ function getProjects(): Project[] {
         autoSave: true,
         version: '1.0.0',
         theme: 'light',
-        analytics: true
-      }
+        analytics: true,
+      },
     };
 
     return [sampleProject];
@@ -121,8 +122,8 @@ function createProject(title: string, description: string): Project {
         autoSave: true,
         version: '1.0.0',
         theme: 'light',
-        analytics: true
-      }
+        analytics: true,
+      },
     };
 
     Logger.log(`Created project: ${projectId}`);
@@ -163,11 +164,11 @@ function getProjectData(projectId: string): any {
         updatedAt: new Date(),
         spreadsheetId: 'sample-spreadsheet',
         settings: {
-        autoSave: true,
-        version: '1.0.0',
-        theme: 'light',
-        analytics: true
-      }
+          autoSave: true,
+          version: '1.0.0',
+          theme: 'light',
+          analytics: true,
+        },
       },
       slides: [
         {
@@ -177,10 +178,10 @@ function getProjectData(projectId: string): any {
           mediaType: 'image',
           mediaUrl: 'https://via.placeholder.com/800x600/007bff/ffffff?text=Sample+Image',
           order: 0,
-          transition: 'fade'
-        }
+          transition: 'fade',
+        },
       ],
-      hotspots: []
+      hotspots: [],
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -245,27 +246,45 @@ function setupSpreadsheetStructure(spreadsheet: GoogleAppsScript.Spreadsheet.Spr
     // Create and set up Projects sheet
     const projectsSheet = spreadsheet.getActiveSheet();
     projectsSheet.setName('Projects');
-    projectsSheet.getRange(1, 1, 1, 7).setValues([
-      ['ID', 'Title', 'Description', 'Created', 'Updated', 'SpreadsheetId', 'Settings']
-    ]);
+    projectsSheet
+      .getRange(1, 1, 1, 7)
+      .setValues([
+        ['ID', 'Title', 'Description', 'Created', 'Updated', 'SpreadsheetId', 'Settings'],
+      ]);
 
     // Create Slides sheet
     const slidesSheet = spreadsheet.insertSheet('Slides');
-    slidesSheet.getRange(1, 1, 1, 8).setValues([
-      ['ID', 'ProjectID', 'Order', 'Title', 'MediaType', 'MediaURL', 'Duration', 'Transition']
-    ]);
+    slidesSheet
+      .getRange(1, 1, 1, 8)
+      .setValues([
+        ['ID', 'ProjectID', 'Order', 'Title', 'MediaType', 'MediaURL', 'Duration', 'Transition'],
+      ]);
 
     // Create Hotspots sheet
     const hotspotsSheet = spreadsheet.insertSheet('Hotspots');
-    hotspotsSheet.getRange(1, 1, 1, 11).setValues([
-      ['ID', 'SlideID', 'X', 'Y', 'Width', 'Height', 'EventType', 'TriggerType', 'Config', 'Order', 'Visible']
-    ]);
+    hotspotsSheet
+      .getRange(1, 1, 1, 11)
+      .setValues([
+        [
+          'ID',
+          'SlideID',
+          'X',
+          'Y',
+          'Width',
+          'Height',
+          'EventType',
+          'TriggerType',
+          'Config',
+          'Order',
+          'Visible',
+        ],
+      ]);
 
     // Create Analytics sheet
     const analyticsSheet = spreadsheet.insertSheet('Analytics');
-    analyticsSheet.getRange(1, 1, 1, 6).setValues([
-      ['ID', 'ProjectID', 'SlideID', 'HotspotID', 'Timestamp', 'Action']
-    ]);
+    analyticsSheet
+      .getRange(1, 1, 1, 6)
+      .setValues([['ID', 'ProjectID', 'SlideID', 'HotspotID', 'Timestamp', 'Action']]);
 
     Logger.log('Spreadsheet structure created successfully');
   } catch (error) {
@@ -277,12 +296,11 @@ function setupSpreadsheetStructure(spreadsheet: GoogleAppsScript.Spreadsheet.Spr
 
 // Make functions available globally for gas-webpack-plugin
 // gas-webpack-plugin will detect these assignments and create top-level function declarations
-declare let global: any;
-global.doGet = doGet;
-global.include = include;
-global.getProjects = getProjects;
-global.createProject = createProject;
-global.deleteProject = deleteProject;
-global.getProjectData = getProjectData;
-global.saveHotspots = saveHotspots;
-global.saveSlides = saveSlides;
+(global as any).doGet = doGet;
+(global as any).include = include;
+(global as any).getProjects = getProjects;
+(global as any).createProject = createProject;
+(global as any).deleteProject = deleteProject;
+(global as any).getProjectData = getProjectData;
+(global as any).saveHotspots = saveHotspots;
+(global as any).saveSlides = saveSlides;

@@ -6,25 +6,25 @@ interface CreateSlideModalProps {
   onCreate: (slideData: CreateSlideRequest) => void;
 }
 
-export const CreateSlideModal: React.FC<CreateSlideModalProps> = ({
-  onClose,
-  onCreate
-}) => {
+export const CreateSlideModal: React.FC<CreateSlideModalProps> = ({ onClose, onCreate }) => {
   const [formData, setFormData] = useState<CreateSlideRequest>({
     projectId: '', // Will be set by parent
     title: '',
     mediaType: MediaType.IMAGE,
     mediaUrl: '',
-    order: 0
+    order: 0,
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof CreateSlideRequest, string>>>({});
 
-  const handleInputChange = (field: keyof CreateSlideRequest, value: string | MediaType | number) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  const handleInputChange = (
+    field: keyof CreateSlideRequest,
+    value: string | MediaType | number
+  ) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: undefined }));
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
   };
 
@@ -79,13 +79,13 @@ export const CreateSlideModal: React.FC<CreateSlideModalProps> = ({
   };
 
   const handleMediaTypeChange = (mediaType: MediaType) => {
-    setFormData(prev => ({ ...prev, mediaType }));
+    setFormData((prev) => ({ ...prev, mediaType }));
 
     // Auto-detect YouTube URLs
     if (mediaType === MediaType.YOUTUBE && formData.mediaUrl && isYouTubeUrl(formData.mediaUrl)) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        mediaUrl: getYouTubeEmbedUrl(prev.mediaUrl)
+        mediaUrl: getYouTubeEmbedUrl(prev.mediaUrl),
       }));
     }
   };

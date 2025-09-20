@@ -64,7 +64,7 @@ export class HotspotManager {
       autoSave: true,
       validateOnUpdate: true,
       maxHotspots: UI_CONFIG.MAX_HOTSPOTS_PER_SLIDE,
-      ...options
+      ...options,
     };
 
     this.hotspots = new Map(); // Map<slideId, Map<hotspotId, hotspotData>>
@@ -121,18 +121,27 @@ export class HotspotManager {
         onHotspotCreate: (config: Partial<Hotspot>) => this.createHotspot(config),
         onHotspotSelect: (id: string) => this.selectHotspot(id),
         onHotspotUpdate: (id: string, updates: Partial<Hotspot>) => this.updateHotspot(id, updates),
-        onPositionChange: (id: string, position: HotspotPosition) => this.updateHotspotPosition(id, position)
+        onPositionChange: (id: string, position: HotspotPosition) =>
+          this.updateHotspotPosition(id, position),
       });
     }
 
     if (this.configPanel && this.configPanel.options) {
-      this.configPanel.options.onConfigChange = (property: string, value: any, hotspot: Hotspot) => {
+      this.configPanel.options.onConfigChange = (
+        property: string,
+        value: any,
+        hotspot: Hotspot
+      ) => {
         this.updateHotspot(hotspot.id, { [property]: value });
       };
     }
 
     if (this.sequencer && this.sequencer.options) {
-      this.sequencer.options.onHotspotReorder = (fromIndex: number, toIndex: number, hotspot: Hotspot) => {
+      this.sequencer.options.onHotspotReorder = (
+        fromIndex: number,
+        toIndex: number,
+        hotspot: Hotspot
+      ) => {
         this.reorderHotspot(hotspot.id, fromIndex, toIndex);
       };
     }
@@ -186,7 +195,7 @@ export class HotspotManager {
       ...config,
       id: hotspotId,
       slideId: this.activeSlideId,
-      order: slideHotspots.size
+      order: slideHotspots.size,
     } as Hotspot;
 
     // Validate hotspot
@@ -321,7 +330,7 @@ export class HotspotManager {
 
     if (this.sequencer) {
       const hotspots = this.getSlideHotspots(this.activeSlideId!);
-      const index = hotspots.findIndex(h => h.id === hotspotId);
+      const index = hotspots.findIndex((h) => h.id === hotspotId);
       if (index !== -1) {
         this.sequencer.setCurrentIndex(index);
       }
@@ -331,7 +340,7 @@ export class HotspotManager {
     this.emit('hotspotSelectionChanged', {
       selectedId: hotspotId,
       previousId: previousSelection,
-      hotspot: hotspotId ? this.getHotspot(hotspotId) : null
+      hotspot: hotspotId ? this.getHotspot(hotspotId) : null,
     });
   }
 
@@ -341,7 +350,12 @@ export class HotspotManager {
   reorderHotspot(hotspotId: string, fromIndex: number, toIndex: number): void {
     const hotspots = this.getSlideHotspots(this.activeSlideId!);
 
-    if (fromIndex < 0 || toIndex < 0 || fromIndex >= hotspots.length || toIndex >= hotspots.length) {
+    if (
+      fromIndex < 0 ||
+      toIndex < 0 ||
+      fromIndex >= hotspots.length ||
+      toIndex >= hotspots.length
+    ) {
       return;
     }
 
@@ -381,8 +395,7 @@ export class HotspotManager {
     const slideHotspots = this.hotspots.get(slideId);
     if (!slideHotspots) return [];
 
-    return Array.from(slideHotspots.values())
-      .sort((a, b) => (a.order || 0) - (b.order || 0));
+    return Array.from(slideHotspots.values()).sort((a, b) => (a.order || 0) - (b.order || 0));
   }
 
   /**
@@ -406,7 +419,7 @@ export class HotspotManager {
 
       // Store in local cache
       const slideHotspotsMap = new Map<string, Hotspot>();
-      hotspots.forEach(hotspot => {
+      hotspots.forEach((hotspot) => {
         slideHotspotsMap.set(hotspot.id, hotspot);
       });
       this.hotspots.set(slideId, slideHotspotsMap);
@@ -440,9 +453,7 @@ export class HotspotManager {
       await this.sheetsAPI.saveHotspots(hotspots);
 
       // Clear change queue for this slide
-      this.changeQueue = this.changeQueue.filter(change =>
-        change.data.slideId !== targetSlideId
-      );
+      this.changeQueue = this.changeQueue.filter((change) => change.data.slideId !== targetSlideId);
 
       return true;
     } catch (error) {
@@ -482,8 +493,14 @@ export class HotspotManager {
           break;
 
         case EventType.PAN_ZOOM:
-          if (hotspot.config.zoomLevel && (hotspot.config.zoomLevel < UI_CONFIG.MIN_ZOOM_LEVEL || hotspot.config.zoomLevel > UI_CONFIG.MAX_ZOOM_LEVEL)) {
-            errors.push(`Zoom level must be between ${UI_CONFIG.MIN_ZOOM_LEVEL} and ${UI_CONFIG.MAX_ZOOM_LEVEL}`);
+          if (
+            hotspot.config.zoomLevel &&
+            (hotspot.config.zoomLevel < UI_CONFIG.MIN_ZOOM_LEVEL ||
+              hotspot.config.zoomLevel > UI_CONFIG.MAX_ZOOM_LEVEL)
+          ) {
+            errors.push(
+              `Zoom level must be between ${UI_CONFIG.MIN_ZOOM_LEVEL} and ${UI_CONFIG.MAX_ZOOM_LEVEL}`
+            );
           }
           break;
       }
@@ -577,7 +594,7 @@ export class HotspotManager {
       action: action as any,
       data,
       previousState,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
 
     if (this.options.autoSave) {
@@ -677,7 +694,7 @@ export class HotspotManager {
   private emit(event: string, data: any): void {
     const listeners = this.eventListeners.get(event);
     if (listeners) {
-      listeners.forEach(callback => {
+      listeners.forEach((callback) => {
         try {
           callback(data);
         } catch (error) {
@@ -699,7 +716,7 @@ export class HotspotManager {
       hotspotsInActiveSlide: activeSlideHotspots.length,
       selectedHotspot: this.selectedHotspotId,
       pendingChanges: this.changeQueue.length,
-      maxHotspotsPerSlide: this.options.maxHotspots
+      maxHotspotsPerSlide: this.options.maxHotspots,
     };
   }
 
@@ -723,7 +740,7 @@ export class HotspotManager {
       this.processChangesTimeout = null;
     }
 
-    Object.values(this.debouncedSaveTimeouts).forEach(timeout => {
+    Object.values(this.debouncedSaveTimeouts).forEach((timeout) => {
       clearTimeout(timeout);
     });
     this.debouncedSaveTimeouts = {};

@@ -88,7 +88,7 @@ export class MediaHandler {
       thumbnailSize: { width: 240, height: 135 }, // 16:9 aspect ratio
       cacheEnabled: true,
       compressionQuality: 0.8,
-      ...options
+      ...options,
     };
 
     this.mediaCache = new Map(); // Cache for processed media
@@ -143,7 +143,7 @@ export class MediaHandler {
       isValid: false,
       error: null,
       metadata: {},
-      thumbnailUrl: null
+      thumbnailUrl: null,
     };
 
     try {
@@ -186,13 +186,13 @@ export class MediaHandler {
 
     // Video file extensions
     const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.avi', '.wmv', '.flv', '.mkv'];
-    if (videoExtensions.some(ext => lowercaseUrl.includes(ext))) {
+    if (videoExtensions.some((ext) => lowercaseUrl.includes(ext))) {
       return MediaType.VIDEO;
     }
 
     // Image file extensions
     const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg'];
-    if (imageExtensions.some(ext => lowercaseUrl.includes(ext))) {
+    if (imageExtensions.some((ext) => lowercaseUrl.includes(ext))) {
       return MediaType.IMAGE;
     }
 
@@ -204,7 +204,8 @@ export class MediaHandler {
    * Check if URL is a YouTube URL
    */
   isYouTubeUrl(url: string): boolean {
-    const youtubeRegex = /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/ |.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/;
+    const youtubeRegex =
+      /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/ |.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/;
     return youtubeRegex.test(url);
   }
 
@@ -212,7 +213,9 @@ export class MediaHandler {
    * Extract YouTube video ID from URL
    */
   extractYouTubeId(url: string): string | null {
-    const match = url.match(/(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/ |.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/);
+    const match = url.match(
+      /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/ |.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/
+    );
     return match ? match[1] : null;
   }
 
@@ -228,14 +231,16 @@ export class MediaHandler {
         mediaInfo.metadata = {
           width: img.naturalWidth,
           height: img.naturalHeight,
-          aspectRatio: img.naturalWidth / img.naturalHeight
+          aspectRatio: img.naturalWidth / img.naturalHeight,
         };
 
         // Generate thumbnail
-        this.generateImageThumbnail(img, url).then(thumbnailUrl => {
-          mediaInfo.thumbnailUrl = thumbnailUrl;
-          resolve();
-        }).catch(() => resolve()); // Continue even if thumbnail generation fails
+        this.generateImageThumbnail(img, url)
+          .then((thumbnailUrl) => {
+            mediaInfo.thumbnailUrl = thumbnailUrl;
+            resolve();
+          })
+          .catch(() => resolve()); // Continue even if thumbnail generation fails
       };
 
       img.onerror = () => {
@@ -267,14 +272,16 @@ export class MediaHandler {
           width: video.videoWidth,
           height: video.videoHeight,
           duration: video.duration,
-          aspectRatio: video.videoWidth / video.videoHeight
+          aspectRatio: video.videoWidth / video.videoHeight,
         };
 
         // Generate video thumbnail
-        this.generateVideoThumbnail(video, url).then(thumbnailUrl => {
-          mediaInfo.thumbnailUrl = thumbnailUrl;
-          resolve();
-        }).catch(() => resolve()); // Continue even if thumbnail generation fails
+        this.generateVideoThumbnail(video, url)
+          .then((thumbnailUrl) => {
+            mediaInfo.thumbnailUrl = thumbnailUrl;
+            resolve();
+          })
+          .catch(() => resolve()); // Continue even if thumbnail generation fails
       };
 
       video.onerror = () => {
@@ -304,7 +311,7 @@ export class MediaHandler {
     mediaInfo.metadata = {
       videoId: videoId,
       embedUrl: `${API_CONFIG.YOUTUBE_EMBED_URL}${videoId}`,
-      aspectRatio: 16 / 9 // Standard YouTube aspect ratio
+      aspectRatio: 16 / 9, // Standard YouTube aspect ratio
     };
 
     // Use YouTube thumbnail
@@ -333,7 +340,10 @@ export class MediaHandler {
   /**
    * Generate thumbnail for image
    */
-  private async generateImageThumbnail(img: HTMLImageElement, originalUrl: string): Promise<string | null> {
+  private async generateImageThumbnail(
+    img: HTMLImageElement,
+    originalUrl: string
+  ): Promise<string | null> {
     try {
       // Check cache first
       if (this.thumbnailCache.has(originalUrl)) {
@@ -378,7 +388,10 @@ export class MediaHandler {
   /**
    * Generate thumbnail for video
    */
-  private async generateVideoThumbnail(video: HTMLVideoElement, originalUrl: string): Promise<string | null> {
+  private async generateVideoThumbnail(
+    video: HTMLVideoElement,
+    originalUrl: string
+  ): Promise<string | null> {
     try {
       // Check cache first
       if (this.thumbnailCache.has(originalUrl)) {
@@ -386,41 +399,48 @@ export class MediaHandler {
       }
 
       return new Promise((resolve, reject) => {
-        video.addEventListener('seeked', () => {
-          try {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d')!;
+        video.addEventListener(
+          'seeked',
+          () => {
+            try {
+              const canvas = document.createElement('canvas');
+              const ctx = canvas.getContext('2d')!;
 
-            const { width: thumbWidth, height: thumbHeight } = this.options.thumbnailSize;
-            canvas.width = thumbWidth;
-            canvas.height = thumbHeight;
+              const { width: thumbWidth, height: thumbHeight } = this.options.thumbnailSize;
+              canvas.width = thumbWidth;
+              canvas.height = thumbHeight;
 
-            // Calculate scaling to maintain aspect ratio
-            const scale = Math.min(thumbWidth / video.videoWidth, thumbHeight / video.videoHeight);
-            const scaledWidth = video.videoWidth * scale;
-            const scaledHeight = video.videoHeight * scale;
+              // Calculate scaling to maintain aspect ratio
+              const scale = Math.min(
+                thumbWidth / video.videoWidth,
+                thumbHeight / video.videoHeight
+              );
+              const scaledWidth = video.videoWidth * scale;
+              const scaledHeight = video.videoHeight * scale;
 
-            // Center the video frame
-            const x = (thumbWidth - scaledWidth) / 2;
-            const y = (thumbHeight - scaledHeight) / 2;
+              // Center the video frame
+              const x = (thumbWidth - scaledWidth) / 2;
+              const y = (thumbHeight - scaledHeight) / 2;
 
-            // Fill background
-            ctx.fillStyle = '#374151'; // Gray background
-            ctx.fillRect(0, 0, thumbWidth, thumbHeight);
+              // Fill background
+              ctx.fillStyle = '#374151'; // Gray background
+              ctx.fillRect(0, 0, thumbWidth, thumbHeight);
 
-            // Draw video frame
-            ctx.drawImage(video, x, y, scaledWidth, scaledHeight);
+              // Draw video frame
+              ctx.drawImage(video, x, y, scaledWidth, scaledHeight);
 
-            const thumbnailUrl = canvas.toDataURL('image/jpeg', this.options.compressionQuality);
+              const thumbnailUrl = canvas.toDataURL('image/jpeg', this.options.compressionQuality);
 
-            // Cache thumbnail
-            this.thumbnailCache.set(originalUrl, thumbnailUrl);
+              // Cache thumbnail
+              this.thumbnailCache.set(originalUrl, thumbnailUrl);
 
-            resolve(thumbnailUrl);
-          } catch (error) {
-            reject(error);
-          }
-        }, { once: true });
+              resolve(thumbnailUrl);
+            } catch (error) {
+              reject(error);
+            }
+          },
+          { once: true }
+        );
 
         // Seek to 10% of video duration for thumbnail
         video.currentTime = Math.min(video.duration * 0.1, 5); // Max 5 seconds
@@ -438,12 +458,14 @@ export class MediaHandler {
     const result: ValidationResult = {
       isValid: false,
       errors: [],
-      fileInfo: null
+      fileInfo: null,
     };
 
     // Check file size
     if (file.size > this.options.maxFileSize) {
-      result.errors.push(`File size must be less than ${this.formatFileSize(this.options.maxFileSize)}`);
+      result.errors.push(
+        `File size must be less than ${this.formatFileSize(this.options.maxFileSize)}`
+      );
     }
 
     // Check file type
@@ -461,7 +483,7 @@ export class MediaHandler {
         size: file.size,
         type: file.type,
         lastModified: file.lastModified,
-        mediaType: isValidImage ? MediaType.IMAGE : MediaType.VIDEO
+        mediaType: isValidImage ? MediaType.IMAGE : MediaType.VIDEO,
       };
     }
 
@@ -569,13 +591,13 @@ export class MediaHandler {
     return {
       mediaCache: {
         size: this.mediaCache.size,
-        keys: Array.from(this.mediaCache.keys())
+        keys: Array.from(this.mediaCache.keys()),
       },
       thumbnailCache: {
         size: this.thumbnailCache.size,
-        keys: Array.from(this.thumbnailCache.keys())
+        keys: Array.from(this.thumbnailCache.keys()),
       },
-      loadingPromises: this.loadingPromises.size
+      loadingPromises: this.loadingPromises.size,
     };
   }
 
@@ -611,7 +633,7 @@ export class MediaHandler {
       supportsLoop: false,
       supportsControls: false,
       supportsFullscreen: false,
-      canGenerateThumbnail: false
+      canGenerateThumbnail: false,
     };
 
     switch (mediaType) {

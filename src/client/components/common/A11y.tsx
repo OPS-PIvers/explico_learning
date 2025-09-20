@@ -6,17 +6,20 @@ interface ScreenReaderOnlyProps {
 }
 
 export const ScreenReaderOnly: React.FC<ScreenReaderOnlyProps> = ({ children }) => (
-  <span className="sr-only" style={{
-    position: 'absolute',
-    width: '1px',
-    height: '1px',
-    padding: 0,
-    margin: '-1px',
-    overflow: 'hidden',
-    clip: 'rect(0, 0, 0, 0)',
-    whiteSpace: 'nowrap',
-    border: 0
-  }}>
+  <span
+    className="sr-only"
+    style={{
+      position: 'absolute',
+      width: '1px',
+      height: '1px',
+      padding: 0,
+      margin: '-1px',
+      overflow: 'hidden',
+      clip: 'rect(0, 0, 0, 0)',
+      whiteSpace: 'nowrap',
+      border: 0,
+    }}
+  >
     {children}
   </span>
 );
@@ -31,7 +34,7 @@ interface LiveRegionProps {
 export const LiveRegion: React.FC<LiveRegionProps> = ({
   children,
   level = 'polite',
-  atomic = true
+  atomic = true,
 }) => (
   <div
     aria-live={level}
@@ -42,7 +45,7 @@ export const LiveRegion: React.FC<LiveRegionProps> = ({
       left: '-10000px',
       width: '1px',
       height: '1px',
-      overflow: 'hidden'
+      overflow: 'hidden',
     }}
   >
     {children}
@@ -93,11 +96,7 @@ export const FocusTrap: React.FC<FocusTrapProps> = ({ children, active = true })
     };
   }, [active]);
 
-  return (
-    <div ref={containerRef}>
-      {children}
-    </div>
-  );
+  return <div ref={containerRef}>{children}</div>;
 };
 
 // Skip to content link
@@ -119,7 +118,7 @@ export const SkipLink: React.FC<SkipLinkProps> = ({ targetId, children }) => (
       padding: '8px',
       textDecoration: 'none',
       zIndex: 9999,
-      transition: 'top 0.2s'
+      transition: 'top 0.2s',
     }}
     onFocus={(e) => {
       (e.target as HTMLElement).style.top = '6px';
@@ -154,12 +153,7 @@ export const AccessibleButton: React.FC<AccessibleButtonProps> = ({
   const classes = `${baseClasses} ${className}`.trim();
 
   return (
-    <button
-      className={classes}
-      disabled={disabled || loading}
-      aria-busy={loading}
-      {...props}
-    >
+    <button className={classes} disabled={disabled || loading} aria-busy={loading} {...props}>
       {loading ? (
         <>
           <span aria-hidden="true">⟳</span>
@@ -188,7 +182,7 @@ export const AccessibleField: React.FC<AccessibleFieldProps> = ({
   error,
   hint,
   required = false,
-  children
+  children,
 }) => {
   const hintId = hint ? `${id}-hint` : undefined;
   const errorId = error ? `${id}-error` : undefined;
@@ -211,12 +205,15 @@ export const AccessibleField: React.FC<AccessibleFieldProps> = ({
         </div>
       )}
 
-      {React.cloneElement(children as React.ReactElement, {
-        id,
-        'aria-describedby': describedBy || undefined,
-        'aria-invalid': !!error,
-        'aria-required': required
-      } as any)}
+      {React.cloneElement(
+        children as React.ReactElement,
+        {
+          id,
+          'aria-describedby': describedBy || undefined,
+          'aria-invalid': !!error,
+          'aria-required': required,
+        } as any
+      )}
 
       {error && (
         <div id={errorId} className="form-error" role="alert">
@@ -234,33 +231,36 @@ export const useKeyboardNavigation = (
 ) => {
   const [focusedIndex, setFocusedIndex] = React.useState(-1);
 
-  const handleKeyDown = React.useCallback((e: KeyboardEvent) => {
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault();
-        setFocusedIndex(prev => Math.min(prev + 1, items.length - 1));
-        break;
-      case 'ArrowUp':
-        e.preventDefault();
-        setFocusedIndex(prev => Math.max(prev - 1, 0));
-        break;
-      case 'Home':
-        e.preventDefault();
-        setFocusedIndex(0);
-        break;
-      case 'End':
-        e.preventDefault();
-        setFocusedIndex(items.length - 1);
-        break;
-      case 'Enter':
-      case ' ':
-        e.preventDefault();
-        if (focusedIndex >= 0 && onSelect) {
-          onSelect(items[focusedIndex].id);
-        }
-        break;
-    }
-  }, [items, focusedIndex, onSelect]);
+  const handleKeyDown = React.useCallback(
+    (e: KeyboardEvent) => {
+      switch (e.key) {
+        case 'ArrowDown':
+          e.preventDefault();
+          setFocusedIndex((prev) => Math.min(prev + 1, items.length - 1));
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          setFocusedIndex((prev) => Math.max(prev - 1, 0));
+          break;
+        case 'Home':
+          e.preventDefault();
+          setFocusedIndex(0);
+          break;
+        case 'End':
+          e.preventDefault();
+          setFocusedIndex(items.length - 1);
+          break;
+        case 'Enter':
+        case ' ':
+          e.preventDefault();
+          if (focusedIndex >= 0 && onSelect) {
+            onSelect(items[focusedIndex].id);
+          }
+          break;
+      }
+    },
+    [items, focusedIndex, onSelect]
+  );
 
   React.useEffect(() => {
     if (focusedIndex >= 0 && items[focusedIndex]?.element) {
@@ -271,6 +271,6 @@ export const useKeyboardNavigation = (
   return {
     focusedIndex,
     setFocusedIndex,
-    handleKeyDown
+    handleKeyDown,
   };
 };

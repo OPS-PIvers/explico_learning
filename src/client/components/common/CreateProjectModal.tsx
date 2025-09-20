@@ -11,11 +11,11 @@ interface CreateProjectModalProps {
 export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   onClose,
   onCreate,
-  isLoading = false
+  isLoading = false,
 }) => {
   const [formData, setFormData] = useState({
     title: '',
-    description: ''
+    description: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -56,19 +56,19 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
       settings: {
         autoSave: true,
         theme: 'light',
-        analytics: true
-      }
+        analytics: true,
+      },
     };
 
     onCreate(request);
   };
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
 
     // Clear error when user starts typing
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
+      setErrors((prev) => ({ ...prev, [field]: '' }));
     }
   };
 
@@ -122,9 +122,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
               disabled={isLoading}
             />
             {errors.description && <span className="error-text">{errors.description}</span>}
-            <span className="character-count">
-              {formData.description.length}/500
-            </span>
+            <span className="character-count">{formData.description.length}/500</span>
           </div>
         </form>
 

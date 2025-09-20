@@ -6,13 +6,13 @@ const EVENT_TYPES = {
   TEXT_POPUP: 'text_popup',
   PAN_ZOOM: 'pan_zoom',
   SPOTLIGHT: 'spotlight',
-  TEXT_ON_IMAGE: 'text_on_image'
+  TEXT_ON_IMAGE: 'text_on_image',
 };
 
 const MEDIA_TYPES = {
   IMAGE: 'image',
   VIDEO: 'video',
-  YOUTUBE: 'youtube'
+  YOUTUBE: 'youtube',
 };
 
 const PROJECT_DEFAULTS = {
@@ -20,8 +20,8 @@ const PROJECT_DEFAULTS = {
     autoSave: true,
     version: '1.0.0',
     theme: 'light',
-    analytics: true
-  }
+    analytics: true,
+  },
 };
 
 // Server-specific constants
@@ -30,7 +30,7 @@ const GAS_CONFIG = {
   maxResponseSize: 50 * 1024 * 1024, // 50MB
   batchSize: 1000, // Maximum rows to process at once
   retryAttempts: 3,
-  retryDelay: 1000 // milliseconds
+  retryDelay: 1000, // milliseconds
 };
 
 // Google Sheets API limits
@@ -39,7 +39,7 @@ const SHEETS_LIMITS = {
   maxColumns: 18278, // Maximum columns (ZZZ)
   maxRows: 1000000, // Maximum rows per sheet
   maxSheets: 200, // Maximum sheets per spreadsheet
-  batchUpdateLimit: 100 // Maximum requests per batchUpdate
+  batchUpdateLimit: 100, // Maximum requests per batchUpdate
 };
 
 // Drive API configuration
@@ -49,8 +49,8 @@ const DRIVE_CONFIG = {
     spreadsheet: 'application/vnd.google-apps.spreadsheet',
     folder: 'application/vnd.google-apps.folder',
     image: 'image/*',
-    video: 'video/*'
-  }
+    video: 'video/*',
+  },
 };
 
 // Error codes specific to server operations
@@ -59,7 +59,7 @@ const SERVER_ERROR_CODES = {
   DRIVE_QUOTA_EXCEEDED: 'DRIVE_QUOTA_EXCEEDED',
   EXECUTION_TIMEOUT: 'EXECUTION_TIMEOUT',
   INVALID_SPREADSHEET: 'INVALID_SPREADSHEET',
-  PERMISSION_ERROR: 'PERMISSION_ERROR'
+  PERMISSION_ERROR: 'PERMISSION_ERROR',
 };
 
 // Cache configuration for PropertiesService
@@ -69,8 +69,8 @@ const CACHE_CONFIG = {
     userProjects: 'user_projects',
     projectData: 'project_data_',
     slides: 'slides_',
-    hotspots: 'hotspots_'
-  }
+    hotspots: 'hotspots_',
+  },
 };
 
 // Logging levels
@@ -78,7 +78,7 @@ enum LogLevel {
   DEBUG = 0,
   INFO = 1,
   WARN = 2,
-  ERROR = 3
+  ERROR = 3,
 }
 
 // Current log level (can be changed for debugging)

@@ -69,7 +69,7 @@ body {
   background: white;
   border-bottom: 1px solid #dee2e6;
   padding: 20px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .header-content {
@@ -149,12 +149,12 @@ body {
   padding: 20px;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .project-card:hover {
   border-color: #007bff;
-  box-shadow: 0 4px 12px rgba(0,123,255,0.15);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
   transform: translateY(-2px);
 }
 
@@ -260,8 +260,12 @@ body {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .loading-message {

@@ -6,7 +6,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps & { width?: number }> = ({
   hotspot,
   onUpdate,
   onDelete,
-  width = 320
+  width = 320,
 }) => {
   const [formData, setFormData] = useState<Partial<Hotspot>>({});
 

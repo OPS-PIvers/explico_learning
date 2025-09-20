@@ -32,7 +32,9 @@ export class ProjectManager {
     const sheetsAPI = new GoogleSheetsAPI();
 
     // Step 1: Create a new spreadsheet for this project
-    const spreadsheetId = await sheetsAPI.createProjectSpreadsheet(projectData.name || 'Untitled Project');
+    const spreadsheetId = await sheetsAPI.createProjectSpreadsheet(
+      projectData.name || 'Untitled Project'
+    );
 
     // Step 2: Initialize the GoogleSheetsAPI with the new spreadsheet ID
     await sheetsAPI.initialize(spreadsheetId);
@@ -40,7 +42,7 @@ export class ProjectManager {
     // Step 3: Create the project record in the spreadsheet
     const projectWithSpreadsheetId = {
       ...projectData,
-      spreadsheetId: spreadsheetId
+      spreadsheetId: spreadsheetId,
     };
     const createdProject = await sheetsAPI.createProject(projectWithSpreadsheetId);
 
@@ -54,13 +56,15 @@ export class ProjectManager {
   /**
    * Open an existing project
    */
-  async openProject(projectId: string): Promise<Project & { slides: (Slide & { hotspots: Hotspot[] })[] }> {
+  async openProject(
+    projectId: string
+  ): Promise<Project & { slides: (Slide & { hotspots: Hotspot[] })[] }> {
     const sheetsAPI = new GoogleSheetsAPI();
 
     // Step 1: Initialize registry to get project spreadsheet ID
     await sheetsAPI.initializeRegistry();
     const projects = await sheetsAPI.getAllProjects();
-    const projectInfo = projects.find(p => p.id === projectId);
+    const projectInfo = projects.find((p) => p.id === projectId);
 
     if (!projectInfo) {
       throw new Error(`Project ${projectId} not found`);
@@ -81,14 +85,14 @@ export class ProjectManager {
         const hotspots = await sheetsAPI.getHotspotsBySlide(slide.id);
         return {
           ...slide,
-          hotspots
+          hotspots,
         };
       })
     );
 
     return {
       ...project,
-      slides: slidesWithHotspots
+      slides: slidesWithHotspots,
     };
   }
 
@@ -111,7 +115,7 @@ export class ProjectManager {
     // Step 1: Initialize registry to get project spreadsheet ID
     await sheetsAPI.initializeRegistry();
     const projects = await sheetsAPI.getAllProjects();
-    const project = projects.find(p => p.id === projectId);
+    const project = projects.find((p) => p.id === projectId);
 
     if (!project) {
       throw new Error(`Project ${projectId} not found`);
@@ -144,7 +148,7 @@ export class ProjectManager {
     // We need the spreadsheetId of the original project. Let's get it from the registry.
     await originalSheetsAPI.initializeRegistry();
     const allProjects = await originalSheetsAPI.getAllProjects();
-    const originalProjectFromRegistry = allProjects.find(p => p.id === projectId);
+    const originalProjectFromRegistry = allProjects.find((p) => p.id === projectId);
 
     if (!originalProjectFromRegistry) {
       throw new Error(`Project ${projectId} not found in registry.`);
@@ -188,7 +192,7 @@ export class ProjectManager {
 
       // Create new hotspots for the new slide
       if (originalHotspots && originalHotspots.length > 0) {
-        const newHotspots = originalHotspots.map(hotspot => {
+        const newHotspots = originalHotspots.map((hotspot) => {
           const newHotspot = {
             ...hotspot,
             id: this.generateId('hotspot'),
@@ -221,7 +225,7 @@ export class ProjectManager {
     // We need to find the project's spreadsheet ID from the registry
     await sheetsAPI.initializeRegistry();
     const projects = await sheetsAPI.getAllProjects();
-    const project = projects.find(p => p.id === slideData.projectId);
+    const project = projects.find((p) => p.id === slideData.projectId);
 
     if (!project) {
       throw new Error(`Project ${slideData.projectId} not found`);
@@ -232,7 +236,7 @@ export class ProjectManager {
     // Convert SlideData to Slide format
     const slideToCreate: Partial<Slide> = {
       ...slideData,
-      mediaType: slideData.mediaType as MediaType
+      mediaType: slideData.mediaType as MediaType,
     };
 
     const createdSlide = await sheetsAPI.createSlide(slideToCreate);
@@ -258,7 +262,7 @@ export class ProjectManager {
     // Get project info to initialize with correct spreadsheet
     await sheetsAPI.initializeRegistry();
     const projects = await sheetsAPI.getAllProjects();
-    const project = projects.find(p => p.id === projectId);
+    const project = projects.find((p) => p.id === projectId);
 
     if (!project) {
       throw new Error(`Project ${projectId} not found`);
@@ -280,13 +284,18 @@ export class ProjectManager {
   /**
    * Update slide background
    */
-  async updateSlideBackground(slideId: string, projectId: string, backgroundUrl: string, backgroundType: string): Promise<Slide> {
+  async updateSlideBackground(
+    slideId: string,
+    projectId: string,
+    backgroundUrl: string,
+    backgroundType: string
+  ): Promise<Slide> {
     const sheetsAPI = new GoogleSheetsAPI();
 
     // Get project info to initialize with correct spreadsheet
     await sheetsAPI.initializeRegistry();
     const projects = await sheetsAPI.getAllProjects();
-    const project = projects.find(p => p.id === projectId);
+    const project = projects.find((p) => p.id === projectId);
 
     if (!project) {
       throw new Error(`Project ${projectId} not found`);
@@ -313,7 +322,7 @@ export class ProjectManager {
     // Get project info to initialize with correct spreadsheet
     await sheetsAPI.initializeRegistry();
     const projects = await sheetsAPI.getAllProjects();
-    const project = projects.find(p => p.id === projectId);
+    const project = projects.find((p) => p.id === projectId);
 
     if (!project) {
       throw new Error(`Project ${projectId} not found`);

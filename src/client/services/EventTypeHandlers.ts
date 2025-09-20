@@ -31,7 +31,7 @@ export class EventTypeHandlers {
       animationDuration: 300,
       zoomTransitionDuration: 500,
       spotlightFadeDuration: 200,
-      ...options
+      ...options,
     };
 
     this.activeEvents = new Map(); // Track active event states
@@ -42,7 +42,11 @@ export class EventTypeHandlers {
   /**
    * Handle hotspot trigger based on event type
    */
-  async handleHotspotEvent(hotspot: Hotspot, canvas: HTMLElement, hotspotElement: HTMLElement): Promise<void> {
+  async handleHotspotEvent(
+    hotspot: Hotspot,
+    canvas: HTMLElement,
+    hotspotElement: HTMLElement
+  ): Promise<void> {
     // Clear any existing event for this hotspot
     this.clearActiveEvent(hotspot.id);
 
@@ -75,7 +79,11 @@ export class EventTypeHandlers {
   /**
    * Handle text on image event
    */
-  private async handleTextOnImage(hotspot: Hotspot, canvas: HTMLElement, hotspotElement: HTMLElement): Promise<void> {
+  private async handleTextOnImage(
+    hotspot: Hotspot,
+    canvas: HTMLElement,
+    hotspotElement: HTMLElement
+  ): Promise<void> {
     // Remove existing tooltip
     this.clearTooltipForHotspot(hotspot.id);
 
@@ -95,7 +103,7 @@ export class EventTypeHandlers {
     this.activeEvents.set(hotspot.id, {
       type: EventType.TEXT_ON_IMAGE,
       elements: [tooltip],
-      cleanup: () => this.cleanupTextTooltip(tooltip)
+      cleanup: () => this.cleanupTextTooltip(tooltip),
     });
 
     // Auto-hide after delay (optional)
@@ -109,7 +117,11 @@ export class EventTypeHandlers {
   /**
    * Handle text popup event
    */
-  private async handleTextPopup(hotspot: Hotspot, canvas: HTMLElement, hotspotElement: HTMLElement): Promise<void> {
+  private async handleTextPopup(
+    hotspot: Hotspot,
+    canvas: HTMLElement,
+    hotspotElement: HTMLElement
+  ): Promise<void> {
     // Create modal overlay
     const overlay = this.createModalOverlay();
 
@@ -129,7 +141,7 @@ export class EventTypeHandlers {
     this.activeEvents.set(hotspot.id, {
       type: EventType.TEXT_POPUP,
       elements: [overlay],
-      cleanup: () => this.cleanupTextPopup(overlay)
+      cleanup: () => this.cleanupTextPopup(overlay),
     });
 
     // Add close handlers
@@ -139,8 +151,14 @@ export class EventTypeHandlers {
   /**
    * Handle pan/zoom event
    */
-  private async handlePanZoom(hotspot: Hotspot, canvas: HTMLElement, hotspotElement: HTMLElement): Promise<void> {
-    const backgroundElement = canvas.querySelector('.background-image, .background-video, .background-youtube') as HTMLElement;
+  private async handlePanZoom(
+    hotspot: Hotspot,
+    canvas: HTMLElement,
+    hotspotElement: HTMLElement
+  ): Promise<void> {
+    const backgroundElement = canvas.querySelector(
+      '.background-image, .background-video, .background-youtube'
+    ) as HTMLElement;
     if (!backgroundElement) return;
 
     // Calculate zoom and pan values
@@ -168,14 +186,18 @@ export class EventTypeHandlers {
       elements: bannerElement ? [bannerElement] : [],
       originalTransform,
       backgroundElement,
-      cleanup: () => this.cleanupPanZoom(backgroundElement, originalTransform, bannerElement)
+      cleanup: () => this.cleanupPanZoom(backgroundElement, originalTransform, bannerElement),
     });
   }
 
   /**
    * Handle spotlight event
    */
-  private async handleSpotlight(hotspot: Hotspot, canvas: HTMLElement, hotspotElement: HTMLElement): Promise<void> {
+  private async handleSpotlight(
+    hotspot: Hotspot,
+    canvas: HTMLElement,
+    hotspotElement: HTMLElement
+  ): Promise<void> {
     // Create spotlight overlay
     const spotlightOverlay = this.createSpotlightOverlay(hotspot, hotspotElement);
 
@@ -189,7 +211,7 @@ export class EventTypeHandlers {
     this.activeEvents.set(hotspot.id, {
       type: EventType.SPOTLIGHT,
       elements: [spotlightOverlay],
-      cleanup: () => this.cleanupSpotlight(spotlightOverlay)
+      cleanup: () => this.cleanupSpotlight(spotlightOverlay),
     });
 
     // Add click handler to dismiss
@@ -220,7 +242,11 @@ export class EventTypeHandlers {
   /**
    * Position tooltip relative to hotspot
    */
-  private positionTooltip(tooltip: HTMLElement, hotspotElement: HTMLElement, position: string = TOOLTIP_POSITIONS.BOTTOM): void {
+  private positionTooltip(
+    tooltip: HTMLElement,
+    hotspotElement: HTMLElement,
+    position: string = TOOLTIP_POSITIONS.BOTTOM
+  ): void {
     const hotspotRect = hotspotElement.getBoundingClientRect();
     const canvasElement = hotspotElement.closest('.main-canvas') as HTMLElement;
     if (!canvasElement) return;
@@ -267,16 +293,20 @@ export class EventTypeHandlers {
 
     switch (position) {
       case TOOLTIP_POSITIONS.TOP:
-        arrow.className += ' top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900/90';
+        arrow.className +=
+          ' top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900/90';
         break;
       case TOOLTIP_POSITIONS.BOTTOM:
-        arrow.className += ' bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-gray-900/90';
+        arrow.className +=
+          ' bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-gray-900/90';
         break;
       case TOOLTIP_POSITIONS.LEFT:
-        arrow.className += ' left-full top-1/2 -translate-y-1/2 border-4 border-transparent border-l-gray-900/90';
+        arrow.className +=
+          ' left-full top-1/2 -translate-y-1/2 border-4 border-transparent border-l-gray-900/90';
         break;
       case TOOLTIP_POSITIONS.RIGHT:
-        arrow.className += ' right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-gray-900/90';
+        arrow.className +=
+          ' right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-gray-900/90';
         break;
     }
 
@@ -303,7 +333,8 @@ export class EventTypeHandlers {
 
     // Header
     const header = document.createElement('div');
-    header.className = 'popup-header flex items-center justify-between p-4 border-b border-gray-200';
+    header.className =
+      'popup-header flex items-center justify-between p-4 border-b border-gray-200';
 
     const title = document.createElement('h3');
     title.className = 'text-lg font-semibold text-gray-900';
@@ -333,7 +364,8 @@ export class EventTypeHandlers {
    */
   private createBannerOverlay(text: string): HTMLElement {
     const banner = document.createElement('div');
-    banner.className = 'banner-overlay absolute bottom-10 left-1/2 -translate-x-1/2 bg-gray-900/80 text-white text-sm rounded-md px-3 py-2 shadow-lg max-w-xs text-center';
+    banner.className =
+      'banner-overlay absolute bottom-10 left-1/2 -translate-x-1/2 bg-gray-900/80 text-white text-sm rounded-md px-3 py-2 shadow-lg max-w-xs text-center';
     banner.textContent = text;
     banner.style.opacity = '0';
     banner.style.transform = 'translateX(-50%) translateY(10px)';
@@ -371,7 +403,7 @@ export class EventTypeHandlers {
    * Animate tooltip in
    */
   private animateTooltipIn(tooltip: HTMLElement): Promise<void> {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       tooltip.style.opacity = '0';
       tooltip.style.transform += ' scale(0.9)';
 
@@ -389,7 +421,7 @@ export class EventTypeHandlers {
    * Animate popup in
    */
   private animatePopupIn(overlay: HTMLElement, popup: HTMLElement): Promise<void> {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       requestAnimationFrame(() => {
         overlay.style.transition = `opacity ${this.options.animationDuration}ms ease`;
         popup.style.transition = `transform ${this.options.animationDuration}ms ease`;
@@ -406,7 +438,7 @@ export class EventTypeHandlers {
    * Animate banner in
    */
   private animateBannerIn(banner: HTMLElement): Promise<void> {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       requestAnimationFrame(() => {
         banner.style.transition = `opacity ${this.options.animationDuration}ms ease, transform ${this.options.animationDuration}ms ease`;
         banner.style.opacity = '1';
@@ -421,7 +453,7 @@ export class EventTypeHandlers {
    * Animate spotlight in
    */
   private animateSpotlightIn(spotlight: HTMLElement): Promise<void> {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       requestAnimationFrame(() => {
         spotlight.style.transition = `opacity ${this.options.spotlightFadeDuration}ms ease`;
         spotlight.style.opacity = '1';
@@ -457,7 +489,9 @@ export class EventTypeHandlers {
    * Clear tooltip for specific hotspot
    */
   private clearTooltipForHotspot(hotspotId: string): void {
-    const existingTooltip = document.querySelector(`.hotspot-tooltip[data-hotspot-id="${hotspotId}"]`);
+    const existingTooltip = document.querySelector(
+      `.hotspot-tooltip[data-hotspot-id="${hotspotId}"]`
+    );
     if (existingTooltip) {
       existingTooltip.remove();
     }
@@ -530,7 +564,11 @@ export class EventTypeHandlers {
   /**
    * Cleanup pan/zoom effect
    */
-  private cleanupPanZoom(backgroundElement: HTMLElement, originalTransform: string, bannerElement: HTMLElement | null): void {
+  private cleanupPanZoom(
+    backgroundElement: HTMLElement,
+    originalTransform: string,
+    bannerElement: HTMLElement | null
+  ): void {
     // Restore original transform
     if (backgroundElement) {
       backgroundElement.style.transform = originalTransform;

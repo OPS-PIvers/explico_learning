@@ -4,7 +4,15 @@
  */
 
 import { Project, Slide, Hotspot, AnalyticsEvent, MediaType } from '../../shared/types';
-import { LEGACY_SHEETS_CONFIG, PROJECT_DEFAULTS, SLIDE_DEFAULTS, HOTSPOT_DEFAULTS, PROJECT_STATUS, MEDIA_TYPES, TOOLTIP_POSITIONS } from '../../shared/constants';
+import {
+  LEGACY_SHEETS_CONFIG,
+  PROJECT_DEFAULTS,
+  SLIDE_DEFAULTS,
+  HOTSPOT_DEFAULTS,
+  PROJECT_STATUS,
+  MEDIA_TYPES,
+  TOOLTIP_POSITIONS,
+} from '../../shared/constants';
 
 declare const SpreadsheetApp: GoogleAppsScript.Spreadsheet.SpreadsheetApp;
 declare const DriveApp: GoogleAppsScript.Drive.DriveApp;
@@ -40,7 +48,7 @@ export class GoogleSheetsAPI {
       batchSize: 100,
       retryAttempts: 3,
       retryDelay: 1000,
-      ...options
+      ...options,
     };
 
     this.initialized = false;
@@ -96,7 +104,7 @@ export class GoogleSheetsAPI {
       LEGACY_SHEETS_CONFIG.PROJECTS_SHEET,
       LEGACY_SHEETS_CONFIG.SLIDES_SHEET,
       LEGACY_SHEETS_CONFIG.HOTSPOTS_SHEET,
-      LEGACY_SHEETS_CONFIG.ANALYTICS_SHEET
+      LEGACY_SHEETS_CONFIG.ANALYTICS_SHEET,
     ];
 
     for (const sheetName of requiredSheets) {
@@ -137,7 +145,7 @@ export class GoogleSheetsAPI {
 
     // Check if headers already exist
     const existingHeaders = sheet.getRange(1, 1, 1, headers.length).getValues()[0];
-    const hasHeaders = existingHeaders.some(header => header !== '');
+    const hasHeaders = existingHeaders.some((header) => header !== '');
 
     if (!hasHeaders) {
       sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
@@ -153,28 +161,67 @@ export class GoogleSheetsAPI {
     switch (sheetName) {
       case LEGACY_SHEETS_CONFIG.PROJECTS_SHEET:
         return [
-          'ID', 'Name', 'Description', 'Status', 'Settings',
-          'Analytics', 'Created At', 'Updated At', 'Created By', 'Shared With'
+          'ID',
+          'Name',
+          'Description',
+          'Status',
+          'Settings',
+          'Analytics',
+          'Created At',
+          'Updated At',
+          'Created By',
+          'Shared With',
         ];
 
       case LEGACY_SHEETS_CONFIG.SLIDES_SHEET:
         return [
-          'ID', 'Project ID', 'Name', 'Background URL', 'Background Type',
-          'Order', 'Duration', 'Is Active', 'Created At', 'Updated At'
+          'ID',
+          'Project ID',
+          'Name',
+          'Background URL',
+          'Background Type',
+          'Order',
+          'Duration',
+          'Is Active',
+          'Created At',
+          'Updated At',
         ];
 
       case LEGACY_SHEETS_CONFIG.HOTSPOTS_SHEET:
         return [
-          'ID', 'Slide ID', 'Name', 'Color', 'Size', 'Position X', 'Position Y',
-          'Pulse Animation', 'Trigger Type', 'Event Type', 'Tooltip Content',
-          'Tooltip Position', 'Zoom Level', 'Pan Offset X', 'Pan Offset Y',
-          'Banner Text', 'Is Visible', 'Order', 'Created At', 'Updated At'
+          'ID',
+          'Slide ID',
+          'Name',
+          'Color',
+          'Size',
+          'Position X',
+          'Position Y',
+          'Pulse Animation',
+          'Trigger Type',
+          'Event Type',
+          'Tooltip Content',
+          'Tooltip Position',
+          'Zoom Level',
+          'Pan Offset X',
+          'Pan Offset Y',
+          'Banner Text',
+          'Is Visible',
+          'Order',
+          'Created At',
+          'Updated At',
         ];
 
       case LEGACY_SHEETS_CONFIG.ANALYTICS_SHEET:
         return [
-          'ID', 'Project ID', 'Event Type', 'Event Data', 'User ID',
-          'Session ID', 'Timestamp', 'IP Address', 'User Agent'
+          'ID',
+          'Project ID',
+          'Event Type',
+          'Event Data',
+          'User ID',
+          'Session ID',
+          'Timestamp',
+          'IP Address',
+          'User Agent',
         ];
 
       default:
@@ -202,7 +249,6 @@ export class GoogleSheetsAPI {
 
       console.log(`Created project spreadsheet: ${spreadsheetId} for project: ${projectName}`);
       return spreadsheetId;
-
     } catch (error) {
       console.error('Failed to create project spreadsheet:', error);
       throw error;
@@ -269,18 +315,26 @@ export class GoogleSheetsAPI {
    */
   private async setupRegistryStructure(): Promise<void> {
     try {
-      const registrySheet = SpreadsheetApp.openById(this.options.registrySpreadsheetId!).getActiveSheet();
+      const registrySheet = SpreadsheetApp.openById(
+        this.options.registrySpreadsheetId!
+      ).getActiveSheet();
       registrySheet.setName('Project Registry');
 
       // Setup registry headers
       const headers = [
-        'Project ID', 'Name', 'Description', 'Spreadsheet ID',
-        'Status', 'Created At', 'Updated At', 'Created By'
+        'Project ID',
+        'Name',
+        'Description',
+        'Spreadsheet ID',
+        'Status',
+        'Created At',
+        'Updated At',
+        'Created By',
       ];
 
       // Check if headers already exist
       const existingHeaders = registrySheet.getRange(1, 1, 1, headers.length).getValues()[0];
-      const hasHeaders = existingHeaders.some(header => header !== '');
+      const hasHeaders = existingHeaders.some((header) => header !== '');
 
       if (!hasHeaders) {
         registrySheet.getRange(1, 1, 1, headers.length).setValues([headers]);
@@ -306,7 +360,7 @@ export class GoogleSheetsAPI {
       id: this.generateId('proj'),
       createdAt: new Date(),
       updatedAt: new Date(),
-      spreadsheetId: this.options.spreadsheetId!
+      spreadsheetId: this.options.spreadsheetId!,
     } as Project;
 
     await this.insertRow(LEGACY_SHEETS_CONFIG.PROJECTS_SHEET, this.projectToRow(project));
@@ -327,10 +381,14 @@ export class GoogleSheetsAPI {
     const updatedProject: Project = {
       ...existingProject,
       ...updates,
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
 
-    await this.updateRowById(LEGACY_SHEETS_CONFIG.PROJECTS_SHEET, projectId, this.projectToRow(updatedProject));
+    await this.updateRowById(
+      LEGACY_SHEETS_CONFIG.PROJECTS_SHEET,
+      projectId,
+      this.projectToRow(updatedProject)
+    );
     return updatedProject;
   }
 
@@ -351,7 +409,7 @@ export class GoogleSheetsAPI {
     this.ensureRegistryInitialized();
 
     const rows = await this.getRegistryRows();
-    return rows.map(row => this.registryRowToProject(row));
+    return rows.map((row) => this.registryRowToProject(row));
   }
 
   /**
@@ -361,7 +419,9 @@ export class GoogleSheetsAPI {
     this.ensureRegistryInitialized();
 
     const registryRow = this.projectToRegistryRow(project);
-    const registrySheet = SpreadsheetApp.openById(this.options.registrySpreadsheetId!).getSheetByName('Project Registry');
+    const registrySheet = SpreadsheetApp.openById(
+      this.options.registrySpreadsheetId!
+    ).getSheetByName('Project Registry');
 
     if (!registrySheet) {
       throw new Error('Project Registry sheet not found');
@@ -379,13 +439,15 @@ export class GoogleSheetsAPI {
   async updateProjectInRegistry(projectId: string, updates: Partial<Project>): Promise<boolean> {
     this.ensureRegistryInitialized();
 
-    const registrySheet = SpreadsheetApp.openById(this.options.registrySpreadsheetId!).getSheetByName('Project Registry');
+    const registrySheet = SpreadsheetApp.openById(
+      this.options.registrySpreadsheetId!
+    ).getSheetByName('Project Registry');
     if (!registrySheet) {
       throw new Error('Project Registry sheet not found');
     }
 
     const rows = await this.getRegistryRows();
-    const rowIndex = rows.findIndex(row => row[0] === projectId);
+    const rowIndex = rows.findIndex((row) => row[0] === projectId);
 
     if (rowIndex === -1) {
       throw new Error(`Project ${projectId} not found in registry`);
@@ -396,7 +458,7 @@ export class GoogleSheetsAPI {
     const updatedProject: Project = {
       ...existingProject,
       ...updates,
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
 
     const actualRowNumber = rowIndex + 2; // +2 because index is 0-based and we skip header
@@ -414,13 +476,15 @@ export class GoogleSheetsAPI {
   async removeProjectFromRegistry(projectId: string): Promise<boolean> {
     this.ensureRegistryInitialized();
 
-    const registrySheet = SpreadsheetApp.openById(this.options.registrySpreadsheetId!).getSheetByName('Project Registry');
+    const registrySheet = SpreadsheetApp.openById(
+      this.options.registrySpreadsheetId!
+    ).getSheetByName('Project Registry');
     if (!registrySheet) {
       throw new Error('Project Registry sheet not found');
     }
 
     const rows = await this.getRegistryRows();
-    const rowIndex = rows.findIndex(row => row[0] === projectId);
+    const rowIndex = rows.findIndex((row) => row[0] === projectId);
 
     if (rowIndex === -1) {
       console.warn('Project not found in registry:', projectId);
@@ -459,7 +523,7 @@ export class GoogleSheetsAPI {
       ...slideData,
       id: this.generateId('slide'),
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     } as Slide;
 
     await this.insertRow(LEGACY_SHEETS_CONFIG.SLIDES_SHEET, this.slideToRow(slide));
@@ -480,10 +544,14 @@ export class GoogleSheetsAPI {
     const updatedSlide: Slide = {
       ...existingSlide,
       ...updates,
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
 
-    await this.updateRowById(LEGACY_SHEETS_CONFIG.SLIDES_SHEET, slideId, this.slideToRow(updatedSlide));
+    await this.updateRowById(
+      LEGACY_SHEETS_CONFIG.SLIDES_SHEET,
+      slideId,
+      this.slideToRow(updatedSlide)
+    );
     return updatedSlide;
   }
 
@@ -494,8 +562,8 @@ export class GoogleSheetsAPI {
     this.ensureInitialized();
 
     const allRows = await this.getAllRows(LEGACY_SHEETS_CONFIG.SLIDES_SHEET);
-    const projectSlides = allRows.filter(row => row[1] === projectId); // Project ID column
-    return projectSlides.map(row => this.rowToSlide(row));
+    const projectSlides = allRows.filter((row) => row[1] === projectId); // Project ID column
+    return projectSlides.map((row) => this.rowToSlide(row));
   }
 
   /**
@@ -541,11 +609,11 @@ export class GoogleSheetsAPI {
     const batches = this.chunkArray(hotspots, this.options.batchSize);
 
     for (const batch of batches) {
-      const operations: BatchOperation[] = batch.map(hotspot => ({
+      const operations: BatchOperation[] = batch.map((hotspot) => ({
         type: 'upsert',
         sheet: LEGACY_SHEETS_CONFIG.HOTSPOTS_SHEET,
         id: hotspot.id,
-        data: this.hotspotToRow(hotspot)
+        data: this.hotspotToRow(hotspot),
       }));
 
       await this.processBatch(operations);
@@ -561,8 +629,9 @@ export class GoogleSheetsAPI {
     this.ensureInitialized();
 
     const allRows = await this.getAllRows(LEGACY_SHEETS_CONFIG.HOTSPOTS_SHEET);
-    const slideHotspots = allRows.filter(row => row[1] === slideId); // Slide ID column
-    return slideHotspots.map(row => this.rowToHotspot(row))
+    const slideHotspots = allRows.filter((row) => row[1] === slideId); // Slide ID column
+    return slideHotspots
+      .map((row) => this.rowToHotspot(row))
       .sort((a, b) => (a.order || 0) - (b.order || 0));
   }
 
@@ -608,7 +677,7 @@ export class GoogleSheetsAPI {
       eventData.sessionId || '',
       new Date().toISOString(),
       eventData.ipAddress || '',
-      eventData.userAgent || ''
+      eventData.userAgent || '',
     ];
 
     await this.insertRow(LEGACY_SHEETS_CONFIG.ANALYTICS_SHEET, analyticsRow);
@@ -618,15 +687,18 @@ export class GoogleSheetsAPI {
   /**
    * Get analytics for a project
    */
-  async getAnalytics(projectId: string, options: { startDate?: string; endDate?: string; limit?: number } = {}): Promise<AnalyticsEvent[]> {
+  async getAnalytics(
+    projectId: string,
+    options: { startDate?: string; endDate?: string; limit?: number } = {}
+  ): Promise<AnalyticsEvent[]> {
     this.ensureInitialized();
 
     const allRows = await this.getAllRows(LEGACY_SHEETS_CONFIG.ANALYTICS_SHEET);
-    let analytics = allRows.filter(row => row[1] === projectId);
+    let analytics = allRows.filter((row) => row[1] === projectId);
 
     // Apply date filter if specified
     if (options.startDate || options.endDate) {
-      analytics = analytics.filter(row => {
+      analytics = analytics.filter((row) => {
         const timestamp = new Date(row[6]); // Timestamp column
         if (options.startDate && timestamp < new Date(options.startDate)) return false;
         if (options.endDate && timestamp > new Date(options.endDate)) return false;
@@ -639,7 +711,7 @@ export class GoogleSheetsAPI {
       analytics = analytics.slice(0, options.limit);
     }
 
-    return analytics.map(row => ({
+    return analytics.map((row) => ({
       id: row[0],
       projectId: row[1],
       eventType: row[2],
@@ -648,7 +720,7 @@ export class GoogleSheetsAPI {
       sessionId: row[5],
       timestamp: new Date(row[6]),
       ipAddress: row[7],
-      userAgent: row[8]
+      userAgent: row[8],
     }));
   }
 
@@ -689,7 +761,7 @@ export class GoogleSheetsAPI {
    */
   private async getRowById(sheetName: string, id: string): Promise<any[] | null> {
     const rows = await this.getAllRows(sheetName);
-    return rows.find(row => row[0] === id) || null;
+    return rows.find((row) => row[0] === id) || null;
   }
 
   /**
@@ -702,7 +774,7 @@ export class GoogleSheetsAPI {
     }
 
     const rows = await this.getAllRows(sheetName);
-    const rowIndex = rows.findIndex(row => row[0] === id);
+    const rowIndex = rows.findIndex((row) => row[0] === id);
 
     if (rowIndex === -1) {
       throw new Error(`Row with ID ${id} not found`);
@@ -725,7 +797,7 @@ export class GoogleSheetsAPI {
     }
 
     const rows = await this.getAllRows(sheetName);
-    const rowIndex = rows.findIndex(row => row[0] === id);
+    const rowIndex = rows.findIndex((row) => row[0] === id);
 
     if (rowIndex === -1) {
       return false; // Row not found
@@ -740,7 +812,11 @@ export class GoogleSheetsAPI {
   /**
    * Delete rows by column value
    */
-  private async deleteRowsByColumn(sheetName: string, column: string, value: string): Promise<number> {
+  private async deleteRowsByColumn(
+    sheetName: string,
+    column: string,
+    value: string
+  ): Promise<number> {
     const sheet = SpreadsheetApp.openById(this.options.spreadsheetId!).getSheetByName(sheetName);
     if (!sheet) {
       throw new Error(`Sheet ${sheetName} not found`);
@@ -808,7 +884,7 @@ export class GoogleSheetsAPI {
       project.createdAt.toISOString(),
       project.updatedAt.toISOString(),
       '',
-      JSON.stringify([])
+      JSON.stringify([]),
     ];
   }
 
@@ -823,7 +899,7 @@ export class GoogleSheetsAPI {
       createdAt: new Date(row[6]),
       updatedAt: new Date(row[7]),
       spreadsheetId: this.options.spreadsheetId!,
-      settings: this.parseJSON(row[4])
+      settings: this.parseJSON(row[4]),
     };
   }
 
@@ -841,7 +917,7 @@ export class GoogleSheetsAPI {
       slide.duration || null,
       true,
       slide.createdAt?.toISOString() || new Date().toISOString(),
-      slide.updatedAt?.toISOString() || new Date().toISOString()
+      slide.updatedAt?.toISOString() || new Date().toISOString(),
     ];
   }
 
@@ -859,7 +935,7 @@ export class GoogleSheetsAPI {
       duration: row[6] || null,
       transition: '',
       createdAt: new Date(row[8]),
-      updatedAt: new Date(row[9])
+      updatedAt: new Date(row[9]),
     };
   }
 
@@ -887,7 +963,7 @@ export class GoogleSheetsAPI {
       hotspot.isVisible !== false,
       hotspot.order || 0,
       new Date().toISOString(),
-      new Date().toISOString()
+      new Date().toISOString(),
     ];
   }
 
@@ -912,12 +988,12 @@ export class GoogleSheetsAPI {
         zoomLevel: parseFloat(row[12]) || 1,
         panOffset: {
           x: parseFloat(row[13]) || 0,
-          y: parseFloat(row[14]) || 0
+          y: parseFloat(row[14]) || 0,
         },
-        bannerText: row[15]
+        bannerText: row[15],
       },
       order: parseInt(row[17]) || 0,
-      isVisible: row[16] !== false
+      isVisible: row[16] !== false,
     };
   }
 
@@ -968,7 +1044,9 @@ export class GoogleSheetsAPI {
    * Get all rows from registry sheet (excluding header)
    */
   private async getRegistryRows(): Promise<any[][]> {
-    const registrySheet = SpreadsheetApp.openById(this.options.registrySpreadsheetId!).getSheetByName('Project Registry');
+    const registrySheet = SpreadsheetApp.openById(
+      this.options.registrySpreadsheetId!
+    ).getSheetByName('Project Registry');
     if (!registrySheet) {
       throw new Error('Project Registry sheet not found');
     }
@@ -993,7 +1071,7 @@ export class GoogleSheetsAPI {
       project.settings?.version || PROJECT_STATUS.DRAFT,
       project.createdAt.toISOString(),
       project.updatedAt.toISOString(),
-      Session.getActiveUser().getEmail()
+      Session.getActiveUser().getEmail(),
     ];
   }
 
@@ -1012,8 +1090,8 @@ export class GoogleSheetsAPI {
         version: row[4] || '1.0.0',
         autoSave: true,
         theme: 'light' as const,
-        analytics: true
-      }
+        analytics: true,
+      },
     };
   }
 
@@ -1058,7 +1136,7 @@ export class GoogleSheetsAPI {
       spreadsheetId: this.options.spreadsheetId,
       cacheSize: this.spreadsheetCache.size,
       batchQueueSize: this.batchQueue.length,
-      isBatchProcessing: this.isBatchProcessing
+      isBatchProcessing: this.isBatchProcessing,
     };
   }
 

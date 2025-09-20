@@ -12,7 +12,7 @@ import {
   EventType,
   TriggerType,
   ExplicoError,
-  ErrorCode
+  ErrorCode,
 } from '../types';
 import { VALIDATION_RULES, HOTSPOT_DEFAULTS, PROJECT_DEFAULTS, SLIDE_DEFAULTS } from '../constants';
 
@@ -41,7 +41,10 @@ export function validateProject(data: Partial<Project>): boolean {
   if (data.title.length > VALIDATION_RULES.project.title.maxLength) {
     return false;
   }
-  if (data.description && data.description.length > VALIDATION_RULES.project.description.maxLength) {
+  if (
+    data.description &&
+    data.description.length > VALIDATION_RULES.project.description.maxLength
+  ) {
     return false;
   }
   return true;
@@ -69,10 +72,18 @@ export function validateHotspot(data: Partial<Hotspot>): boolean {
   if (typeof data.y !== 'number' || data.y < rules.y.min || data.y > rules.y.max) {
     return false;
   }
-  if (typeof data.width !== 'number' || data.width < rules.width.min || data.width > rules.width.max) {
+  if (
+    typeof data.width !== 'number' ||
+    data.width < rules.width.min ||
+    data.width > rules.width.max
+  ) {
     return false;
   }
-  if (typeof data.height !== 'number' || data.height < rules.height.min || data.height > rules.height.max) {
+  if (
+    typeof data.height !== 'number' ||
+    data.height < rules.height.min ||
+    data.height > rules.height.max
+  ) {
     return false;
   }
 
@@ -106,8 +117,8 @@ export function createProjectFromRequest(request: CreateProjectRequest): Omit<Pr
     spreadsheetId: '',
     settings: {
       ...PROJECT_DEFAULTS.settings,
-      ...request.settings
-    }
+      ...request.settings,
+    },
   };
 }
 
@@ -118,7 +129,7 @@ export function createSlideFromRequest(request: CreateSlideRequest): Omit<Slide,
     mediaType: request.mediaType,
     mediaUrl: request.mediaUrl.trim(),
     order: request.order || 0,
-    ...SLIDE_DEFAULTS
+    ...SLIDE_DEFAULTS,
   };
 }
 
@@ -133,10 +144,10 @@ export function createHotspotFromRequest(request: CreateHotspotRequest): Omit<Ho
     triggerType: request.triggerType,
     config: {
       ...HOTSPOT_DEFAULTS.config,
-      ...request.config
+      ...request.config,
     },
     order: 0,
-    isVisible: true
+    isVisible: true,
   };
 }
 
@@ -144,7 +155,7 @@ export function createHotspotFromRequest(request: CreateHotspotRequest): Omit<Ho
 export function extractYouTubeVideoId(url: string): string | null {
   const patterns = [
     /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/,
-    /youtube\.com\/embed\/([^&\n?#]+)/
+    /youtube\.com\/embed\/([^&\n?#]+)/,
   ];
 
   for (const pattern of patterns) {
@@ -162,7 +173,10 @@ export function getYouTubeEmbedUrl(url: string): string | null {
   return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
 }
 
-export function getYouTubeThumbnailUrl(url: string, quality: 'default' | 'medium' | 'high' | 'maxres' = 'medium'): string | null {
+export function getYouTubeThumbnailUrl(
+  url: string,
+  quality: 'default' | 'medium' | 'high' | 'maxres' = 'medium'
+): string | null {
   const videoId = extractYouTubeVideoId(url);
   return videoId ? `https://img.youtube.com/vi/${videoId}/${quality}default.jpg` : null;
 }
@@ -175,18 +189,20 @@ export function reorderArray<T>(array: T[], fromIndex: number, toIndex: number):
   return result;
 }
 
-export function updateArrayItem<T extends { id: string }>(array: T[], id: string, updates: Partial<T>): T[] {
-  return array.map(item =>
-    item.id === id ? { ...item, ...updates } : item
-  );
+export function updateArrayItem<T extends { id: string }>(
+  array: T[],
+  id: string,
+  updates: Partial<T>
+): T[] {
+  return array.map((item) => (item.id === id ? { ...item, ...updates } : item));
 }
 
 export function removeArrayItem<T extends { id: string }>(array: T[], id: string): T[] {
-  return array.filter(item => item.id !== id);
+  return array.filter((item) => item.id !== id);
 }
 
 export function findArrayItem<T extends { id: string }>(array: T[], id: string): T | undefined {
-  return array.find(item => item.id === id);
+  return array.find((item) => item.id === id);
 }
 
 // Date Utility Functions
@@ -195,7 +211,7 @@ export function formatDate(date: Date | string): string {
   return d.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
-    day: 'numeric'
+    day: 'numeric',
   });
 }
 
@@ -206,7 +222,7 @@ export function formatDateTime(date: Date | string): string {
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
-    minute: '2-digit'
+    minute: '2-digit',
   });
 }
 
@@ -219,11 +235,14 @@ export function clampCoordinate(value: number, min: number, max: number): number
   return Math.min(Math.max(value, min), max);
 }
 
-export function isPointInBounds(x: number, y: number, bounds: { x: number, y: number, width: number, height: number }): boolean {
-  return x >= bounds.x &&
-         x <= bounds.x + bounds.width &&
-         y >= bounds.y &&
-         y <= bounds.y + bounds.height;
+export function isPointInBounds(
+  x: number,
+  y: number,
+  bounds: { x: number; y: number; width: number; height: number }
+): boolean {
+  return (
+    x >= bounds.x && x <= bounds.x + bounds.width && y >= bounds.y && y <= bounds.y + bounds.height
+  );
 }
 
 export function calculateDistance(x1: number, y1: number, x2: number, y2: number): number {
@@ -254,7 +273,7 @@ export function deepClone<T>(obj: T): T {
   }
 
   if (Array.isArray(obj)) {
-    return obj.map(item => deepClone(item)) as any;
+    return obj.map((item) => deepClone(item)) as any;
   }
 
   const cloned = {} as T;
@@ -289,7 +308,7 @@ export function throttle<T extends (...args: any[]) => any>(
     if (!inThrottle) {
       func.apply(null, args);
       inThrottle = true;
-      setTimeout(() => inThrottle = false, wait);
+      setTimeout(() => (inThrottle = false), wait);
     }
   };
 }

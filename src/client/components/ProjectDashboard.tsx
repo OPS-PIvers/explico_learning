@@ -24,23 +24,23 @@ export const ProjectDashboard: React.FC = () => {
     error: null,
     showCreateModal: false,
     searchQuery: '',
-    sortBy: 'updated'
+    sortBy: 'updated',
   });
 
   // Load projects from Google Apps Script
   const loadProjects = useCallback(async () => {
     try {
-      setState(prev => ({ ...prev, loading: true, error: null }));
+      setState((prev) => ({ ...prev, loading: true, error: null }));
 
       // Use Google Apps Script API
       const projects = await new Promise<Project[]>((resolve, reject) => {
         window.google.script.run
           .withSuccessHandler((result: Project[]) => {
             // Convert date strings back to Date objects
-            const processedProjects = result.map(project => ({
+            const processedProjects = result.map((project) => ({
               ...project,
               createdAt: new Date(project.createdAt),
-              updatedAt: new Date(project.updatedAt)
+              updatedAt: new Date(project.updatedAt),
             }));
             resolve(processedProjects);
           })
@@ -50,17 +50,17 @@ export const ProjectDashboard: React.FC = () => {
           .getProjects();
       });
 
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         projects,
         loading: false,
-        error: null
+        error: null,
       }));
     } catch (error) {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         loading: false,
-        error: error instanceof Error ? error.message : 'Failed to load projects'
+        error: error instanceof Error ? error.message : 'Failed to load projects',
       }));
     }
   }, []);
@@ -68,7 +68,7 @@ export const ProjectDashboard: React.FC = () => {
   // Create new project
   const handleCreateProject = useCallback(async (request: CreateProjectRequest) => {
     try {
-      setState(prev => ({ ...prev, loading: true, error: null }));
+      setState((prev) => ({ ...prev, loading: true, error: null }));
 
       const newProject = await new Promise<Project>((resolve, reject) => {
         window.google.script.run
@@ -76,7 +76,7 @@ export const ProjectDashboard: React.FC = () => {
             const processedProject = {
               ...result,
               createdAt: new Date(result.createdAt),
-              updatedAt: new Date(result.updatedAt)
+              updatedAt: new Date(result.updatedAt),
             };
             resolve(processedProject);
           })
@@ -86,18 +86,18 @@ export const ProjectDashboard: React.FC = () => {
           .createProject(request.title, request.description);
       });
 
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         projects: [...prev.projects, newProject],
         loading: false,
         showCreateModal: false,
-        error: null
+        error: null,
       }));
     } catch (error) {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         loading: false,
-        error: error instanceof Error ? error.message : 'Failed to create project'
+        error: error instanceof Error ? error.message : 'Failed to create project',
       }));
     }
   }, []);
@@ -118,14 +118,14 @@ export const ProjectDashboard: React.FC = () => {
           .deleteProject(projectId);
       });
 
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
-        projects: prev.projects.filter(p => p.id !== projectId)
+        projects: prev.projects.filter((p) => p.id !== projectId),
       }));
     } catch (error) {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
-        error: error instanceof Error ? error.message : 'Failed to delete project'
+        error: error instanceof Error ? error.message : 'Failed to delete project',
       }));
     }
   }, []);
@@ -148,9 +148,10 @@ export const ProjectDashboard: React.FC = () => {
     // Filter by search query
     if (state.searchQuery.trim()) {
       const query = state.searchQuery.toLowerCase();
-      filtered = filtered.filter(project =>
-        project.title.toLowerCase().includes(query) ||
-        project.description.toLowerCase().includes(query)
+      filtered = filtered.filter(
+        (project) =>
+          project.title.toLowerCase().includes(query) ||
+          project.description.toLowerCase().includes(query)
       );
     }
 
@@ -185,7 +186,7 @@ export const ProjectDashboard: React.FC = () => {
           <div className="header-actions">
             <button
               className="btn btn-primary"
-              onClick={() => setState(prev => ({ ...prev, showCreateModal: true }))}
+              onClick={() => setState((prev) => ({ ...prev, showCreateModal: true }))}
               disabled={state.loading}
             >
               + Create Project
@@ -202,7 +203,7 @@ export const ProjectDashboard: React.FC = () => {
               className="search-input"
               placeholder="Search projects..."
               value={state.searchQuery}
-              onChange={(e) => setState(prev => ({ ...prev, searchQuery: e.target.value }))}
+              onChange={(e) => setState((prev) => ({ ...prev, searchQuery: e.target.value }))}
             />
           </div>
           <div className="sort-controls">
@@ -211,7 +212,12 @@ export const ProjectDashboard: React.FC = () => {
               id="sort-select"
               className="sort-select"
               value={state.sortBy}
-              onChange={(e) => setState(prev => ({ ...prev, sortBy: e.target.value as 'name' | 'date' | 'updated' }))}
+              onChange={(e) =>
+                setState((prev) => ({
+                  ...prev,
+                  sortBy: e.target.value as 'name' | 'date' | 'updated',
+                }))
+              }
             >
               <option value="updated">Last Updated</option>
               <option value="date">Date Created</option>
@@ -222,12 +228,7 @@ export const ProjectDashboard: React.FC = () => {
 
         {state.loading && <LoadingSpinner message="Loading projects..." />}
 
-        {state.error && (
-          <ErrorMessage
-            message={state.error}
-            onRetry={loadProjects}
-          />
-        )}
+        {state.error && <ErrorMessage message={state.error} onRetry={loadProjects} />}
 
         {!state.loading && !state.error && (
           <>
@@ -242,7 +243,7 @@ export const ProjectDashboard: React.FC = () => {
                   )}
                   <button
                     className="btn btn-primary"
-                    onClick={() => setState(prev => ({ ...prev, showCreateModal: true }))}
+                    onClick={() => setState((prev) => ({ ...prev, showCreateModal: true }))}
                   >
                     Create First Project
                   </button>
@@ -250,7 +251,7 @@ export const ProjectDashboard: React.FC = () => {
               </div>
             ) : (
               <div className="projects-grid">
-                {(filteredAndSortedProjects || []).map(project => (
+                {(filteredAndSortedProjects || []).map((project) => (
                   <ProjectCard
                     key={project.id}
                     project={project}
@@ -266,7 +267,7 @@ export const ProjectDashboard: React.FC = () => {
 
       {state.showCreateModal && (
         <CreateProjectModal
-          onClose={() => setState(prev => ({ ...prev, showCreateModal: false }))}
+          onClose={() => setState((prev) => ({ ...prev, showCreateModal: false }))}
           onCreate={handleCreateProject}
           isLoading={state.loading}
         />

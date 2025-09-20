@@ -17,36 +17,41 @@ interface UseKeyboardShortcutsOptions {
 }
 
 export function useKeyboardShortcuts({ shortcuts, enabled = true }: UseKeyboardShortcutsOptions) {
-  const handleKeyDown = useCallback((event: KeyboardEvent) => {
-    if (!enabled) return;
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (!enabled) return;
 
-    // Don't trigger shortcuts when user is typing in input fields
-    const target = event.target as HTMLElement;
-    if (
-      target.tagName === 'INPUT' ||
-      target.tagName === 'TEXTAREA' ||
-      target.contentEditable === 'true'
-    ) {
-      return;
-    }
-
-    const matchingShortcut = shortcuts.find(shortcut => {
-      const keyMatches = shortcut.key.toLowerCase() === event.key.toLowerCase();
-      const ctrlMatches = !!shortcut.ctrl === (event.ctrlKey || event.metaKey);
-      const metaMatches = !!shortcut.meta === event.metaKey;
-      const shiftMatches = !!shortcut.shift === event.shiftKey;
-      const altMatches = !!shortcut.alt === event.altKey;
-
-      return keyMatches && ctrlMatches && shiftMatches && altMatches && (!shortcut.meta || metaMatches);
-    });
-
-    if (matchingShortcut) {
-      if (matchingShortcut.preventDefault !== false) {
-        event.preventDefault();
+      // Don't trigger shortcuts when user is typing in input fields
+      const target = event.target as HTMLElement;
+      if (
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.contentEditable === 'true'
+      ) {
+        return;
       }
-      matchingShortcut.action();
-    }
-  }, [shortcuts, enabled]);
+
+      const matchingShortcut = shortcuts.find((shortcut) => {
+        const keyMatches = shortcut.key.toLowerCase() === event.key.toLowerCase();
+        const ctrlMatches = !!shortcut.ctrl === (event.ctrlKey || event.metaKey);
+        const metaMatches = !!shortcut.meta === event.metaKey;
+        const shiftMatches = !!shortcut.shift === event.shiftKey;
+        const altMatches = !!shortcut.alt === event.altKey;
+
+        return (
+          keyMatches && ctrlMatches && shiftMatches && altMatches && (!shortcut.meta || metaMatches)
+        );
+      });
+
+      if (matchingShortcut) {
+        if (matchingShortcut.preventDefault !== false) {
+          event.preventDefault();
+        }
+        matchingShortcut.action();
+      }
+    },
+    [shortcuts, enabled]
+  );
 
   useEffect(() => {
     if (enabled) {
@@ -56,10 +61,10 @@ export function useKeyboardShortcuts({ shortcuts, enabled = true }: UseKeyboardS
   }, [handleKeyDown, enabled]);
 
   return {
-    shortcuts: shortcuts.map(shortcut => ({
+    shortcuts: shortcuts.map((shortcut) => ({
       ...shortcut,
-      displayKey: formatShortcutDisplay(shortcut)
-    }))
+      displayKey: formatShortcutDisplay(shortcut),
+    })),
   };
 }
 
@@ -95,79 +100,79 @@ export const createEditorShortcuts = (actions: {
     key: 's',
     ctrl: true,
     description: 'Save project',
-    action: actions.save
+    action: actions.save,
   },
   {
     key: 'z',
     ctrl: true,
     description: 'Undo',
-    action: actions.undo
+    action: actions.undo,
   },
   {
     key: 'z',
     ctrl: true,
     shift: true,
     description: 'Redo',
-    action: actions.redo
+    action: actions.redo,
   },
   {
     key: 'y',
     ctrl: true,
     description: 'Redo (alternative)',
-    action: actions.redo
+    action: actions.redo,
   },
   {
     key: 'Delete',
     description: 'Delete selected hotspot',
-    action: actions.delete
+    action: actions.delete,
   },
   {
     key: 'Escape',
     description: 'Clear selection',
-    action: actions.escape
+    action: actions.escape,
   },
   {
     key: 'c',
     ctrl: true,
     description: 'Copy hotspot',
-    action: actions.copy
+    action: actions.copy,
   },
   {
     key: 'v',
     ctrl: true,
     description: 'Paste hotspot',
-    action: actions.paste
+    action: actions.paste,
   },
   {
     key: 'a',
     ctrl: true,
     description: 'Select all hotspots',
-    action: actions.selectAll
+    action: actions.selectAll,
   },
   {
     key: 'e',
     ctrl: true,
     description: 'Toggle edit/preview mode',
-    action: actions.toggleMode
+    action: actions.toggleMode,
   },
   {
     key: '=',
     ctrl: true,
     description: 'Zoom in',
-    action: actions.zoomIn
+    action: actions.zoomIn,
   },
   {
     key: '-',
     ctrl: true,
     description: 'Zoom out',
-    action: actions.zoomOut
+    action: actions.zoomOut,
   },
   {
     key: '0',
     ctrl: true,
     description: 'Reset zoom',
-    action: actions.resetZoom
-  }
+    action: actions.resetZoom,
+  },
 ];
 
 export const createSlideNavigationShortcuts = (actions: {
@@ -179,21 +184,21 @@ export const createSlideNavigationShortcuts = (actions: {
   {
     key: 'ArrowRight',
     description: 'Next slide',
-    action: actions.nextSlide
+    action: actions.nextSlide,
   },
   {
     key: 'ArrowLeft',
     description: 'Previous slide',
-    action: actions.prevSlide
+    action: actions.prevSlide,
   },
   {
     key: 'Home',
     description: 'First slide',
-    action: actions.firstSlide
+    action: actions.firstSlide,
   },
   {
     key: 'End',
     description: 'Last slide',
-    action: actions.lastSlide
-  }
+    action: actions.lastSlide,
+  },
 ];

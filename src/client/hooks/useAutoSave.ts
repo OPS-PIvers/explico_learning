@@ -23,7 +23,7 @@ export function useAutoSave<T>({
   delay = 2000,
   enabled = true,
   onError,
-  onSuccess
+  onSuccess,
 }: UseAutoSaveOptions<T>): UseAutoSaveReturn {
   const [isSaving, setIsSaving] = useState(false);
   const [isError, setIsError] = useState(false);
@@ -99,6 +99,6 @@ export function useAutoSave<T>({
     isError,
     lastSaved,
     saveNow,
-    error
+    error,
   };
 }

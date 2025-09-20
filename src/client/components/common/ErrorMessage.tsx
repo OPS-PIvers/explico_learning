@@ -6,11 +6,7 @@ interface ErrorMessageProps {
   className?: string;
 }
 
-export const ErrorMessage: React.FC<ErrorMessageProps> = ({
-  message,
-  onRetry,
-  className = ''
-}) => {
+export const ErrorMessage: React.FC<ErrorMessageProps> = ({ message, onRetry, className = '' }) => {
   return (
     <div className={`error-message ${className}`}>
       <div className="error-icon">⚠️</div>

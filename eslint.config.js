@@ -44,7 +44,8 @@ export default [
         HtmlService: 'readonly',
         SpreadsheetApp: 'readonly',
         DriveApp: 'readonly',
-        GoogleAppsScript: 'readonly'
+        GoogleAppsScript: 'readonly',
+        global: 'writable'
       }
     },
     rules: {
@@ -98,7 +99,8 @@ export default [
         SpreadsheetApp: 'readonly',
         DriveApp: 'readonly',
         GoogleAppsScript: 'readonly',
-        React: 'readonly'
+        React: 'readonly',
+        global: 'writable'
       }
     },
     plugins: {

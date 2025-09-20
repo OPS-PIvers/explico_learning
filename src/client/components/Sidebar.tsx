@@ -9,7 +9,7 @@ export const Sidebar: React.FC<SidebarProps & { width?: number }> = ({
   onSlideReorder,
   onSlideCreate,
   onSlideDelete,
-  width = 300
+  width = 300,
 }) => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [draggedSlide, setDraggedSlide] = useState<Slide | null>(null);
@@ -34,40 +34,49 @@ export const Sidebar: React.FC<SidebarProps & { width?: number }> = ({
   }, []);
 
   // Handle drop
-  const handleDrop = useCallback((e: React.DragEvent, targetIndex: number) => {
-    e.preventDefault();
-    setDragOverIndex(null);
+  const handleDrop = useCallback(
+    (e: React.DragEvent, targetIndex: number) => {
+      e.preventDefault();
+      setDragOverIndex(null);
 
-    if (!draggedSlide) return;
+      if (!draggedSlide) return;
 
-    const currentIndex = slides.findIndex(s => s.id === draggedSlide.id);
-    if (currentIndex === targetIndex) return;
+      const currentIndex = slides.findIndex((s) => s.id === draggedSlide.id);
+      if (currentIndex === targetIndex) return;
 
-    const newSlides = [...slides];
-    const [removed] = newSlides.splice(currentIndex, 1);
-    newSlides.splice(targetIndex, 0, removed);
+      const newSlides = [...slides];
+      const [removed] = newSlides.splice(currentIndex, 1);
+      newSlides.splice(targetIndex, 0, removed);
 
-    // Update order property
-    const reorderedSlides = newSlides.map((slide, index) => ({
-      ...slide,
-      order: index
-    }));
+      // Update order property
+      const reorderedSlides = newSlides.map((slide, index) => ({
+        ...slide,
+        order: index,
+      }));
 
-    onSlideReorder?.(reorderedSlides);
-    setDraggedSlide(null);
-  }, [draggedSlide, slides, onSlideReorder]);
+      onSlideReorder?.(reorderedSlides);
+      setDraggedSlide(null);
+    },
+    [draggedSlide, slides, onSlideReorder]
+  );
 
   // Handle slide creation
-  const handleSlideCreate = useCallback((slideData: CreateSlideRequest) => {
-    onSlideCreate?.(slideData);
-    setShowCreateModal(false);
-  }, [onSlideCreate]);
+  const handleSlideCreate = useCallback(
+    (slideData: CreateSlideRequest) => {
+      onSlideCreate?.(slideData);
+      setShowCreateModal(false);
+    },
+    [onSlideCreate]
+  );
 
   // Handle slide deletion
-  const handleSlideDelete = useCallback((e: React.MouseEvent, slide: Slide) => {
-    e.stopPropagation();
-    onSlideDelete?.(slide.id);
-  }, [onSlideDelete]);
+  const handleSlideDelete = useCallback(
+    (e: React.MouseEvent, slide: Slide) => {
+      e.stopPropagation();
+      onSlideDelete?.(slide.id);
+    },
+    [onSlideDelete]
+  );
 
   return (
     <div className="sidebar" style={{ width }}>
@@ -86,10 +95,7 @@ export const Sidebar: React.FC<SidebarProps & { width?: number }> = ({
         {slides.length === 0 ? (
           <div className="empty-slides">
             <p>No slides yet</p>
-            <button
-              className="btn btn-sm btn-primary"
-              onClick={() => setShowCreateModal(true)}
-            >
+            <button className="btn btn-sm btn-primary" onClick={() => setShowCreateModal(true)}>
               Create First Slide
             </button>
           </div>
@@ -108,9 +114,7 @@ export const Sidebar: React.FC<SidebarProps & { width?: number }> = ({
               onDrop={(e) => handleDrop(e, index)}
               title={`Slide ${index + 1}: ${slide.title}`}
             >
-              <div className="slide-drag-handle">
-                ⋮⋮
-              </div>
+              <div className="slide-drag-handle">⋮⋮</div>
 
               <div className="slide-preview">
                 <img
@@ -118,7 +122,8 @@ export const Sidebar: React.FC<SidebarProps & { width?: number }> = ({
                   alt={slide.title}
                   className="slide-thumbnail"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9Ijc1IiB2aWV3Qm94PSIwIDAgMTAwIDc1IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9Ijc1IiBmaWxsPSIjZjBmMGYwIi8+CjxwYXRoIGQ9Ik00MCA0MEwzNSAzNUwzMCAzNUwyNSA0MEwyNSA0NUwzMCA1MEwzNSA1MEw0MCA0NVY0MFoiIGZpbGw9IiNjY2MiLz4KPHN2Zz4K';
+                    (e.target as HTMLImageElement).src =
+                      'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9Ijc1IiB2aWV3Qm94PSIwIDAgMTAwIDc1IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9Ijc1IiBmaWxsPSIjZjBmMGYwIi8+CjxwYXRoIGQ9Ik00MCA0MEwzNSAzNUwzMCAzNUwyNSA0MEwyNSA0NUwzMCA1MEwzNSA1MEw0MCA0NVY0MFoiIGZpbGw9IiNjY2MiLz4KPHN2Zz4K';
                   }}
                   loading="lazy"
                 />
@@ -146,10 +151,7 @@ export const Sidebar: React.FC<SidebarProps & { width?: number }> = ({
       </div>
 
       {showCreateModal && (
-        <CreateSlideModal
-          onClose={() => setShowCreateModal(false)}
-          onCreate={handleSlideCreate}
-        />
+        <CreateSlideModal onClose={() => setShowCreateModal(false)} onCreate={handleSlideCreate} />
       )}
     </div>
   );

@@ -64,26 +64,17 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, onRemove }) => {
       role="alert"
       aria-live="polite"
     >
-      <div className="toast-icon">
-        {getIcon()}
-      </div>
+      <div className="toast-icon">{getIcon()}</div>
       <div className="toast-content">
         {toast.title && <div className="toast-title">{toast.title}</div>}
         <div className="toast-message">{toast.message}</div>
         {toast.action && (
-          <button
-            className="toast-action"
-            onClick={toast.action.onClick}
-          >
+          <button className="toast-action" onClick={toast.action.onClick}>
             {toast.action.label}
           </button>
         )}
       </div>
-      <button
-        className="toast-close"
-        onClick={handleClose}
-        aria-label="Close notification"
-      >
+      <button className="toast-close" onClick={handleClose} aria-label="Close notification">
         ×
       </button>
     </div>
@@ -95,10 +86,7 @@ interface ToastContainerProps {
   onRemoveToast: (id: string) => void;
 }
 
-export const ToastContainer: React.FC<ToastContainerProps> = ({
-  toasts,
-  onRemoveToast
-}) => {
+export const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onRemoveToast }) => {
   if (toasts.length === 0) {
     return null;
   }
@@ -106,11 +94,7 @@ export const ToastContainer: React.FC<ToastContainerProps> = ({
   return (
     <div className="toast-container">
       {toasts.map((toast) => (
-        <ToastItem
-          key={toast.id}
-          toast={toast}
-          onRemove={onRemoveToast}
-        />
+        <ToastItem key={toast.id} toast={toast} onRemove={onRemoveToast} />
       ))}
     </div>
   );
